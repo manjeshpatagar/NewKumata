@@ -1,13 +1,13 @@
 'use client';
 
 import { createContext, useContext, useState, ReactNode } from 'react';
+import { axiosClient } from "@/lib/api/axiosClient";
 
 interface User {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'shopowner' | 'admin';
-  shopName?: string;
+  role: "user" | "shopowner" | "admin";
 }
 
 interface AuthContextType {
@@ -23,39 +23,34 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  // Start with no user logged in
   const [user, setUser] = useState<User | null>(null);
   const [isGuest, setIsGuest] = useState(false);
 
+  /* ------------ REGISTER API ----------- */
+  const register = async (data: any) => {
+    console.log("📝 Register Request Payload:", data);
+    console.log("📤 Sending Request: /register POST");
+
+    const res = await axiosClient.post("/auth/register", data);
+
+    localStorage.setItem("token", res.data.token);
+    setUser(res.data.data);
+  };
+
+  /* ------------ LOGIN API ----------- */
   const login = async (email: string, password: string) => {
-    // Mock login - in production, this would call an API
-    setUser({
-      id: '1',
-      name: 'Ramesh Kumar',
-      email: email,
-      role: 'admin',
-    });
-    setIsGuest(false);
+    console.log("🔐 Logging in:", email);
+
+    const res = await axiosClient.post("/auth/login", { email, password });
+
+    localStorage.setItem("token", res.data.token);
+    setUser(res.data.data);
   };
 
-  const register = async (userData: any) => {
-    // Mock registration - in production, this would call an API
-    setUser({
-      id: Math.random().toString(),
-      name: userData.name,
-      email: userData.email,
-      role: userData.role,
-      shopName: userData.shopName,
-    });
-    setIsGuest(false);
-  };
-
-  const continueAsGuest = () => {
-    setIsGuest(true);
-    setUser(null);
-  };
+  const continueAsGuest = () => setIsGuest(true);
 
   const logout = () => {
+    localStorage.removeItem("token");
     setUser(null);
     setIsGuest(false);
   };
@@ -79,8 +74,6 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
-  if (context === undefined) {
-    throw new Error('useAuth must be used within an AuthProvider');
-  }
+  if (!context) throw new Error("useAuth must be used inside AuthProvider");
   return context;
 }
