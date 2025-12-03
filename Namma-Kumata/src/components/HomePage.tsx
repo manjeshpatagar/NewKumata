@@ -166,10 +166,10 @@ export function HomePage({ onNavigate }: HomePageProps) {
         <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8 py-3 sm:py-4">
           <div className="flex items-center justify-between gap-2 sm:gap-3 mb-3 sm:mb-4">
             {/* Logo with Glow */}
-            {/* <div className="flex items-center gap-2">
+            <div className="flex items-center gap-2">
               <NammaKumtaLogo size="sm" />
             </div>
-             */}
+            
             {/* Right Icons with Premium Style */}
             <div className="flex items-center gap-2">
               <LanguageSelector />
