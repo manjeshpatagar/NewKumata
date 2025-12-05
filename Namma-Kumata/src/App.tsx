@@ -69,6 +69,7 @@ import { AdminEditAdPage } from '@/components/admin/AdminEditAdPage';
 import { AdminCategoriesPage } from '@/components/admin/AdminCategoriesPage';
 import { AdminNotificationsPage } from '@/components/admin/AdminNotificationsPage';
 import { AdminAnalyticsPage } from '@/components/admin/AdminAnalyticsPage';
+import { AdminSubcategoriesPage } from '@/components/admin/AdminSubcategoriesPage';
 
 // Layout
 import { BottomNav } from '@/components/BottomNav';
@@ -101,7 +102,7 @@ function Router() {
     '/admin', '/admin/shops', '/admin/ads', '/admin/users',
     '/admin/add-shop', '/admin/edit-shop', '/admin/add-ad',
     '/admin/edit-ad', '/admin/categories', '/admin/notifications',
-    '/admin/analytics'
+    '/admin/analytics', '/admin/subcategories'
   ];
 
   // 🛑 If authenticated and still on login → go home
@@ -352,6 +353,9 @@ function Router() {
     if (pathname === '/admin/ads') return <AdminAdsPage onBack={() => router.push('/admin')} onNavigate={handleNavigate} />;
     if (pathname === '/admin/users') return <AdminUsersPage onBack={() => router.push('/admin')} />;
 
+    if (pathname === '/admin/subcategories') {
+      return <AdminSubcategoriesPage categories={[]} onBack={() => router.push('/admin')} />;
+    }
     if (pathname === '/admin/add-shop') {
       return <AdminAddShopPage onBack={() => router.push('/admin/shops')} onNavigate={handleNavigate} />;
     }

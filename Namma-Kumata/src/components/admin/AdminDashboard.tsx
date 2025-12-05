@@ -120,6 +120,14 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       link: 'admin/shops',
       count: stats.totalShops
     },
+    {
+    label: 'Add subcategory',
+      description: 'Manage subcategories',
+      icon: Grid,
+      gradient: 'from-green-500 to-teal-600',
+      link: 'admin/subcategories',
+      count:  null
+    },
     { 
       label: 'Manage Advertisements', 
       description: 'Review ad submissions',
