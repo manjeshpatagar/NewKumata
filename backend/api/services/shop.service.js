@@ -1,61 +1,73 @@
-import Shop from "../models/shop.model.js";
+import { Product } from "../models/product.model.js";
 import { Category } from "../models/category.model.js";
+import { SubCategory } from "../models/subcategory.model.js";
 import { ApiError } from "../utils/ApiError.js";
 
 /* -----------------------------
-📦 Create a new Shop
+ 📌 Create Product (All fields optional except shopName + address)
 ----------------------------- */
-export const createShop = async (data) => {
-  const category = await Category.findById(data.category);
+export const createProduct = async (data) => {
+  const category = await Category.findById(data.categoryId);
   if (!category) throw new ApiError(404, "Category not found");
 
-  const shop = await Shop.create(data);
-  return shop.populate("category", "name");
-};
+  // Business category requires subcategory
+  if (category.type === "business") {
+    if (!data.subCategoryId) {
+      throw new ApiError(
+        400,
+        "subCategoryId is required for business category"
+      );
+    }
 
-/* -----------------------------
-📋 Get all shops
------------------------------ */
-export const getAllShops = async (filters = {}) => {
-  const query = {};
-
-  if (filters.category) query.category = filters.category;
-  if (filters.status) query.status = filters.status;
-  if (filters.search) {
-    query.shopName = { $regex: filters.search, $options: "i" };
+    const sub = await SubCategory.findById(data.subCategoryId);
+    if (!sub) throw new ApiError(404, "SubCategory not found");
   }
 
-  return Shop.find(query).populate("category", "name").sort({ createdAt: -1 });
+  // Advertisement category must NOT have a subcategory
+  if (category.type === "advertisement" && data.subCategoryId) {
+    throw new ApiError(400, "Advertisements cannot have subcategories");
+  }
+
+  return Product.create(data);
 };
 
 /* -----------------------------
-🔍 Get single shop
+ 📌 Get All Products
 ----------------------------- */
-export const getShopById = async (id) => {
-  const shop = await Shop.findById(id).populate("category", "name");
-  if (!shop) throw new ApiError(404, "Shop not found");
-  return shop;
+export const getAllProducts = async () => {
+  return Product.find()
+    .populate("categoryId")
+    .populate("subCategoryId")
+    .sort({ createdAt: -1 });
 };
 
 /* -----------------------------
-✏️ Update shop
+ 📌 Get Product By ID
 ----------------------------- */
-export const updateShop = async (id, data) => {
-  const shop = await Shop.findByIdAndUpdate(id, data, {
+export const getProductById = async (id) => {
+  const product = await Product.findById(id)
+    .populate("categoryId")
+    .populate("subCategoryId");
+
+  if (!product) throw new ApiError(404, "Product not found");
+  return product;
+};
+
+/* -----------------------------
+ 📌 Update Product (All fields optional)
+----------------------------- */
+export const updateProduct = async (id, data) => {
+  return Product.findByIdAndUpdate(id, data, {
     new: true,
     runValidators: true,
-  }).populate("category", "name");
-  if (!shop) throw new ApiError(404, "Shop not found");
-  return shop;
+  });
 };
 
 /* -----------------------------
-🗑️ Delete shop
+ 🗑 Delete Product
 ----------------------------- */
-export const deleteShop = async (id) => {
-  const shop = await Shop.findById(id);
-  if (!shop) throw new ApiError(404, "Shop not found");
-
-  await shop.deleteOne();
-  return true;
+export const deleteProduct = async (id) => {
+  const product = await Product.findByIdAndDelete(id);
+  if (!product) throw new ApiError(404, "Product not found");
+  return product;
 };

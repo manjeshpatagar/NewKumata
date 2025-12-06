@@ -4,9 +4,10 @@ import {
   login,
   getUsers,
   deactivate,
-  getProfile,
+  updateProfile,
 } from "../controllers/user.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
+import { uploadedImages } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
@@ -15,7 +16,7 @@ router.post("/register", register);
 router.post("/login", login);
 
 // Protected
-router.get("/me", protect, getProfile);
+router.patch("/me", protect, uploadedImages, updateProfile);
 
 // Admin
 router.get("/", adminOnly, getUsers);

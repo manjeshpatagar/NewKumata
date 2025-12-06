@@ -2,19 +2,18 @@ import mongoose from "mongoose";
 
 const categorySchema = new mongoose.Schema(
   {
-    name: {
+    name: { type: String, required: true, unique: true, trim: true },
+
+    description: { type: String, trim: true },
+
+    image: { type: String },
+
+    type: {
       type: String,
+      enum: ["business", "advertisement"],
       required: true,
-      unique: true,
-      trim: true,
     },
-    description: {
-      type: String,
-      trim: true,
-    },
-    image: {
-      type: String, // URL (could be from IMGBB or Cloudinary)
-    },
+
     isActive: {
       type: Boolean,
       default: true,

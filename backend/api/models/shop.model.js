@@ -1,29 +1,41 @@
-// models/Shop.model.js
 import mongoose from "mongoose";
 
-const shopSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
-    shopName: { type: String, required: true },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-    address: { type: String, required: true },
-    phone: { type: String },
+    images: [String], // multiple images
     thumbnail: { type: String },
-    website: { type: String },
-    ownerName: { type: String },
+
+    shopName: { type: String, required: true },
     description: { type: String },
-    location: {
-      placeName: String,
-      lat: Number,
-      lng: Number,
+    about: { type: String },
+
+    address: { type: String, required: true },
+
+    contact: {
+      phone: { type: String },
+      ownerName: { type: String },
+      email: { type: String },
     },
+
+    // FIXED: use categoryId & subCategoryId
+    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+    subCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: "SubCategory" },
+
+    website: { type: String },
+
     openingHours: {
       open: String,
       close: String,
     },
-    images: [String],
+
     status: { type: String, enum: ["active", "inactive"], default: "active" },
+
+    badges: {
+      type: String,
+      enum: ["upcoming", "popular", "featured", "new", "trending", "exclusive"],
+    },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Shop", shopSchema);
+export const Product = mongoose.model("Product", productSchema);

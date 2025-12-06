@@ -1,118 +1,103 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import {
-  createShop,
-  getAllShops,
-  getShopById,
-  updateShop,
-  deleteShop,
-} from "../services/shop.service.js";
-import { deleteFile, replaceFile } from "../middleware/upload.middleware.js";
+  createProduct,
+  getAllProducts,
+  getProductById,
+  updateProduct,
+  deleteProduct,
+} from "../services/product.service.js";
+import { deleteFile } from "../middleware/upload.middleware.js";
+import { Product } from "../models/product.model.js";
 
 /* -----------------------------
-📦 Add new shop
+ 📌 Create Product
 ----------------------------- */
-export const addShop = asyncHandler(async (req, res) => {
-  const {
-    shopName,
-    category,
-    address,
-    phone,
-    website,
-    ownerName,
-    description,
-    location,
-    openingHours,
-  } = req.body;
-
-  // ✅ Handle uploaded image URLs from IMGBB middleware
+export const addProduct = asyncHandler(async (req, res) => {
   const images = req.files?.images?.map((img) => img.url) || [];
-  const thumbnail = images[0] || null; // first image can be the thumbnail
+  const thumbnail = req.files?.thumbnail?.[0]?.url || images[0] || null;
 
-  const shop = await createShop({
-    shopName,
-    category,
-    address,
-    phone,
-    website,
-    ownerName,
-    description,
-    location,
-    openingHours,
+  const product = await createProduct({
+    ...req.body,
     images,
     thumbnail,
   });
 
   res.status(201).json({
     success: true,
-    message: "Shop added successfully",
-    data: shop,
+    message: "Product created successfully",
+    data: product,
   });
 });
 
 /* -----------------------------
-📋 Get all shops
+ 📌 Get All Products
 ----------------------------- */
-export const getShops = asyncHandler(async (req, res) => {
-  const filters = {
-    category: req.query.category,
-    status: req.query.status,
-    search: req.query.search,
-  };
-  const shops = await getAllShops(filters);
-  res.status(200).json({ success: true, count: shops.length, data: shops });
+export const getProducts = asyncHandler(async (req, res) => {
+  const products = await getAllProducts();
+  res
+    .status(200)
+    .json({ success: true, count: products.length, data: products });
 });
 
 /* -----------------------------
-🔍 Get single shop
+ 📌 Get Single Product
 ----------------------------- */
-export const getShop = asyncHandler(async (req, res) => {
-  const shop = await getShopById(req.params.id);
-  res.status(200).json({ success: true, data: shop });
+export const getSingleProduct = asyncHandler(async (req, res) => {
+  const product = await getProductById(req.params.id);
+  res.status(200).json({ success: true, data: product });
 });
 
 /* -----------------------------
-✏️ Update shop (with new images)
+ 📌 Update Product (All fields optional)
 ----------------------------- */
-export const editShop = asyncHandler(async (req, res) => {
-  const shop = await getShopById(req.params.id);
+export const editProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) throw new ApiError(404, "Product not found");
 
-  // If new images uploaded, delete old ones first
-  let updatedImages = shop.images;
-  if (req.files?.images?.length) {
-    for (const oldImage of shop.images) {
-      await deleteFile(oldImage);
-    }
-    updatedImages = req.files.images.map((img) => img.url);
+  let images = product.images;
+  let thumbnail = product.thumbnail;
+
+  // Handle image replacement
+  const newImages = req.files?.images?.map((img) => img.url);
+  const newThumbnail = req.files?.thumbnail?.[0]?.url;
+
+  if (newImages?.length > 0) {
+    for (const img of images) await deleteFile(img);
+    images = newImages;
   }
 
-  const updatedShop = await updateShop(req.params.id, {
+  if (newThumbnail) {
+    await deleteFile(thumbnail);
+    thumbnail = newThumbnail;
+  }
+
+  const updated = await updateProduct(req.params.id, {
     ...req.body,
-    images: updatedImages,
-    thumbnail: updatedImages[0] || shop.thumbnail,
+    images,
+    thumbnail,
   });
 
   res.status(200).json({
     success: true,
-    message: "Shop updated successfully",
-    data: updatedShop,
+    message: "Product updated successfully",
+    data: updated,
   });
 });
 
 /* -----------------------------
-🗑️ Delete shop (auto-delete IMGBB images)
+ 🗑 Delete Product
 ----------------------------- */
-export const removeShop = asyncHandler(async (req, res) => {
-  const shop = await getShopById(req.params.id);
+export const removeProduct = asyncHandler(async (req, res) => {
+  const product = await Product.findById(req.params.id);
+  if (!product) throw new ApiError(404, "Product not found");
 
-  // Delete all associated images from IMGBB
-  for (const img of shop.images) {
-    await deleteFile(img);
-  }
+  if (product.thumbnail) await deleteFile(product.thumbnail);
+  for (const img of product.images) await deleteFile(img);
 
-  await deleteShop(req.params.id);
+  await deleteProduct(req.params.id);
 
   res.status(200).json({
     success: true,
-    message: "Shop deleted successfully",
+    message: "Product deleted successfully",
   });
 });

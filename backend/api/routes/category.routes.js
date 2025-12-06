@@ -11,13 +11,11 @@ import { uploadedImages } from "../middleware/upload.middleware.js";
 
 const router = express.Router();
 
-// Public Routes
+router.post("/", protect, adminOnly, uploadedImages, addCategory);
+router.patch("/:id", protect, adminOnly, uploadedImages, editCategory);
+router.delete("/:id", protect, adminOnly, removeCategory);
+
 router.get("/", getCategories);
 router.get("/:id", getCategory);
-
-// Admin-only Routes
-router.post("/", adminOnly, uploadedImages, addCategory);
-router.patch("/:id", adminOnly, uploadedImages, editCategory);
-router.delete("/:id", adminOnly, removeCategory);
 
 export default router;
