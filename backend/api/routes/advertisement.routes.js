@@ -1,23 +1,32 @@
 import express from "express";
 import {
-  createOrApproveAd,
-  updateOrApproveAd,
-  deleteAd,
-  getAds,
+  addAdvertisement,
+  getAdvertisements,
+  getSingleAdvertisement,
+  editAdvertisement,
+  removeAdvertisement,
 } from "../controllers/advertisement.controller.js";
-import { protect } from "../middleware/auth.middleware.js";
+
+import { protect, adminOnly } from "../middleware/auth.middleware.js";
 import { useUpload } from "../middleware/upload.middleware.js";
+
+const uploadAds = useUpload({
+  folder: "advertisements",
+  fields: [
+    { name: "images", maxCount: 10, type: "image" },
+    { name: "video", maxCount: 1, type: "video" },
+  ],
+});
 
 const router = express.Router();
 
-const uploadAdFiles = useUpload({
-  folder: "advertisements",
-  fields: [{ name: "images", maxCount: 5, type: "image" }],
-});
+// Public
+router.get("/", getAdvertisements);
+router.get("/:id", getSingleAdvertisement);
 
-router.get("/", protect, getAds); // all for admin, active only for user
-router.post("/", protect, uploadAdFiles, createOrApproveAd); // create or admin auto-create
-router.put("/:id", protect, uploadAdFiles, updateOrApproveAd); // update or approve
-router.delete("/:id", protect, deleteAd); // admin only
+// Admin Only
+router.post("/", protect, adminOnly, uploadAds, addAdvertisement);
+router.patch("/:id", protect, adminOnly, uploadAds, editAdvertisement);
+router.delete("/:id", protect, adminOnly, removeAdvertisement);
 
 export default router;

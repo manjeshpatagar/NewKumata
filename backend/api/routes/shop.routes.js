@@ -1,29 +1,31 @@
 import express from "express";
 import {
-  addShop,
-  getShops,
-  getShop,
-  editShop,
-  removeShop,
-} from "../controllers/shop.controller.js";
+  addProduct,
+  getProducts,
+  getSingleProduct,
+  editProduct,
+  removeProduct,
+} from "../controllers/product.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 import { useUpload } from "../middleware/upload.middleware.js";
 
-const router = express.Router();
-
-// 🖼️ IMGBB upload middleware for shop images
-const uploadShopImages = useUpload({
-  folder: "shops",
-  fields: [{ name: "images", maxCount: 5, type: "image" }],
+const uploadProducts = useUpload({
+  folder: "products",
+  fields: [
+    { name: "images", maxCount: 10, type: "image" },
+    { name: "thumbnail", maxCount: 1, type: "image" },
+  ],
 });
 
-// 🌍 Public routes
-router.get("/", getShops);
-router.get("/:id", getShop);
+const router = express.Router();
 
-// 🔒 Admin-protected routes
-router.post("/", adminOnly, uploadShopImages, addShop);
-router.patch("/:id", adminOnly, uploadShopImages, editShop);
-router.delete("/:id", adminOnly, removeShop);
+// Public
+router.get("/", getProducts);
+router.get("/:id", getSingleProduct);
+
+// Admin
+router.post("/", protect, adminOnly, uploadProducts, addProduct);
+router.patch("/:id", protect, adminOnly, uploadProducts, editProduct);
+router.delete("/:id", protect, adminOnly, removeProduct);
 
 export default router;

@@ -1,29 +1,32 @@
 // models/Shop.model.js
 import mongoose from "mongoose";
 
-const shopSchema = new mongoose.Schema(
+const productSchema = new mongoose.Schema(
   {
+    images: [String],
     shopName: { type: String, required: true },
-    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
+    description: { type: String },
+    about: { type: String },
     address: { type: String, required: true },
-    phone: { type: String },
+    contact: {
+      phone: { type: String },
+      ownerName: { type: String },
+      email: { type: String },
+    },
+    category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     thumbnail: { type: String },
     website: { type: String },
-    ownerName: { type: String },
-    description: { type: String },
-    location: {
-      placeName: String,
-      lat: Number,
-      lng: Number,
-    },
     openingHours: {
       open: String,
       close: String,
     },
-    images: [String],
     status: { type: String, enum: ["active", "inactive"], default: "active" },
+    badges: {
+      type: String,
+      enum: ["upcoming", "popular", "featured", "new", "trending", "exclusive"],
+    },
   },
   { timestamps: true }
 );
 
-export default mongoose.model("Shop", shopSchema);
+export default mongoose.model("product", productSchema);
