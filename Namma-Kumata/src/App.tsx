@@ -65,6 +65,7 @@ import { AdminEditAdPage } from '@/components/admin/AdminEditAdPage';
 import { AdminCategoriesPage } from '@/components/admin/AdminCategoriesPage';
 import { AdminNotificationsPage } from '@/components/admin/AdminNotificationsPage';
 import { AdminAnalyticsPage } from '@/components/admin/AdminAnalyticsPage';
+import {AdminSubcategoriesPage} from '@/components/admin/AdminSubcategoriesPage';
 
 // Layout
 import { BottomNav } from '@/components/BottomNav';
@@ -98,7 +99,8 @@ function Router() {
       '/admin/edit-ad',
       '/admin/categories', 
       '/admin/notifications', 
-      '/admin/analytics'
+      '/admin/analytics',
+      '/admin/subcategories'
     ];
     
     // Check admin routes
@@ -409,6 +411,9 @@ function Router() {
     }
     if (pathname === '/admin/categories') {
       return <AdminCategoriesPage onBack={() => router.push('/admin')} />;
+    }
+    if (pathname === '/admin/subcategories') {
+      return <AdminSubcategoriesPage onBack={() => router.push('/admin')} />;
     }
     if (pathname === '/admin/notifications') {
       return <AdminNotificationsPage onBack={() => router.push('/admin')} />;
