@@ -29,7 +29,7 @@ import { SubcategoryPage } from '@/components/SubcategoryPage';
 import { CategoryListingsPage } from '@/components/CategoryListingsPage';
 import { DetailPage } from '@/components/DetailPage';
 
-// User pages
+// User pages 
 import { ProfilePage } from '@/components/ProfilePage';
 import { EditProfilePage } from '@/components/EditProfilePage';
 import { FavoritesPage } from '@/components/FavoritesPage';
