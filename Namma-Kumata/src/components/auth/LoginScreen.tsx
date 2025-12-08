@@ -7,7 +7,7 @@ import { Input } from '../ui/input';
 import { NammaKumtaLogo } from '../NammaKumtaLogo';
 import { useAuth } from '../../contexts/AuthContext';
 
-export function LoginScreen({ onNavigate }: { onNavigate: (page: string) => void }) {
+export function LoginScreen({ onNavigate }: { onNavigate: (p: string) => void }) {
   const { login, continueAsGuest } = useAuth();
   const [showPassword, setShowPassword] = useState(false);
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -30,12 +30,13 @@ export function LoginScreen({ onNavigate }: { onNavigate: (page: string) => void
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-600 to-orange-500 flex items-center justify-center p-6">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 p-4">
 
-      <div className="w-full max-w-md bg-white rounded-2xl shadow-2xl p-8">
-        {/* Back */}
-        <button className="text-gray-600 mb-4 flex items-center gap-2" onClick={() => onNavigate('home')}>
-          <ArrowLeft size={20} /> Back
+      <div className="w-full max-w-md bg-white rounded-2xl shadow-xl p-8">
+
+        {/* Back Button */}
+        <button onClick={() => onNavigate("home")} className="flex items-center gap-2 text-gray-600 mb-4 text-sm">
+          <ArrowLeft size={18} /> Back
         </button>
 
         {/* Logo */}
@@ -44,48 +45,83 @@ export function LoginScreen({ onNavigate }: { onNavigate: (page: string) => void
           <h2 className="text-2xl font-semibold mt-4">Welcome Back</h2>
         </div>
 
-        {/* Error msg */}
+        {/* Error */}
         {errorMsg && (
-          <p className="text-red-600 text-center mb-4">{errorMsg}</p>
+          <p className="text-red-600 text-center mb-3 text-sm">{errorMsg}</p>
         )}
 
-        {/* Form */}
         <form onSubmit={handleSubmit} className="space-y-5">
+
+          {/* Email */}
           <div>
-            <label>Email</label>
+            <label className="block text-sm font-medium mb-1">Email</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-3 text-gray-400" size={18} />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+
               <Input
                 type="email"
+                placeholder="Enter your email"
                 value={formData.email}
                 onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                className="pl-10"
+                className="pl-10 h-12"
                 required
               />
             </div>
           </div>
 
+          {/* Password */}
           <div>
-            <label>Password</label>
+            <div className="flex justify-between items-center">
+              <label className="block text-sm font-medium mb-1">Password</label>
+
+            </div>
+
             <div className="relative">
-              <Lock className="absolute left-3 top-3 text-gray-400" size={18} />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+
               <Input
                 type={showPassword ? "text" : "password"}
+                placeholder="Enter your password"
                 value={formData.password}
                 onChange={(e) => setFormData({ ...formData, password: e.target.value })}
-                className="pl-10 pr-10"
+                className="pl-10 pr-10 h-12"
                 required
               />
 
-              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-3">
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-500"
+              >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
+
+
             </div>
+            <div className="mt-1 text-left">
+              <button
+                type="button"
+                onClick={() => onNavigate("forgot-password")}
+                className="text-xs text-blue-600 hover:underline"
+              >
+                Forgot password?
+              </button>
+            </div>
+
           </div>
 
-          <Button type="submit" disabled={loading} className="w-full h-12">
-            {loading ? "Logging in..." : (
-              <div className="flex items-center gap-2"><LogIn size={18} /> Login</div>
+          {/* Login Button */}
+          <Button
+            type="submit"
+            disabled={loading}
+            className="w-full h-12 text-white bg-gradient-to-r from-blue-600 via-purple-600 to-pink-600 hover:opacity-90 transition"
+          >
+            {loading ? (
+              "Logging in..."
+            ) : (
+              <span className="flex items-center gap-2">
+                <LogIn size={18} /> Login
+              </span>
             )}
           </Button>
         </form>
@@ -99,13 +135,14 @@ export function LoginScreen({ onNavigate }: { onNavigate: (page: string) => void
           <User size={18} className="mr-2" /> Continue as Guest
         </Button>
 
-        {/* Register link */}
-        <p className="text-center mt-4">
-          Don't have an account?{" "}
-          <button className="text-blue-600" onClick={() => onNavigate('register')}>
+        {/* Register Link */}
+        <p className="text-center text-sm mt-4">
+          Don’t have an account?{" "}
+          <button className="text-blue-600" onClick={() => onNavigate("register")}>
             Register
           </button>
         </p>
+
       </div>
 
     </div>

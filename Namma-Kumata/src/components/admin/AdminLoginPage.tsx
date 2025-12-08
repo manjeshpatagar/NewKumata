@@ -21,24 +21,28 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
+const handleLogin = async (e: React.FormEvent) => {
+  e.preventDefault();
+  setError('');
+  setIsLoading(true);
 
-    try {
-      const success = await adminLogin(email, password);
-      if (success) {
-        onNavigate('admin');
-      } else {
-        setError('Invalid admin credentials. Please try again.');
-      }
-    } catch (err) {
-      setError('An error occurred. Please try again.');
-    } finally {
-      setIsLoading(false);
+  try {
+    const success = await adminLogin(email, password);
+
+    if (success) {
+      // Redirect to dashboard
+      onNavigate('admin');
+    } else {
+      setError('Access denied. This account is not an admin.');
     }
-  };
+  } catch (err: any) {
+    console.error(err);
+    setError('Login failed. Please try again.');
+  } finally {
+    setIsLoading(false);
+  }
+};
+
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
@@ -56,14 +60,14 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
         </div>
 
         {/* Demo Credentials Info */}
-        <Alert className="mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
+        {/* <Alert className="mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
             <strong>Demo Credentials:</strong><br />
             Email: admin@nammakumta.com<br />
             Password: admin123
           </AlertDescription>
-        </Alert>
+        </Alert> */}
 
         {/* Error Message */}
         {error && (

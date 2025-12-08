@@ -1,10 +1,13 @@
-import { Search, ShoppingBag, Church, MapPin, GraduationCap, Wrench, Users, Drama, Building2, Stethoscope, Phone, Hotel, Car, Dumbbell, ArrowLeft } from 'lucide-react';
-import { Button } from './ui/button';
-import { Input } from './ui/input';
-import { Card } from './ui/card';
-import { ScrollArea } from './ui/scroll-area';
-import { FloatingAddButton } from './FloatingAddButton';
-import { useLanguage } from '../contexts/LanguageContext';
+import { useEffect, useState } from "react";
+import { Search, ArrowLeft } from "lucide-react";
+
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { ScrollArea } from "./ui/scroll-area";
+
+import { FloatingAddButton } from "./FloatingAddButton";
+import { useLanguage } from "../contexts/LanguageContext";
+import { categoryApi } from "@/lib/api/AdmincategoryApi";
 
 interface ExplorePageProps {
   onBack: () => void;
@@ -14,71 +17,181 @@ interface ExplorePageProps {
 export function ExplorePage({ onBack, onNavigate }: ExplorePageProps) {
   const { t } = useLanguage();
 
-  const categories = [
-    { id: 'shops', name: t('shops'), icon: ShoppingBag, color: 'bg-green-500 dark:bg-green-600', emoji: '🛍️' },
-    { id: 'temples', name: t('temples'), icon: Church, color: 'bg-yellow-500 dark:bg-yellow-600', emoji: '🕌' },
-    { id: 'tourism', name: t('tourism'), icon: MapPin, color: 'bg-blue-500 dark:bg-blue-600', emoji: '🗺️' },
-    { id: 'schoolsColleges', name: t('schoolsColleges'), icon: GraduationCap, color: 'bg-purple-500 dark:bg-purple-600', emoji: '🎓' },
-    { id: 'services', name: t('services'), icon: Wrench, color: 'bg-indigo-500 dark:bg-indigo-600', emoji: '🔧' },
-    { id: 'associations', name: t('associations'), icon: Users, color: 'bg-pink-500 dark:bg-pink-600', emoji: '👥' },
-    { id: 'culturalPrograms', name: t('culturalPrograms'), icon: Drama, color: 'bg-orange-500 dark:bg-orange-600', emoji: '🎭' },
-    { id: 'departments', name: t('departments'), icon: Building2, color: 'bg-gray-500 dark:bg-gray-600', emoji: '🏢' },
-    { id: 'doctors', name: t('doctors'), icon: Stethoscope, color: 'bg-red-500 dark:bg-red-600', emoji: '🩺' },
-    { id: 'emergencyServices', name: t('emergencyServices'), icon: Phone, color: 'bg-red-600 dark:bg-red-700', emoji: '📞' },
-    { id: 'hotels', name: t('hotels'), icon: Hotel, color: 'bg-cyan-500 dark:bg-cyan-600', emoji: '🏨' },
-    { id: 'rentVehicles', name: t('rentVehicles'), icon: Car, color: 'bg-teal-500 dark:bg-teal-600', emoji: '🚗' },
-    { id: 'sportsEquipments', name: t('sportsEquipments'), icon: Dumbbell, color: 'bg-lime-500 dark:bg-lime-600', emoji: '💪' },
-  ];
+  const [categories, setCategories] = useState<any[]>([]);
+  const [filtered, setFiltered] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchText, setSearchText] = useState("");
+
+  /** COLORS */
+  const cardColors: Record<string, string> = {
+    education: "#d0d0d0",
+    vehicals: "#b3d1ff",
+    stocks: "#7cc68d",
+    books: "#ffe9a7",
+    eletronics: "#adc4ff",
+  };
+
+  const iconColors: Record<string, string> = {
+    education: "#5a5a5a",
+    vehicals: "#6a9bff",
+    stocks: "#3ea556",
+    books: "#d39f00",
+    eletronics: "#5472ff",
+  };
+
+  const fallbackEmoji: Record<string, string> = {
+    education: "🎓",
+    vehicals: "🚗",
+    stocks: "📈",
+    books: "📚",
+    eletronics: "💻",
+  };
+
+  const getCardColor = (name: string) => cardColors[name.toLowerCase()] || "#ececec";
+  const getIconColor = (name: string) => iconColors[name.toLowerCase()] || "#999";
+  const getEmoji = (name: string) => fallbackEmoji[name.toLowerCase()] || "📁";
+
+  /** LOAD CATEGORIES */
+  useEffect(() => {
+    async function load() {
+      try {
+        const data = await categoryApi.getAll();
+        setCategories(data);
+        setFiltered(data);
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  /** SEARCH FILTER */
+  useEffect(() => {
+    const s = searchText.toLowerCase().trim();
+    if (s === "") setFiltered(categories);
+    else setFiltered(categories.filter((c) => c.name.toLowerCase().includes(s)));
+  }, [searchText, categories]);
+
+  /* ---------------- SHIMMER LOADING ---------------- */
+  if (loading) {
+    return (
+      <div className="p-4 grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+        {Array.from({ length: 9 }).map((_, i) => (
+          <div
+            key={i}
+            className="h-28 rounded-xl bg-gray-200 animate-pulse shimmer"
+          />
+        ))}
+      </div>
+    );
+  }
 
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-950">
-      {/* Header */}
-      <div className="p-4 md:p-6 lg:p-8 border-b dark:border-gray-800 sticky top-0 z-10 bg-white dark:bg-gray-950">
-        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
-          <Button variant="ghost" size="icon" onClick={onBack} className="md:h-10 md:w-10">
-            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+    <div className="h-[calc(100vh-4rem)] flex flex-col bg-white dark:bg-gray-950">
+
+      {/* HEADER */}
+      <div className="p-4 border-b bg-white dark:bg-gray-950 sticky top-0 z-10 shadow">
+        <div className="flex items-center gap-3 mb-4">
+          <Button variant="ghost" onClick={onBack}>
+            <ArrowLeft className="w-5 h-5" />
           </Button>
+
           <div>
-            <h1 className="dark:text-white text-lg md:text-xl lg:text-2xl">{t('exploreNammaKumta')}</h1>
-            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">{t('discoverLocalPlaces')}</p>
+            <h1 className="text-lg font-semibold dark:text-white">{t("exploreNammaKumta")}</h1>
+            <p className="text-xs text-gray-500">{t("discoverLocalPlaces")}</p>
           </div>
         </div>
 
-        {/* Search Bar */}
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-          <Input
-            placeholder={t('searchPlaceholder')}
-            className="pl-10 md:pl-12 md:h-12 md:text-base"
+        {/* SEARCH BAR */}
+        <div className="relative mt-2 px-1">
+          <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+
+          <input
+            value={searchText}
+            onChange={(e) => setSearchText(e.target.value)}
+            placeholder={t("searchPlaceholder")}
+            className="
+              w-full h-11 pl-10 pr-4 
+              bg-white border border-gray-300 
+              rounded-md shadow-sm
+              focus:ring-2 focus:ring-blue-400
+              focus:border-blue-500
+              outline-none transition-all
+            "
           />
         </div>
       </div>
 
+      {/* CATEGORY GRID */}
       <ScrollArea className="flex-1">
-        <div className="p-4 md:p-6 lg:p-8 pb-24 md:pb-28 lg:pb-32">
-          <div className="grid grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 md:gap-4 lg:gap-5">
-            {categories.map((category) => {
-              const Icon = category.icon;
+        <div className="p-4 pb-24">
+
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-5 gap-4">
+
+            {filtered.map((cat) => {
+              const cardBg = getCardColor(cat.name);
+              const iconBg = getIconColor(cat.name);
+              const emoji = getEmoji(cat.name);
+
               return (
-                <Card
-                  key={category.id}
-                  className={`${category.color} text-white p-4 md:p-5 lg:p-6 cursor-pointer hover:opacity-90 transition-opacity border-0 shadow-md`}
-                  onClick={() => onNavigate('subcategory', { categoryId: category.id, categoryName: category.name })}
+                <div
+                  key={cat._id}
+                  className="
+  flex flex-col items-center justify-center
+  p-4 rounded-2xl cursor-pointer relative
+  transition-all duration-500
+  hover:scale-[1.08] hover:-translate-y-1
+  neon-card tilt-card reflection-card
+"
+                  style={{ backgroundColor: cardBg }}
+                  onClick={() =>
+                    onNavigate("subcategory", {
+                      categoryId: cat._id,
+                      categoryName: cat.name,
+                    })
+                  }
                 >
-                  <div className="flex flex-col items-center text-center gap-2">
-                    <div className="text-3xl md:text-4xl lg:text-5xl mb-1">{category.emoji}</div>
-                    <span className="text-xs md:text-sm lg:text-base leading-tight line-clamp-2">
-                      {category.name}
-                    </span>
+                  {/* ICON */}
+                  <div
+                    className="
+                      h-14 w-14 sm:h-16 sm:w-16 rounded-full
+                      flex items-center justify-center 
+                      shadow-lg mb-2
+                      transition-all duration-300 
+                      hover:scale-110
+                    "
+                    style={{ backgroundColor: iconBg }}
+                  >
+                    {cat.image ? (
+                      <img
+                        src={cat.image}
+                        className="w-10 h-10 rounded-full object-contain"
+                      />
+                    ) : (
+                      <span className="text-3xl text-white">{emoji}</span>
+                    )}
                   </div>
-                </Card>
+
+                  <span
+                    className="text-center text-gray-800 dark:text-gray-200"
+                    style={{
+                      fontSize: "14px",
+                      fontWeight: 800,
+                    }}
+                  >
+                    {cat.name}
+                  </span>
+
+                </div>
               );
             })}
           </div>
+
         </div>
       </ScrollArea>
 
-      {/* Floating Add Button */}
       <FloatingAddButton onNavigate={onNavigate} />
     </div>
   );
