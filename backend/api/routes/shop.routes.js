@@ -5,7 +5,7 @@ import {
   getSingleProduct,
   editProduct,
   removeProduct,
-} from "../controllers/product.controller.js";
+} from "../controllers/shop.controller.js";
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 import { useUpload } from "../middleware/upload.middleware.js";
 
