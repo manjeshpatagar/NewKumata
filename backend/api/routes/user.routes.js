@@ -16,10 +16,10 @@ router.post("/register", register);
 router.post("/login", login);
 
 // Protected
-router.patch("/me", protect, uploadedImages, updateProfile);
+router.patch("/update", protect, uploadedImages, updateProfile);
 
 // Admin
-router.get("/", adminOnly, getUsers);
-router.put("/:id", adminOnly, deactivate);
+router.get("/me", protect, getUsers);
+router.put("/:id", protect, deactivate);
 
 export default router;
