@@ -1,8 +1,17 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 import { axiosClient } from "@/lib/api/axiosClient";
 
+/* --------------------------
+   TYPES
+---------------------------*/
 interface User {
   id: string;
   name: string;
@@ -15,22 +24,45 @@ interface AuthContextType {
   isAuthenticated: boolean;
   isGuest: boolean;
   isAuthLoading: boolean;
+
   login: (email: string, password: string) => Promise<void>;
-  register: (userData: any) => Promise<void>;
+  register: (data: any) => Promise<void>;
   continueAsGuest: () => void;
   logout: () => boolean;
 }
 
+/* --------------------------
+   CONTEXT
+---------------------------*/
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
+/* --------------------------
+   PROVIDER
+---------------------------*/
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isGuest, setIsGuest] = useState(false);
   const [isAuthLoading, setIsAuthLoading] = useState(true);
 
-  /* ---------------- LOAD USER IF TOKEN EXISTS ---------------- */
+  /* ------------------------------------------------
+     AUTO LOAD USER FROM COOKIE OR LOCALSTORAGE
+  -------------------------------------------------*/
   useEffect(() => {
-    const token = localStorage.getItem("token");
+    const browser = typeof window !== "undefined";
+    if (!browser) {
+      setIsAuthLoading(false);
+      return;
+    }
+
+    const localToken = localStorage.getItem("token");
+
+    // Read token from cookies
+    const cookieToken = document.cookie
+      ?.split("; ")
+      ?.find((c) => c.startsWith("token="))
+      ?.split("=")?.[1];
+
+    const token = localToken || cookieToken;
 
     if (!token) {
       setIsAuthLoading(false);
@@ -40,12 +72,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     axiosClient
       .get("/auth/me")
       .then((res) => {
-        console.log("🟢 Loaded profile:", res.data.data);
         setUser(res.data.data);
       })
-      .catch((err) => {
-        console.log("❌ Error loading profile:", err?.response?.data || err);
+      .catch(() => {
         localStorage.removeItem("token");
+        document.cookie = "token=; Max-Age=0; Path=/;";
         setUser(null);
       })
       .finally(() => {
@@ -53,34 +84,55 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       });
   }, []);
 
-  /* ---------------- REGISTER API ---------------- */
+  /* ------------------------------------------------
+     REGISTER
+  -------------------------------------------------*/
   const register = async (data: any) => {
     const res = await axiosClient.post("/auth/register", data);
-    localStorage.setItem("token", res.data.token);
+
+    const token = res.data.token;
+
+    // Store in localStorage
+    localStorage.setItem("token", token);
+
+    // Store in cookies for SSR
+    document.cookie = `token=${token}; Path=/; Max-Age=86400; SameSite=Lax;`;
+
     setUser(res.data.data);
   };
 
-  /* ---------------- LOGIN API ---------------- */
+  /* ------------------------------------------------
+     LOGIN
+  -------------------------------------------------*/
   const login = async (email: string, password: string) => {
     const res = await axiosClient.post("/auth/login", { email, password });
-    localStorage.setItem("token", res.data.token);
+
+    const token = res.data.token;
+
+    // Store in localStorage & cookies
+    localStorage.setItem("token", token);
+    document.cookie = `token=${token}; Path=/; Max-Age=86400; SameSite=Lax;`;
+
     setUser(res.data.data);
   };
 
+  /* ------------------------------------------------
+     GUEST MODE
+  -------------------------------------------------*/
   const continueAsGuest = () => setIsGuest(true);
 
+  /* ------------------------------------------------
+     LOGOUT
+  -------------------------------------------------*/
   const logout = () => {
-    const token = localStorage.getItem("token");
+    if (!localStorage.getItem("token") && !user) return false;
 
-    if (!token && !user) {
-      console.log("⚠️ Logout blocked: No active user session.");
-      return false;
-    }
-
+    // Remove both
     localStorage.removeItem("token");
+    document.cookie = "token=; Max-Age=0; Path=/;";
+
     setUser(null);
     setIsGuest(false);
-    console.log("✅ User logged out successfully");
     return true;
   };
 
@@ -107,4 +159,3 @@ export function useAuth() {
   if (!ctx) throw new Error("useAuth must be used inside AuthProvider");
   return ctx;
 }
-

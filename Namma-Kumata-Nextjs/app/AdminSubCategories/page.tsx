@@ -1,8 +1,8 @@
 // app/admin/subcategories/page.tsx
-
+import { cookies } from "next/headers";
 import { AdminSubCategoriesPage } from "@/components/admin/AdminSubCategoriesPage";
-import { categoryApi } from "@/lib/api/categoryApi";
-import { subCategoryApi } from "@/lib/api/subCategoryApi";
+import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
+import { subCategoryServerApi } from "@/lib/api-ssr/subCategoryServerApi";
 
 export const metadata = {
   title: "Manage Subcategories | Admin Dashboard",
@@ -11,8 +11,10 @@ export const metadata = {
 
 async function getDataSSR() {
   try {
-    const categoriesRes = await categoryApi.getAll();
-    const subCatRes = await subCategoryApi.getAll();
+    const cookieStore = cookies();
+    const token = cookieStore.get("adminToken")?.value;
+    const categoriesRes = await categoryServerApi.getAll(token);
+    const subCatRes = await subCategoryServerApi.getAll(token);
 
     // Filter only business categories (for subcategories)
     const businessCategories = (categoriesRes.data || []).filter(

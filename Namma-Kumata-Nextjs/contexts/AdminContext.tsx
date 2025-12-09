@@ -1,13 +1,22 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
-import { authApi } from '@/lib/api/authApi';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
+import { authApi } from "@/lib/api/authApi";
 
+/* --------------------------
+   TYPES
+---------------------------*/
 export interface Shop {
   id: string;
   name: string;
   category: string;
-  status: 'pending' | 'approved' | 'rejected';
+  status: "pending" | "approved" | "rejected";
   owner: string;
   submittedDate: string;
   phone?: string;
@@ -21,7 +30,7 @@ export interface Ad {
   id: string;
   title: string;
   category: string;
-  status: 'pending' | 'approved' | 'rejected' | 'live' | 'expired';
+  status: "pending" | "approved" | "rejected" | "live" | "expired";
   owner: string;
   submittedDate: string;
   description?: string;
@@ -31,7 +40,7 @@ export interface Ad {
   image?: string;
   featured?: boolean;
   sponsored?: boolean;
-  duration?: '1day' | '3days' | '1week' | '1month';
+  duration?: "1day" | "3days" | "1week" | "1month";
   expiryDate?: string;
   approvedDate?: string;
 }
@@ -40,8 +49,8 @@ export interface User {
   id: string;
   name: string;
   email: string;
-  role: 'user' | 'shopowner' | 'admin';
-  status: 'active' | 'blocked';
+  role: "user" | "shopowner" | "admin";
+  status: "active" | "blocked";
   joinedDate: string;
 }
 
@@ -61,279 +70,253 @@ interface AdminContextType {
   ads: Ad[];
   users: User[];
   stats: AdminStats;
+
   adminLogin: (email: string, password: string) => Promise<boolean>;
   adminLogout: () => void;
+
   approveShop: (id: string) => void;
   rejectShop: (id: string) => void;
-  addShop: (shop: Omit<Shop, 'id' | 'submittedDate'>) => void;
+  addShop: (shop: Omit<Shop, "id" | "submittedDate">) => void;
   editShop: (id: string, shop: Partial<Shop>) => void;
   deleteShop: (id: string) => void;
+
   approveAd: (id: string) => void;
   approveAdWithPrice: (id: string, price: number) => void;
   rejectAd: (id: string) => void;
-  addAd: (ad: Omit<Ad, 'id' | 'submittedDate' | 'status'>) => void;
+  addAd: (ad: Omit<Ad, "id" | "submittedDate" | "status">) => void;
   editAd: (id: string, ad: Partial<Ad>) => void;
   deleteAd: (id: string) => void;
   markAdAsPaid: (id: string) => void;
+
   blockUser: (id: string) => void;
   unblockUser: (id: string) => void;
 }
 
+/* -----------------------------------------
+   CONTEXT INITIALIZATION
+------------------------------------------*/
 const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
+/* -----------------------------------------
+   PROVIDER START
+------------------------------------------*/
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
 
-  // Restore admin session on refresh
+  /* -----------------------------------------
+     LOAD ADMIN FROM COOKIE + LOCAL STORAGE
+  ------------------------------------------*/
   useEffect(() => {
-    const role = localStorage.getItem('role');
-    const name = localStorage.getItem('admin_name');
-    const email = localStorage.getItem('admin_email');
+    const browser = typeof window !== "undefined";
+    if (!browser) return;
 
-    if (role === 'admin' && name && email) {
+    const localToken = localStorage.getItem("adminToken");
+    const cookieToken = document.cookie
+      ?.split("; ")
+      ?.find((row) => row.startsWith("adminToken="))
+      ?.split("=")?.[1];
+
+    const finalToken = localToken || cookieToken;
+    const storedUser = localStorage.getItem("adminUser");
+
+    if (finalToken && storedUser) {
       setIsAdminLoggedIn(true);
-      setAdminUser({ name, email });
+      setAdminUser(JSON.parse(storedUser));
     }
   }, []);
 
+  /* -----------------------------------------
+     ADMIN LOGIN — STORE TOKEN (LOCAL + COOKIE)
+  ------------------------------------------*/
+  const adminLogin = async (
+    email: string,
+    password: string
+  ): Promise<boolean> => {
+    try {
+      const res = await authApi.login(email, password);
+
+      if (res.data.role !== "admin") return false;
+
+      const token = res.token;
+
+      localStorage.setItem("adminToken", token);
+      localStorage.setItem("adminUser", JSON.stringify(res.data));
+
+      // Save cookie for SSR
+      document.cookie = `adminToken=${token}; Path=/; Max-Age=86400; SameSite=Lax;`;
+
+      setAdminUser(res.data);
+      setIsAdminLoggedIn(true);
+
+      return true;
+    } catch (err) {
+      return false;
+    }
+  };
+
+  /* -----------------------------------------
+     ADMIN LOGOUT — REMOVE TOKEN (LOCAL + COOKIE)
+  ------------------------------------------*/
+  const adminLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+
+    document.cookie = "adminToken=; Max-Age=0; Path=/;";
+
+    setIsAdminLoggedIn(false);
+    setAdminUser(null);
+  };
+
+  /* -----------------------------------------
+     MOCK SHOPS / ADS / USERS (your existing data)
+  ------------------------------------------*/
   const [shops, setShops] = useState<Shop[]>([
-    { 
-      id: '1', 
-      name: 'Rajesh General Store',
-      category: 'Grocery', 
-      status: 'approved', 
-      owner: 'Rajesh Kumar', 
-      submittedDate: '2025-10-01',
-      phone: '+91 9876543210',
-      address: 'Main Road, Kumta',
-      description: 'Your daily needs store with fresh groceries',
-      openingHours: '8:00 AM - 9:00 PM'
-    },
-    { 
-      id: '2', 
-      name: 'Rajesh General Store',
-      category: 'Grocery', 
-      status: 'approved', 
-      owner: 'Rajesh Kumar', 
-      submittedDate: '2025-10-01',
-      phone: '+91 9876543210',
-      address: 'Main Road, Kumta',
-      description: 'Your daily needs store with fresh groceries',
-      openingHours: '8:00 AM - 9:00 PM'
-    },
-    { 
-      id: '3', 
-      name: 'Rajesh General Store', 
-      category: 'Grocery', 
-      status: 'approved', 
-      owner: 'Rajesh Kumar', 
-      submittedDate: '2025-10-01',
-      phone: '+91 9876543210',
-      address: 'Main Road, Kumta',
-      description: 'Your daily needs store with fresh groceries',
-      openingHours: '8:00 AM - 9:00 PM'
+    {
+      id: "1",
+      name: "Rajesh General Store",
+      category: "Grocery",
+      status: "approved",
+      owner: "Rajesh Kumar",
+      submittedDate: "2025-10-01",
+      phone: "+91 9876543210",
+      address: "Main Road, Kumta",
+      description: "Your daily needs store",
+      openingHours: "8 AM - 9 PM",
     },
   ]);
 
   const [ads, setAds] = useState<Ad[]>([
-    { 
-      id: '1', 
-      title: 'Honda Activa 2020', 
-      category: 'Bikes', 
-      status: 'approved',
-      owner: 'Ramesh K', 
-      submittedDate: '2025-10-10',
-      description: 'Well maintained Honda Activa',
-      price: '₹45,000',
-      phone: '+91 9876543215',
-      location: 'Kumta',
+    {
+      id: "1",
+      title: "Honda Activa 2020",
+      category: "Bikes",
+      status: "approved",
+      owner: "Ramesh",
+      submittedDate: "2025-10-10",
+      price: "₹45,000",
+      phone: "987654321",
+      location: "Kumta",
       featured: true,
-      duration: '1month',
-      expiryDate: '2025-11-10',
-      approvedDate: '2025-10-11'
-    },
-    { 
-      id: '2', 
-      title: 'Honda Activa 2020', 
-      category: 'Bikes', 
-      status: 'approved',
-      owner: 'Ramesh K', 
-      submittedDate: '2025-10-10',
-      description: 'Well maintained Honda Activa',
-      price: '₹45,000',
-      phone: '+91 9876543215',
-      location: 'Kumta',
-      featured: true,
-      duration: '1month',
-      expiryDate: '2025-11-10',
-      approvedDate: '2025-10-11'
-    },
-    { 
-      id: '3', 
-      title: 'Honda Activa 2020', 
-      category: 'Bikes', 
-      status: 'approved',
-      owner: 'Ramesh K', 
-      submittedDate: '2025-10-10',
-      description: 'Well maintained Honda Activa',
-      price: '₹45,000',
-      phone: '+91 9876543215',
-      location: 'Kumta',
-      featured: true,
-      duration: '1month',
-      expiryDate: '2025-11-10',
-      approvedDate: '2025-10-11'
+      duration: "1month",
+      approvedDate: "2025-10-11",
+      expiryDate: "2025-11-10",
     },
   ]);
 
   const [users, setUsers] = useState<User[]>([
-    { id: '1', name: 'Rajesh Kumar', email: 'rajesh@email.com', role: 'shopowner', status: 'active', joinedDate: '2025-09-15' },
+    {
+      id: "1",
+      name: "Rajesh Kumar",
+      email: "rajesh@email.com",
+      role: "shopowner",
+      status: "active",
+      joinedDate: "2025-09-15",
+    },
   ]);
 
   const stats: AdminStats = {
     totalShops: shops.length,
     totalAds: ads.length,
     totalUsers: users.length,
-    pendingShops: shops.filter(s => s.status === 'pending').length,
-    pendingAds: ads.filter(a => a.status === 'pending').length,
+    pendingShops: shops.filter((s) => s.status === "pending").length,
+    pendingAds: ads.filter((a) => a.status === "pending").length,
     totalEvents: 3,
   };
 
-  const adminLogin = async (email: string, password: string): Promise<boolean> => {
-    try {
-      const res = await authApi.login(email, password);
-      const { token, data } = res;
+  /* -----------------------------------------
+     SHOP OPERATIONS
+  ------------------------------------------*/
+  const approveShop = (id: string) =>
+    setShops(
+      shops.map((s) => (s.id === id ? { ...s, status: "approved" } : s))
+    );
 
-      if (data.role !== 'admin') return false;
+  const rejectShop = (id: string) =>
+    setShops(
+      shops.map((s) => (s.id === id ? { ...s, status: "rejected" } : s))
+    );
 
-      localStorage.setItem('token', token);
-      localStorage.setItem('role', data.role);
-      localStorage.setItem('admin_name', data.name);
-      localStorage.setItem('admin_email', data.email);
-
-      setIsAdminLoggedIn(true);
-      setAdminUser({ email: data.email, name: data.name });
-      return true;
-    } catch (error) {
-      console.error('Admin login failed:', error);
-      return false;
-    }
+  const addShop = (shop: Omit<Shop, "id" | "submittedDate">) => {
+    setShops([
+      {
+        ...shop,
+        id: Date.now().toString(),
+        submittedDate: new Date().toISOString().split("T")[0],
+      },
+      ...shops,
+    ]);
   };
 
-  const adminLogout = () => {
-    localStorage.removeItem('token');
-    localStorage.removeItem('role');
-    localStorage.removeItem('admin_name');
-    localStorage.removeItem('admin_email');
+  const editShop = (id: string, update: Partial<Shop>) =>
+    setShops(shops.map((s) => (s.id === id ? { ...s, ...update } : s)));
 
-    setIsAdminLoggedIn(false);
-    setAdminUser(null);
-  };
+  const deleteShop = (id: string) => setShops(shops.filter((s) => s.id !== id));
 
-  const approveShop = (id: string) => {
-    setShops(shops.map(s => s.id === id ? { ...s, status: 'approved' } : s));
-  };
-
-  const rejectShop = (id: string) => {
-    setShops(shops.map(s => s.id === id ? { ...s, status: 'rejected' } : s));
-  };
-
-  const addShop = (shop: Omit<Shop, 'id' | 'submittedDate'>) => {
-    const newShop: Shop = {
-      ...shop,
-      id: Date.now().toString(),
-      submittedDate: new Date().toISOString().split('T')[0],
-    };
-    setShops([newShop, ...shops]);
-  };
-
-  const editShop = (id: string, shopUpdate: Partial<Shop>) => {
-    setShops(shops.map(s => s.id === id ? { ...s, ...shopUpdate } : s));
-  };
-
-  const deleteShop = (id: string) => {
-    setShops(shops.filter(s => s.id !== id));
-  };
-
+  /* -----------------------------------------
+     AD OPERATIONS
+  ------------------------------------------*/
   const approveAd = (id: string) => {
-    const ad = ads.find(a => a.id === id);
+    const now = new Date();
+    const ad = ads.find((a) => a.id === id);
     if (!ad) return;
 
-    const now = new Date();
-    let expiryDate = new Date(now);
+    let expiry = new Date(now);
+    if (ad.duration === "1day") expiry.setDate(now.getDate() + 1);
+    if (ad.duration === "3days") expiry.setDate(now.getDate() + 3);
+    if (ad.duration === "1week") expiry.setDate(now.getDate() + 7);
+    if (ad.duration === "1month") expiry.setMonth(now.getMonth() + 1);
 
-    if (ad.duration) {
-      switch (ad.duration) {
-        case '1day': expiryDate.setDate(now.getDate() + 1); break;
-        case '3days': expiryDate.setDate(now.getDate() + 3); break;
-        case '1week': expiryDate.setDate(now.getDate() + 7); break;
-        case '1month': expiryDate.setMonth(now.getMonth() + 1); break;
-      }
-    }
-
-    setAds(ads.map(a => a.id === id ? {
-      ...a,
-      status: "approved",
-      approvedDate: now.toISOString().split("T")[0],
-      expiryDate: expiryDate.toISOString().split("T")[0]
-    } : a));
+    setAds(
+      ads.map((a) =>
+        a.id === id
+          ? {
+              ...a,
+              status: "approved",
+              approvedDate: now.toISOString().split("T")[0],
+              expiryDate: expiry.toISOString().split("T")[0],
+            }
+          : a
+      )
+    );
   };
 
-  const approveAdWithPrice = (id: string, price: number) => {
-    approveAd(id);
+  const approveAdWithPrice = (id: string) => approveAd(id);
+
+  const rejectAd = (id: string) =>
+    setAds(ads.map((a) => (a.id === id ? { ...a, status: "rejected" } : a)));
+
+  const addAd = (ad: Omit<Ad, "id" | "submittedDate" | "status">) => {
+    setAds([
+      {
+        ...ad,
+        id: Date.now().toString(),
+        submittedDate: new Date().toISOString().split("T")[0],
+        status: "pending",
+      },
+      ...ads,
+    ]);
   };
 
-  const rejectAd = (id: string) => {
-    setAds(ads.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
-  };
+  const editAd = (id: string, update: Partial<Ad>) =>
+    setAds(ads.map((a) => (a.id === id ? { ...a, ...update } : a)));
 
-  const addAd = (ad: Omit<Ad, 'id' | 'submittedDate' | 'status'>) => {
-    const newAd: Ad = {
-      ...ad,
-      id: Date.now().toString(),
-      submittedDate: new Date().toISOString().split('T')[0],
-      status: 'pending',
-    };
-    setAds([newAd, ...ads]);
-  };
+  const deleteAd = (id: string) => setAds(ads.filter((a) => a.id !== id));
 
-  const editAd = (id: string, adUpdate: Partial<Ad>) => {
-    setAds(ads.map(a => a.id === id ? { ...a, ...adUpdate } : a));
-  };
+  const markAdAsPaid = (id: string) => approveAd(id);
 
-  const deleteAd = (id: string) => {
-    setAds(ads.filter(a => a.id !== id));
-  };
+  /* -----------------------------------------
+     USER OPERATIONS
+  ------------------------------------------*/
+  const blockUser = (id: string) =>
+    setUsers(users.map((u) => (u.id === id ? { ...u, status: "blocked" } : u)));
 
-  const markAdAsPaid = (id: string) => {
-    const ad = ads.find(a => a.id === id);
-    if (!ad || !ad.duration) return;
+  const unblockUser = (id: string) =>
+    setUsers(users.map((u) => (u.id === id ? { ...u, status: "active" } : u)));
 
-    const now = new Date();
-    let expiryDate = new Date(now);
-
-    switch (ad.duration) {
-      case '1day': expiryDate.setDate(now.getDate() + 1); break;
-      case '3days': expiryDate.setDate(now.getDate() + 3); break;
-      case '1week': expiryDate.setDate(now.getDate() + 7); break;
-      case '1month': expiryDate.setMonth(now.getMonth() + 1); break;
-    }
-
-    setAds(ads.map(a => a.id === id ? {
-      ...a,
-      expiryDate: expiryDate.toISOString().split("T")[0]
-    } : a));
-  };
-
-  const blockUser = (id: string) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: 'blocked' } : u));
-  };
-
-  const unblockUser = (id: string) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: 'active' } : u));
-  };
-
+  /* -----------------------------------------
+     PROVIDER RETURN
+  ------------------------------------------*/
   return (
     <AdminContext.Provider
       value={{
@@ -367,9 +350,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 }
 
 export function useAdmin() {
-  const context = useContext(AdminContext);
-  if (context === undefined) {
-    throw new Error('useAdmin must be used within an AdminProvider');
-  }
-  return context;
+  const ctx = useContext(AdminContext);
+  if (!ctx) throw new Error("useAdmin must be used inside AdminProvider");
+  return ctx;
 }

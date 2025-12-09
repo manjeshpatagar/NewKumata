@@ -15,7 +15,7 @@ router.post("/", protect, adminOnly, uploadedImages, addCategory);
 router.patch("/:id", protect, adminOnly, uploadedImages, editCategory);
 router.delete("/:id", protect, adminOnly, removeCategory);
 
-router.get("/", getCategories);
-router.get("/:id", getCategory);
+router.get("/", protect, getCategories);
+router.get("/:id", protect, getCategory);
 
 export default router;

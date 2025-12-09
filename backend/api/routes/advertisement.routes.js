@@ -21,8 +21,8 @@ const uploadAds = useUpload({
 const router = express.Router();
 
 // Public
-router.get("/", getAdvertisements);
-router.get("/:id", getSingleAdvertisement);
+router.get("/", protect, getAdvertisements);
+router.get("/:id", protect, getSingleAdvertisement);
 
 // Admin Only
 router.post("/", protect, adminOnly, uploadAds, addAdvertisement);
