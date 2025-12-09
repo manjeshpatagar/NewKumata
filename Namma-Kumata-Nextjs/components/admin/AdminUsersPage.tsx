@@ -1,76 +1,98 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { 
-  ArrowLeft, UserX, UserCheck, Edit, Search, Filter, Users,
-  Mail, Calendar, Shield, Award, AlertCircle, MoreVertical,
-  Eye, Trash2, Crown, Star, TrendingUp
-} from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Card } from '../ui/card';
-import { Badge } from '../ui/badge';
-import { ScrollArea } from '../ui/scroll-area';
-import { Avatar, AvatarFallback } from '../ui/avatar';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
-import { 
+import { useState } from "react";
+import {
+  ArrowLeft,
+  UserX,
+  UserCheck,
+  Edit,
+  Search,
+  Filter,
+  Users,
+  Mail,
+  Calendar,
+  Shield,
+  Award,
+  AlertCircle,
+  MoreVertical,
+  Eye,
+  Trash2,
+  Crown,
+  Star,
+  TrendingUp,
+} from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Card } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { ScrollArea } from "../ui/scroll-area";
+import { Avatar, AvatarFallback } from "../ui/avatar";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
-} from '../ui/dropdown-menu';
-import { useAdmin } from '../../contexts/AdminContext';
-import { toast } from 'sonner';
+} from "../ui/dropdown-menu";
+import { useAdmin } from "../../contexts/AdminContext";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 
-
-
-export function AdminUsersPage() {
+export function AdminUsersPage({ initialUsers }: { initialUsers: any[] }) {
   const router = useRouter();
 
-  const { users, blockUser, unblockUser } = useAdmin();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedTab, setSelectedTab] = useState('all');
+  const { blockUser, unblockUser } = useAdmin();
+  const [users, setUsers] = useState(initialUsers);
 
-  const activeUsers = users.filter(u => u.status === 'active');
-  const blockedUsers = users.filter(u => u.status === 'blocked');
-  const shopOwners = users.filter(u => u.role === 'shop_owner');
-  const regularUsers = users.filter(u => u.role === 'user');
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTab, setSelectedTab] = useState("all");
+
+  const activeUsers = users.filter((u) => u.status === "active");
+  const blockedUsers = users.filter((u) => u.status === "blocked");
+  const shopOwners = users.filter((u) => u.role === "shop_owner");
+  const regularUsers = users.filter((u) => u.role === "user");
 
   const filteredUsers = (tab: string) => {
-    let userList = tab === 'active' ? activeUsers : 
-                   tab === 'blocked' ? blockedUsers :
-                   tab === 'owners' ? shopOwners :
-                   tab === 'regular' ? regularUsers : users;
-    
-    return userList.filter(user =>
-      user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      user.role.toLowerCase().includes(searchQuery.toLowerCase())
+    let userList =
+      tab === "active"
+        ? activeUsers
+        : tab === "blocked"
+        ? blockedUsers
+        : tab === "owners"
+        ? shopOwners
+        : tab === "regular"
+        ? regularUsers
+        : users;
+
+    return userList.filter(
+      (user) =>
+        user.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.email.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        user.role.toLowerCase().includes(searchQuery.toLowerCase())
     );
   };
 
   const handleBlock = (userId: string) => {
     blockUser(userId);
-    toast.success('User blocked successfully');
+    toast.success("User blocked successfully");
   };
 
   const handleUnblock = (userId: string) => {
     unblockUser(userId);
-    toast.success('User unblocked successfully');
+    toast.success("User unblocked successfully");
   };
 
   const getRoleBadge = (role: string) => {
     switch (role) {
-      case 'shop_owner':
+      case "shop_owner":
         return (
           <Badge className="bg-gradient-to-r from-purple-500 to-pink-600 text-white border-0">
             <Crown className="w-3 h-3 mr-1" />
             Shop Owner
           </Badge>
         );
-      case 'admin':
+      case "admin":
         return (
           <Badge className="bg-gradient-to-r from-blue-500 to-indigo-600 text-white border-0">
             <Shield className="w-3 h-3 mr-1" />
@@ -88,7 +110,7 @@ export function AdminUsersPage() {
   };
 
   const getStatusBadge = (status: string) => {
-    if (status === 'active') {
+    if (status === "active") {
       return (
         <Badge className="bg-emerald-500 text-white border-0">
           <UserCheck className="w-3 h-3 mr-1" />
@@ -105,41 +127,51 @@ export function AdminUsersPage() {
   };
 
   const UserCard = ({ user }: { user: any }) => {
-    const initials = user.name.split(' ').map((n: string) => n[0]).join('').toUpperCase();
-    const isOwner = user.role === 'shop_owner';
-    const isActive = user.status === 'active';
-    
+    const initials = user.name
+      .split(" ")
+      .map((n: string) => n[0])
+      .join("")
+      .toUpperCase();
+    const isOwner = user.role === "shop_owner";
+    const isActive = user.status === "active";
+
     return (
       <Card className="group relative overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]">
         {/* Top Gradient Bar */}
-        <div className={`h-1.5 ${
-          isOwner 
-            ? 'bg-gradient-to-r from-purple-500 to-pink-600' 
-            : 'bg-gradient-to-r from-emerald-500 to-teal-600'
-        }`} />
-        
+        <div
+          className={`h-1.5 ${
+            isOwner
+              ? "bg-gradient-to-r from-purple-500 to-pink-600"
+              : "bg-gradient-to-r from-emerald-500 to-teal-600"
+          }`}
+        />
+
         <div className="p-5 space-y-4">
           {/* Header Section */}
           <div className="flex items-start gap-4">
             <Avatar className="h-14 w-14 border-4 border-white dark:border-gray-800 shadow-lg">
-              <AvatarFallback className={`text-lg font-bold ${
-                isOwner 
-                  ? 'bg-gradient-to-br from-purple-500 to-pink-600' 
-                  : 'bg-gradient-to-br from-emerald-500 to-teal-600'
-              } text-white`}>
+              <AvatarFallback
+                className={`text-lg font-bold ${
+                  isOwner
+                    ? "bg-gradient-to-br from-purple-500 to-pink-600"
+                    : "bg-gradient-to-br from-emerald-500 to-teal-600"
+                } text-white`}
+              >
                 {initials}
               </AvatarFallback>
             </Avatar>
-            
+
             <div className="flex-1 min-w-0">
               <div className="flex items-start justify-between gap-2 mb-2">
                 <div className="flex-1 min-w-0">
                   <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-white truncate">
                     {user.name}
                   </h3>
-                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">{user.email}</p>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 truncate">
+                    {user.email}
+                  </p>
                 </div>
-                
+
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" size="icon" className="h-8 w-8">
@@ -157,12 +189,18 @@ export function AdminUsersPage() {
                     </DropdownMenuItem>
                     <DropdownMenuSeparator />
                     {isActive ? (
-                      <DropdownMenuItem onClick={() => handleBlock(user.id)} className="text-red-600">
+                      <DropdownMenuItem
+                        onClick={() => handleBlock(user.id)}
+                        className="text-red-600"
+                      >
                         <UserX className="w-4 h-4 mr-2" />
                         Block User
                       </DropdownMenuItem>
                     ) : (
-                      <DropdownMenuItem onClick={() => handleUnblock(user.id)} className="text-emerald-600">
+                      <DropdownMenuItem
+                        onClick={() => handleUnblock(user.id)}
+                        className="text-emerald-600"
+                      >
                         <UserCheck className="w-4 h-4 mr-2" />
                         Unblock User
                       </DropdownMenuItem>
@@ -170,7 +208,7 @@ export function AdminUsersPage() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               </div>
-              
+
               <div className="flex items-center gap-2 flex-wrap">
                 {getRoleBadge(user.role)}
                 {getStatusBadge(user.status)}
@@ -185,8 +223,12 @@ export function AdminUsersPage() {
                 <Mail className="w-4 h-4 text-blue-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 dark:text-gray-500">Email</p>
-                <p className="font-medium text-gray-900 dark:text-white truncate">{user.email}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  Email
+                </p>
+                <p className="font-medium text-gray-900 dark:text-white truncate">
+                  {user.email}
+                </p>
               </div>
             </div>
 
@@ -195,20 +237,28 @@ export function AdminUsersPage() {
                 <Calendar className="w-4 h-4 text-purple-500" />
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-xs text-gray-500 dark:text-gray-500">Joined</p>
-                <p className="font-medium text-gray-900 dark:text-white truncate">{user.joinedDate}</p>
+                <p className="text-xs text-gray-500 dark:text-gray-500">
+                  Joined
+                </p>
+                <p className="font-medium text-gray-900 dark:text-white truncate">
+                  {user.joinedDate}
+                </p>
               </div>
             </div>
 
-            {user.role === 'shop_owner' && (
+            {user.role === "shop_owner" && (
               <>
                 <div className="flex items-center gap-2">
                   <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                     <Award className="w-4 h-4 text-amber-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 dark:text-gray-500">Shops</p>
-                    <p className="font-medium text-gray-900 dark:text-white">3 Active</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Shops
+                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      3 Active
+                    </p>
                   </div>
                 </div>
 
@@ -217,22 +267,30 @@ export function AdminUsersPage() {
                     <TrendingUp className="w-4 h-4 text-emerald-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 dark:text-gray-500">Rating</p>
-                    <p className="font-medium text-gray-900 dark:text-white">4.8 ⭐</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Rating
+                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      4.8 ⭐
+                    </p>
                   </div>
                 </div>
               </>
             )}
 
-            {user.role === 'user' && (
+            {user.role === "user" && (
               <>
                 <div className="flex items-center gap-2">
                   <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                     <Star className="w-4 h-4 text-amber-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 dark:text-gray-500">Favorites</p>
-                    <p className="font-medium text-gray-900 dark:text-white">12 Items</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Favorites
+                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      12 Items
+                    </p>
                   </div>
                 </div>
 
@@ -241,8 +299,12 @@ export function AdminUsersPage() {
                     <Eye className="w-4 h-4 text-blue-500" />
                   </div>
                   <div className="flex-1 min-w-0">
-                    <p className="text-xs text-gray-500 dark:text-gray-500">Activity</p>
-                    <p className="font-medium text-gray-900 dark:text-white">Last seen today</p>
+                    <p className="text-xs text-gray-500 dark:text-gray-500">
+                      Activity
+                    </p>
+                    <p className="font-medium text-gray-900 dark:text-white">
+                      Last seen today
+                    </p>
                   </div>
                 </div>
               </>
@@ -290,9 +352,9 @@ export function AdminUsersPage() {
         <div className="max-w-7xl mx-auto px-4 py-4 md:py-5">
           <div className="flex items-center justify-between flex-wrap gap-3">
             <div className="flex items-center gap-3">
-              <Button 
-                variant="ghost" 
-                size="icon" 
+              <Button
+                variant="ghost"
+                size="icon"
                 onClick={() => router.back()}
                 className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >
@@ -324,9 +386,11 @@ export function AdminUsersPage() {
                   {stats.total}
                 </div>
               </div>
-              <div className="text-xs font-medium text-blue-700 dark:text-blue-500">Total Users</div>
+              <div className="text-xs font-medium text-blue-700 dark:text-blue-500">
+                Total Users
+              </div>
             </Card>
-            
+
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <UserCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -334,9 +398,11 @@ export function AdminUsersPage() {
                   {stats.active}
                 </div>
               </div>
-              <div className="text-xs font-medium text-emerald-700 dark:text-emerald-500">Active</div>
+              <div className="text-xs font-medium text-emerald-700 dark:text-emerald-500">
+                Active
+              </div>
             </Card>
-            
+
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <Crown className="w-4 h-4 text-purple-600 dark:text-purple-400" />
@@ -344,9 +410,11 @@ export function AdminUsersPage() {
                   {stats.owners}
                 </div>
               </div>
-              <div className="text-xs font-medium text-purple-700 dark:text-purple-500">Shop Owners</div>
+              <div className="text-xs font-medium text-purple-700 dark:text-purple-500">
+                Shop Owners
+              </div>
             </Card>
-            
+
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-red-50 to-rose-50 dark:from-red-950/30 dark:to-rose-950/30">
               <div className="flex items-center justify-center gap-2 mb-1">
                 <UserX className="w-4 h-4 text-red-600 dark:text-red-400" />
@@ -354,7 +422,9 @@ export function AdminUsersPage() {
                   {stats.blocked}
                 </div>
               </div>
-              <div className="text-xs font-medium text-red-700 dark:text-red-500">Blocked</div>
+              <div className="text-xs font-medium text-red-700 dark:text-red-500">
+                Blocked
+              </div>
             </Card>
           </div>
 
@@ -374,21 +444,37 @@ export function AdminUsersPage() {
       {/* Tabs Content */}
       <ScrollArea className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-6 pb-24">
-          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
+          <Tabs
+            value={selectedTab}
+            onValueChange={setSelectedTab}
+            className="w-full"
+          >
             <TabsList className="grid w-full grid-cols-2 sm:grid-cols-4 mb-6 bg-white dark:bg-gray-900 shadow-md rounded-xl p-1">
-              <TabsTrigger value="all" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="all"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
+              >
                 <Users className="w-4 h-4 mr-2" />
                 All ({stats.total})
               </TabsTrigger>
-              <TabsTrigger value="active" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="active"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-emerald-500 data-[state=active]:to-teal-600 data-[state=active]:text-white"
+              >
                 <UserCheck className="w-4 h-4 mr-2" />
                 Active ({stats.active})
               </TabsTrigger>
-              <TabsTrigger value="owners" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="owners"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-purple-500 data-[state=active]:to-pink-600 data-[state=active]:text-white"
+              >
                 <Crown className="w-4 h-4 mr-2" />
                 Owners ({stats.owners})
               </TabsTrigger>
-              <TabsTrigger value="blocked" className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white">
+              <TabsTrigger
+                value="blocked"
+                className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-red-500 data-[state=active]:to-rose-600 data-[state=active]:text-white"
+              >
                 <UserX className="w-4 h-4 mr-2" />
                 Blocked ({stats.blocked})
               </TabsTrigger>
@@ -396,12 +482,18 @@ export function AdminUsersPage() {
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
               {filteredUsers(selectedTab).length > 0 ? (
-                filteredUsers(selectedTab).map((user) => <UserCard key={user.id} user={user} />)
+                filteredUsers(selectedTab).map((user) => (
+                  <UserCard key={user.id} user={user} />
+                ))
               ) : (
                 <div className="col-span-full text-center py-16">
                   <Filter className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" />
-                  <p className="text-gray-500 dark:text-gray-400 text-lg">No users found</p>
-                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">Try adjusting your search</p>
+                  <p className="text-gray-500 dark:text-gray-400 text-lg">
+                    No users found
+                  </p>
+                  <p className="text-sm text-gray-400 dark:text-gray-500 mt-1">
+                    Try adjusting your search
+                  </p>
                 </div>
               )}
             </div>

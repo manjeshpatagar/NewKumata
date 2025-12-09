@@ -1,7 +1,7 @@
 'use client';
 
 import { ShoppingBag, Stethoscope, Plane, Sparkles, Wrench, HomeIcon, ChevronRight, User, Star, MapPin, TrendingUp, Phone, Settings, Church, GraduationCap, Users, Drama, Building2, Ambulance, Hotel, Car, Dumbbell, Bell, Zap, Crown, Heart, Search } from 'lucide-react';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { WeatherWidget } from '@/components/WeatherWidget';
 import { EmergencyContactCard } from '@/components/EmergencyContactCard';
@@ -21,23 +21,25 @@ import { useLanguage } from '@/contexts/LanguageContext';
 import { useNotifications } from '@/contexts/NotificationContext';
 import { useRequireAuth } from '@/hooks/useRequireAuth';
 
-export function HomePage() {
+
+export function HomePage({ categories }: { categories: any[] }) {
+
   const router = useRouter();
-  
+
   // Navigation helper function
   const handleNavigate = (page: string, data?: any) => {
     if (page === 'subcategory') {
       router.push(`/subcategory?categoryId=${data.categoryId}&categoryName=${encodeURIComponent(data.categoryName)}`);
       return;
     }
-    
+
     if (page === 'categoryListings') {
       router.push(
         `/category-listings?categoryId=${data.categoryId}&categoryName=${encodeURIComponent(data.categoryName)}&subcategory=${encodeURIComponent(data.subcategory)}`
       );
       return;
     }
-    
+
     if (page === 'detail') {
       const listing = data.listing || data;
       if (listing) {
@@ -46,7 +48,7 @@ export function HomePage() {
       }
       return;
     }
-    
+
     if (page === 'ad-detail') {
       const ad = data.ad || data;
       if (ad && ad.id) {
@@ -55,7 +57,26 @@ export function HomePage() {
       }
       return;
     }
-    
+
+    type ApiCategory = {
+      id: string;
+      name: string;
+      slug?: string;
+      image?: string;
+      description?: string;
+      isActive?: boolean;
+      // add other fields your backend returns
+    };
+
+    type UnifiedCategory = {
+      id: string;
+      name?: string;
+      nameKey?: string;
+      slug?: string;
+      image?: string;
+      icon?: any;
+      gradient?: string;
+    };
     // Map page names to routes
     const routeMap: Record<string, string> = {
       'home': '/',
@@ -79,7 +100,7 @@ export function HomePage() {
       'add-listing': '/add-listing',
       'edit-listing': '/edit-listing',
     };
-    
+
     const route = routeMap[page] || `/${page}`;
     router.push(route);
   };
@@ -87,6 +108,66 @@ export function HomePage() {
   const { unreadCount } = useNotifications();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { requireAuth } = useRequireAuth();
+
+  // -------------------------
+  // Categories from API
+  // -------------------------
+
+  const getIconForCategory = (cat: any) => {
+    const slug = (cat.slug || cat.id || cat.name || '').toString().toLowerCase();
+    switch (slug) {
+      case 'shops':
+      case 'grocery':
+        return ShoppingBag;
+      case 'doctors':
+      case 'medical':
+        return Stethoscope;
+      case 'tourism':
+      case 'travel':
+        return Plane;
+      case 'hotels':
+      case 'hotel':
+        return Hotel;
+      case 'services':
+        return Wrench;
+      case 'education':
+      case 'schools':
+        return GraduationCap;
+      case 'associations':
+        return Users;
+      case 'culturalprograms':
+      case 'culture':
+        return Drama;
+      case 'departments':
+        return Building2;
+      case 'emergencyservices':
+      case 'emergency':
+        return Ambulance;
+      case 'rentvehicles':
+      case 'cars':
+        return Car;
+      case 'sports':
+      case 'sportsequipment':
+        return Dumbbell;
+      default:
+        // fallback: if item already has an `icon` (like mainCategories), use it, otherwise ShoppingBag
+        return cat.icon || ShoppingBag;
+    }
+  };
+
+
+  const categoriesFromApi: UnifiedCategory[] = Array.isArray(categories)
+    ? categories.map((c: any) => ({
+      id: c.id ?? c._id,
+      name: c.name,
+      slug: c.slug,
+      image: c.image,
+      gradient: "from-orange-500 to-pink-500", // fallback gradient
+    }))
+    : [];
+
+
+
 
   const popularShops = [
     {
@@ -227,11 +308,11 @@ export function HomePage() {
             <div className="flex items-center gap-2">
               <NammaKumtaLogo size="sm" />
             </div>
-            
+
             {/* Right Icons with Premium Style */}
             <div className="flex items-center gap-2">
               <LanguageSelector />
-              
+
               {/* Notification Bell with Gradient Badge */}
               <button
                 onClick={() => requireAuth(() => handleNavigate('notifications'), () => handleNavigate('login'))}
@@ -256,7 +337,7 @@ export function HomePage() {
 
           {/* Premium Search Bar */}
           <div className="max-w-3xl mx-auto">
-            <SmartSearchBarWithImages 
+            <SmartSearchBarWithImages
               placeholder={t('searchPlaceholder') || "Search shops, services, temples, or ads..."}
             />
           </div>
@@ -269,7 +350,7 @@ export function HomePage() {
       {/* Scrollable Content */}
       <ScrollArea className="flex-1">
         <div className="pb-24 md:pb-28 lg:pb-32">
-          
+
           {/* Hero Banner with Premium Cards */}
           <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 py-4 sm:py-6 md:py-8">
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
@@ -292,23 +373,38 @@ export function HomePage() {
 
               {/* Premium Grid with Gradient Icons */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-                {mainCategories.map((cat, index) => {
-                  const Icon = cat.icon;
-                  const categoryName = t(cat.nameKey);
+                {(categoriesFromApi.length > 0 ? categoriesFromApi : mainCategories).map((cat, index) => {
+
+                  const Icon = getIconForCategory(cat);
+                  const gradient = cat.gradient || 'from-orange-500 to-pink-500';
+                  const categoryName = cat.name || t(cat.nameKey) || cat.title || 'Category';
+                  const categoryId = cat.id ?? cat.slug ?? categoryName;
+
                   return (
                     <button
-                      key={index}
-                      onClick={() => handleNavigate('subcategory', { categoryId: cat.id, categoryName: categoryName })}
+                      key={categoryId + '-' + index}
+                      onClick={() => handleNavigate('subcategory', { categoryId, categoryName })}
                       className="group relative flex flex-col items-center justify-center gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 bg-white dark:bg-gray-800 rounded-3xl shadow-lg shadow-gray-200/50 dark:shadow-none hover:shadow-xl hover:shadow-gray-300/50 dark:hover:shadow-purple-500/10 hover:-translate-y-2 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-transparent min-h-[120px] sm:min-h-[130px] md:min-h-[140px]"
                     >
                       {/* Gradient Glow Effect */}
                       <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/5 group-hover:via-purple-500/5 group-hover:to-pink-500/5 rounded-3xl transition-all duration-300" />
-                      
-                      {/* Icon Container with Gradient */}
-                      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 bg-gradient-to-br ${cat.gradient} rounded-2xl sm:rounded-3xl flex items-center justify-center shadow-xl shadow-purple-500/20 group-hover:shadow-2xl group-hover:shadow-purple-500/30 group-hover:scale-110 transition-all duration-300`}>
-                        <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 text-white drop-shadow-lg" />
+
+                      {/* Icon or Category Image */}
+                      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden shadow-xl shadow-purple-500/20 group-hover:shadow-2xl group-hover:shadow-purple-500/30 group-hover:scale-110 transition-all duration-300 ${!cat.image ? `bg-gradient-to-br ${gradient}` : ''}`}>
+                        {cat.image ? (
+                          <img
+                            src={cat.image}
+                            alt={categoryName}
+                            loading="lazy"
+                            className="w-full h-full object-cover"
+                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                          />
+                        ) : (
+                          <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 text-white drop-shadow-lg" />
+                        )}
                       </div>
-                      
+
+
                       {/* Category Name */}
                       <span className="relative text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-white text-center leading-tight line-clamp-2 px-1">
                         {categoryName}
@@ -317,6 +413,7 @@ export function HomePage() {
                   );
                 })}
               </div>
+
 
               {/* Premium View All Button */}
               <div className="text-center mt-8 sm:mt-10 md:mt-12">
@@ -353,7 +450,7 @@ export function HomePage() {
                   <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
-              
+
               {/* Premium Shop Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
                 {popularShops.map((shop) => (
@@ -364,13 +461,13 @@ export function HomePage() {
                   >
                     {/* Image with Gradient Overlay */}
                     <div className="relative h-48 sm:h-56 md:h-64 overflow-hidden">
-                      <img 
-                        src={shop.image} 
+                      <img
+                        src={shop.image}
                         alt={shop.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      
+
                       {/* Floating Badges */}
                       <div className="absolute top-4 left-4 flex flex-wrap gap-2">
                         {shop.isNew && (
@@ -428,7 +525,7 @@ export function HomePage() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Mobile View All Button */}
               <div className="text-center mt-6 md:hidden">
                 <Button
@@ -464,7 +561,7 @@ export function HomePage() {
                   <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
-              
+
               {/* Premium Ad Cards Grid */}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-5 md:gap-6">
                 {featuredAds.map((ad) => (
@@ -475,13 +572,13 @@ export function HomePage() {
                   >
                     {/* Image with Gradient Overlay */}
                     <div className="relative h-48 sm:h-56 overflow-hidden">
-                      <img 
-                        src={ad.image} 
+                      <img
+                        src={ad.image}
                         alt={ad.title}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-black/20 to-transparent" />
-                      
+
                       {/* Featured Badge */}
                       {ad.isFeatured && (
                         <div className="absolute top-4 left-4">
@@ -524,7 +621,7 @@ export function HomePage() {
                   </div>
                 ))}
               </div>
-              
+
               {/* Mobile View All Button */}
               <div className="text-center mt-6 md:hidden">
                 <Button
@@ -560,12 +657,12 @@ export function HomePage() {
                   >
                     {/* Gradient Background */}
                     <div className={`absolute inset-0 bg-gradient-to-br ${contact.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
-                    
+
                     {/* Icon with Gradient */}
                     <div className={`relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${contact.color} rounded-2xl sm:rounded-3xl flex items-center justify-center text-3xl sm:text-4xl shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}>
                       {contact.icon}
                     </div>
-                    
+
                     <div className="flex-1 min-w-0">
                       <p className="text-sm sm:text-base font-semibold text-gray-700 dark:text-gray-300 mb-1 truncate">
                         {contact.name}
@@ -574,7 +671,7 @@ export function HomePage() {
                         {contact.number}
                       </p>
                     </div>
-                    
+
                     <Phone className="flex-shrink-0 w-5 h-5 sm:w-6 sm:h-6 text-gray-400 group-hover:text-red-600 dark:group-hover:text-red-400 group-hover:rotate-12 transition-all" />
                   </a>
                 ))}
@@ -604,13 +701,13 @@ export function HomePage() {
                   >
                     {/* Large Image with Gradient Overlay */}
                     <div className="relative h-64 sm:h-72 md:h-80 overflow-hidden">
-                      <img 
-                        src={place.image} 
+                      <img
+                        src={place.image}
                         alt={place.name}
                         className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/30 to-transparent" />
-                      
+
                       {/* Distance Badge */}
                       <div className="absolute top-6 right-6">
                         <Badge className="bg-white/20 backdrop-blur-md text-white border border-white/30 px-4 py-2 rounded-full text-sm font-semibold shadow-lg">
@@ -661,8 +758,8 @@ export function HomePage() {
       <FloatingAddButton />
 
       {/* Quick Add Dialog */}
-      <QuickAddDialog 
-        open={showAddDialog} 
+      <QuickAddDialog
+        open={showAddDialog}
         onOpenChange={setShowAddDialog}
       />
     </div>

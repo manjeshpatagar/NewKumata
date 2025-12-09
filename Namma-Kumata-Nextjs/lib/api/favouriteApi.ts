@@ -1,13 +1,13 @@
 import { axiosClient } from "./axiosClient";
 
 export const favouriteApi = {
-  add: async (productId: string) => {
-    const res = await axiosClient.post(`/favourite/${productId}`);
+  add: async (Id: string) => {
+    const res = await axiosClient.post(`/favourite/${Id}`);
     return res.data;
   },
 
-  remove: async (productId: string) => {
-    const res = await axiosClient.delete(`/favourite/${productId}`);
+  remove: async (Id: string) => {
+    const res = await axiosClient.delete(`/favourite/${Id}`);
     return res.data;
   },
 

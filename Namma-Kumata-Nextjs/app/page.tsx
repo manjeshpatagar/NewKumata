@@ -1,18 +1,25 @@
-import type { Metadata } from 'next';
-import { HomePage } from '@/components/HomePage';
-import { BottomNav } from '@/components/BottomNav';
+import { cookies } from "next/headers";
+import { HomePage } from "@/components/HomePage";
+import { BottomNav } from "@/components/BottomNav";
+import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 
-export const metadata: Metadata = {
-  title: 'Home - Namma Kumta',
-  description: 'Discover local shops, temples, services, and more in Kumta. Your one-stop guide to everything local.',
-};
+export default async function Home() {
+  const cookieStore = cookies();
+  const token = cookieStore.get("token")?.value || "";
 
-export default function Home() {
+  const result = await categoryServerApi.getAll(token);
+
+  const categories =
+    Array.isArray(result)
+      ? result
+      : Array.isArray(result?.data)
+      ? result.data
+      : [];
+
   return (
     <>
-      <HomePage />
+      <HomePage categories={categories} />
       <BottomNav />
     </>
   );
 }
-

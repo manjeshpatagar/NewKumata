@@ -1,22 +1,24 @@
 // app/admin/categories/page.tsx
 
+import { cookies } from "next/headers";
 import { AdminCategoriesPage } from "@/components/admin/AdminCategoriesPage";
-import { categoryApi } from "@/lib/api/categoryApi";
+import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 
-// ✅ SEO Metadata
 export const metadata = {
   title: "Manage Categories | Admin Dashboard",
   description: "Admin panel to manage business and advertisement categories.",
 };
 
-// ✅ SSR Fetch using your categoryApi
+// ⭐ Fetch categories with token from cookies (SSR safe)
 async function getCategoriesSSR() {
   try {
-    const res = await categoryApi.getAll();
-    // assuming backend returns: { success, count, data: [...] }
+    const cookieStore = cookies();
+    const token = cookieStore.get("adminToken")?.value;
+
+    const res = await categoryServerApi.getAll(token);
     return res.data || [];
   } catch (error) {
-    console.error("Failed to fetch categories (SSR):", error);
+    console.error("❌ Failed to fetch categories (SSR):", error);
     return [];
   }
 }
