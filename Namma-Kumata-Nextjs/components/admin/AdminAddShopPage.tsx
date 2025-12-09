@@ -12,10 +12,10 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { useAdmin } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
+import { useRouter } from "next/navigation";
 
-interface AdminAddShopPageProps {
-  onBack: () => void;
-}
+
+
 
 const shopCategories = [
   'Grocery',
@@ -32,7 +32,9 @@ const shopCategories = [
   'Books'
 ];
 
-export function AdminAddShopPage({ onBack }: AdminAddShopPageProps) {
+export function AdminAddShopPage() {
+  const router = useRouter();
+
   const { addShop } = useAdmin();
   const { t } = useLanguage();
 
@@ -92,7 +94,7 @@ export function AdminAddShopPage({ onBack }: AdminAddShopPageProps) {
 
     addShop(formData);
     toast.success('Shop added successfully!');
-    onBack();
+    router.back();
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -143,7 +145,7 @@ export function AdminAddShopPage({ onBack }: AdminAddShopPageProps) {
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 border-b dark:border-gray-800">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto w-full">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onBack}>
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>

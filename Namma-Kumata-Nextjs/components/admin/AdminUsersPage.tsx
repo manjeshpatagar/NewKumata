@@ -22,12 +22,13 @@ import {
 } from '../ui/dropdown-menu';
 import { useAdmin } from '../../contexts/AdminContext';
 import { toast } from 'sonner';
+import { useRouter } from "next/navigation";
 
-interface AdminUsersPageProps {
-  onBack: () => void;
-}
 
-export function AdminUsersPage({ onBack }: AdminUsersPageProps) {
+
+export function AdminUsersPage() {
+  const router = useRouter();
+
   const { users, blockUser, unblockUser } = useAdmin();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('all');
@@ -292,7 +293,7 @@ export function AdminUsersPage({ onBack }: AdminUsersPageProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={onBack}
+                onClick={() => router.back()}
                 className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="w-5 h-5" />

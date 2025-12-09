@@ -17,21 +17,19 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { cn } from '../ui/utils';
+import Link from "next/link";
+import { useRouter } from "next/navigation";
 
-interface AdminDashboardProps {
-  onBack: () => void;
-  onNavigate: (page: string) => void;
-}
-
-export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
+export function AdminDashboard() {
   const { stats, adminUser, adminLogout } = useAdmin();
   const { t } = useLanguage();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  const router = useRouter();
 
   const handleLogout = () => {
     adminLogout();
     toast.success('Logged out successfully');
-    onNavigate('admin-login');
+    router.push('/admin-login');
   };
 
   // Calculate percentages and growth
@@ -119,7 +117,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       description: 'View and approve shops',
       icon: Store, 
       gradient: 'from-blue-500 to-indigo-600',
-      link: 'admin/shops',
+      link: '/AdminAddShop',
       count: stats.totalShops
     },
     { 
@@ -127,7 +125,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       description: 'Review ad submissions',
       icon: ShoppingBag, 
       gradient: 'from-purple-500 to-pink-600',
-      link: 'admin/ads',
+      link: '/AdminAddAd',
       count: stats.totalAds
     },
     { 
@@ -135,7 +133,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       description: 'User management',
       icon: Users, 
       gradient: 'from-emerald-500 to-teal-600',
-      link: 'admin/users',
+      link: '/AdminUsers',
       count: stats.totalUsers
     },
     { 
@@ -143,7 +141,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       description: 'Organize content',
       icon: Grid, 
       gradient: 'from-indigo-500 to-purple-600',
-      link: 'admin/categories',
+      link: '/AdminCategories',
       count: 20
     },
     { 
@@ -151,7 +149,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       description: 'Send announcements',
       icon: Bell, 
       gradient: 'from-pink-500 to-rose-600',
-      link: 'admin/notifications',
+      link: '/AdminNotifications',
       count: null
     },
     { 
@@ -159,7 +157,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
       description: 'View reports',
       icon: BarChart3, 
       gradient: 'from-blue-500 to-cyan-600',
-      link: 'admin/analytics',
+      link: 'AdminAnalytics',
       count: null
     },
   ];
@@ -260,7 +258,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
                 <button
                   key={index}
                   onClick={() => {
-                    onNavigate(action.link);
+                    router.push(action.link);
                     setSidebarOpen(false);
                   }}
                   className="w-full group relative overflow-hidden rounded-xl p-3 text-left hover:bg-gray-50 dark:hover:bg-gray-800 transition-all duration-200"
@@ -350,7 +348,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
                 <Button 
                   variant="ghost" 
                   size="icon" 
-                  onClick={onBack}
+                  onClick={()=>router.back()}
                   className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
                 >
                   <ArrowLeft className="w-5 h-5" />
@@ -402,7 +400,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
                     <Card
                       key={index}
                       className={`relative overflow-hidden cursor-pointer border-0 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-105 group bg-gradient-to-br ${stat.bgGradient}`}
-                      onClick={() => onNavigate(stat.link)}
+                      onClick={() => router.push(stat.link)}
                     >
                       {/* Background Pattern */}
                       <div className="absolute top-0 right-0 w-32 h-32 opacity-10">
@@ -463,7 +461,7 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
                     <Card
                       key={index}
                       className={`relative overflow-hidden cursor-pointer border-2 ${stat.urgent ? 'border-red-300 dark:border-red-800' : 'border-gray-200 dark:border-gray-800'} shadow-lg hover:shadow-2xl transition-all duration-300 hover:scale-105 group`}
-                      onClick={() => onNavigate(stat.link)}
+                      onClick={() => router.push(stat.link)}
                     >
                       {/* Urgent Alert */}
                       {stat.urgent && (
@@ -637,3 +635,335 @@ export function AdminDashboard({ onBack, onNavigate }: AdminDashboardProps) {
     </div>
   );
 }
+
+
+
+
+// "use client";
+
+// import { useState } from "react";
+// import Link from "next/link";
+// import { useRouter } from "next/navigation";
+
+// import { 
+//   ArrowLeft, Store, ShoppingBag, Users, Clock, Bell, TrendingUp, LogOut, 
+//   Activity, CheckCircle, XCircle, AlertCircle, Sparkles, Zap, Crown, 
+//   Menu, X as CloseIcon, Grid, Calendar
+// } from "lucide-react";
+
+// import { Button } from "../ui/button";
+// import { Card } from "../ui/card";
+// import { ScrollArea } from "../ui/scroll-area";
+// import { Badge } from "../ui/badge";
+// import { Progress } from "../ui/progress";
+// import { cn } from "../ui/utils";
+
+// import { useAdmin } from "../../contexts/AdminContext";
+// import { useLanguage } from "../../contexts/LanguageContext";
+// import { toast } from "sonner";
+
+// export function AdminDashboard() {
+//   const router = useRouter();
+//   const { stats, adminUser, adminLogout } = useAdmin();
+//   const { t } = useLanguage();
+//   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+//   // Logout handler
+//   const handleLogout = () => {
+//     adminLogout();
+//     toast.success("Logged out successfully");
+//     router.push("/admin-login");
+//   };
+
+//   // Quick action sidebar links
+//   const quickActions = [
+//     { label: "Manage Shops", icon: Store, link: "/AdminAddShop", gradient: "from-blue-500 to-indigo-600", count: stats.totalShops },
+//     { label: "Manage Advertisements", icon: ShoppingBag, link: "/AdminAddAd", gradient: "from-purple-500 to-pink-600", count: stats.totalAds },
+//     { label: "Manage Users", icon: Users, link: "/admin/users", gradient: "from-emerald-500 to-teal-600", count: stats.totalUsers },
+//     { label: "Categories", icon: Grid, link: "/categories", gradient: "from-indigo-500 to-purple-600", count: 20 },
+//     { label: "Push Notifications", icon: Bell, link: "/notifications", gradient: "from-pink-500 to-rose-600", count: null },
+//     { label: "Analytics", icon: Activity, link: "/analytics", gradient: "from-blue-500 to-cyan-600", count: null },
+//   ];
+
+//   // Main stat boxes
+//   const mainStats = [
+//     { label: "Total Shops", value: stats.totalShops, icon: Store, gradient: "from-blue-500 to-cyan-600", bgGradient: "from-blue-50 to-cyan-50 dark:from-blue-950/30 dark:to-cyan-950/30", textColor: "text-blue-600 dark:text-blue-400", link: "/AdminAddShop", growth: 12 },
+//     { label: "Total Advertisements", value: stats.totalAds, icon: ShoppingBag, gradient: "from-purple-500 to-pink-600", bgGradient: "from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30", textColor: "text-purple-600 dark:text-purple-400", link: "/AdminAddAd", growth: 8 },
+//     { label: "Total Users", value: stats.totalUsers, icon: Users, gradient: "from-emerald-500 to-teal-600", bgGradient: "from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30", textColor: "text-emerald-600 dark:text-emerald-400", link: "/admin/users", growth: 15 },
+//     { label: "Total Events", value: stats.totalEvents, icon: Calendar, gradient: "from-orange-500 to-red-600", bgGradient: "from-orange-50 to-red-50 dark:from-orange-950/30 dark:to-red-950/30", textColor: "text-orange-600 dark:text-orange-400", link: "/AdminAddShop", growth: 5 },
+//   ];
+
+//   // Pending approvals
+//   const pendingStats = [
+//     { label: "Pending Shops", value: stats.pendingShops, icon: Clock, gradient: "from-amber-500 to-orange-600", link: "/AdminAddShop", urgent: stats.pendingShops > 5 },
+//     { label: "Pending Ads", value: stats.pendingAds, icon: AlertCircle, gradient: "from-yellow-500 to-amber-600", link: "/AdminAddAd", urgent: stats.pendingAds > 10 },
+//   ];
+
+//   // Recent activity
+//   const recentActivities = [
+//     { title: "New shop submission", desc: "Quick Mart - Grocery Store", time: "1 hour ago", status: "pending", icon: Store },
+//     { title: "New advertisement posted", desc: "Swift 2018 - ₹4,50,000", time: "2 hours ago", status: "approved", icon: ShoppingBag },
+//     { title: "New user registered", desc: "Deepa R - deepa@example.com", time: "4 hours ago", status: "active", icon: Users },
+//     { title: "Shop approved", desc: "Medical Store", time: "6 hours ago", status: "approved", icon: CheckCircle },
+//     { title: "Advertisement rejected", desc: "Invalid product listing", time: "1 day ago", status: "rejected", icon: XCircle },
+//   ];
+
+//   const getStatusBadge = (status: string) => {
+//     const map: any = {
+//       pending: "bg-amber-500",
+//       approved: "bg-emerald-500",
+//       rejected: "bg-red-500",
+//       active: "bg-blue-500",
+//     };
+//     return <Badge className={`${map[status]} text-white text-xs`}>{status}</Badge>;
+//   };
+
+//   // Sidebar Component
+//   const Sidebar = () => (
+//     <div className={cn(
+//       "fixed inset-y-0 left-0 w-72 bg-white dark:bg-gray-900 border-r z-50 transition-transform duration-300 lg:translate-x-0",
+//       sidebarOpen ? "translate-x-0" : "-translate-x-full"
+//     )}>
+//       <div className="p-4 border-b flex items-center justify-between">
+//         <div className="flex items-center gap-2">
+//           <Crown className="w-6 h-6 text-yellow-500" />
+//           <span className="font-bold dark:text-white">Admin Panel</span>
+//         </div>
+//         <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(false)}>
+//           <CloseIcon className="w-5 h-5" />
+//         </Button>
+//       </div>
+
+//       <ScrollArea className="flex-1 p-4">
+//         {quickActions.map((item, i) => {
+//           const Icon = item.icon;
+//           return (
+//             <Link href={item.link} key={i}>
+//               <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-800 hover:bg-gray-100 dark:hover:bg-gray-700 cursor-pointer mb-2">
+//                 <div className={`p-2 rounded-lg bg-gradient-to-br ${item.gradient} text-white`}>
+//                   <Icon className="w-5 h-5" />
+//                 </div>
+//                 <div className="flex-1">
+//                   <p className="font-semibold text-sm dark:text-white">{item.label}</p>
+//                   {item.count !== null && <Badge>{item.count}</Badge>}
+//                 </div>
+//               </div>
+//             </Link>
+//           );
+//         })}
+//       </ScrollArea>
+
+//       <div className="p-4 border-t">
+//         <div className="flex items-center gap-3 mb-3">
+//           <div className="w-10 h-10 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 text-white flex items-center justify-center font-bold">
+//             {adminUser?.email?.charAt(0).toUpperCase()}
+//           </div>
+//           <div>
+//             <p className="font-semibold dark:text-white">{adminUser?.email}</p>
+//             <p className="text-xs text-gray-500">Administrator</p>
+//           </div>
+//         </div>
+
+//         <Button onClick={handleLogout} className="w-full text-red-600 border-red-300">
+//           <LogOut className="w-4 h-4 mr-2" /> Logout
+//         </Button>
+//       </div>
+//     </div>
+//   );
+
+//   return (
+//     <div className="min-h-screen flex bg-gradient-to-br from-gray-50 via-blue-50/30 to-purple-50/30 dark:from-gray-950 dark:via-blue-950/30 dark:to-purple-950/30">
+
+//       <Sidebar />
+
+//       {sidebarOpen && (
+//         <div className="fixed inset-0 bg-black/50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+//       )}
+
+//       <div className="flex-1 flex flex-col lg:ml-72">
+
+//         {/* HEADER */}
+//         <div className="sticky top-0 bg-white/90 dark:bg-gray-900/90 shadow-md p-4 z-20 flex items-center justify-between">
+//           <div className="flex items-center gap-3">
+//             <Button variant="ghost" size="icon" className="lg:hidden" onClick={() => setSidebarOpen(true)}>
+//               <Menu className="w-5 h-5" />
+//             </Button>
+
+//             <Button variant="ghost" size="icon" onClick={() => router.back()}>
+//               <ArrowLeft className="w-5 h-5" />
+//             </Button>
+
+//             <h1 className="text-2xl font-bold flex items-center gap-2 dark:text-white">
+//               <Crown className="w-6 h-6 text-yellow-500" /> Admin Dashboard
+//             </h1>
+//           </div>
+
+//           <Button onClick={handleLogout} className="hidden lg:flex text-red-600 border-red-300">
+//             <LogOut className="w-4 h-4 mr-2" /> Logout
+//           </Button>
+//         </div>
+
+//         {/* MAIN CONTENT */}
+//         <ScrollArea className="flex-1">
+//           <div className="p-6 space-y-10">
+
+//             {/* -------- STATS SECTION -------- */}
+//             <section>
+//               <h2 className="text-xl font-semibold mb-4 dark:text-white">Overview Statistics</h2>
+
+//               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+//                 {mainStats.map((stat, i) => {
+//                   const Icon = stat.icon;
+//                   return (
+//                     <Link href={stat.link} key={i}>
+//                       <Card className={`p-6 cursor-pointer bg-gradient-to-br ${stat.bgGradient} hover:scale-105 transition`}>
+//                         <div className={`inline-flex p-3 rounded-xl bg-gradient-to-br ${stat.gradient} text-white mb-4`}>
+//                           <Icon className="w-6 h-6" />
+//                         </div>
+
+//                         <p className={`text-4xl font-extrabold ${stat.textColor}`}>{stat.value}</p>
+//                         <p className="text-sm text-gray-600 dark:text-gray-300">{stat.label}</p>
+
+//                         <div className="flex items-center gap-2 mt-3 text-emerald-600 dark:text-emerald-400 text-xs">
+//                           <TrendingUp className="w-3 h-3" />
+//                           +{stat.growth}% this month
+//                         </div>
+//                       </Card>
+//                     </Link>
+//                   );
+//                 })}
+//               </div>
+//             </section>
+
+//             {/* -------- PENDING APPROVALS -------- */}
+//             <section>
+//               <h2 className="text-xl font-semibold mb-4 dark:text-white">Pending Approvals</h2>
+
+//               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+//                 {pendingStats.map((item, i) => {
+//                   const Icon = item.icon;
+//                   return (
+//                     <Link href={item.link} key={i}>
+//                       <Card className={`p-6 border-2 hover:scale-105 transition cursor-pointer ${item.urgent ? "border-red-300" : "border-gray-200"}`}>
+//                         {item.urgent && (
+//                           <div className="bg-red-600 text-white px-3 py-1 text-xs rounded absolute right-2 top-2 flex items-center gap-1">
+//                             <Zap className="w-3 h-3" /> Urgent
+//                           </div>
+//                         )}
+
+//                         <div className={`p-4 rounded-xl bg-gradient-to-br ${item.gradient} text-white inline-flex mb-3`}>
+//                           <Icon className="w-8 h-8" />
+//                         </div>
+
+//                         <p className="text-4xl font-extrabold dark:text-white">{item.value}</p>
+//                         <p className="text-sm text-gray-600 dark:text-gray-300">{item.label}</p>
+//                       </Card>
+//                     </Link>
+//                   );
+//                 })}
+//               </div>
+//             </section>
+
+//             {/* -------- SYSTEM HEALTH -------- */}
+//             <section>
+//               <h2 className="text-xl font-semibold mb-4 dark:text-white">System Health</h2>
+
+//               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
+//                 {/* Approval Rate */}
+//                 <Card className="p-6 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
+//                   <div className="flex justify-between mb-4">
+//                     <div>
+//                       <p className="text-sm text-gray-600 dark:text-gray-300">Approval Rate</p>
+//                       <p className="text-3xl font-bold text-emerald-600 dark:text-emerald-400">
+//                         {((stats.totalShops - stats.pendingShops) / stats.totalShops * 100).toFixed(1)}%
+//                       </p>
+//                     </div>
+//                     <div className="p-3 rounded-xl bg-emerald-500 text-white">
+//                       <CheckCircle className="w-6 h-6" />
+//                     </div>
+//                   </div>
+//                   <Progress value={((stats.totalShops - stats.pendingShops) / stats.totalShops) * 100} />
+//                 </Card>
+
+//                 {/* Active Users */}
+//                 <Card className="p-6 bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
+//                   <div className="flex justify-between mb-4">
+//                     <div>
+//                       <p className="text-sm text-gray-600 dark:text-gray-300">Active Users Today</p>
+//                       <p className="text-3xl font-bold text-blue-600 dark:text-blue-400">
+//                         {Math.floor(stats.totalUsers * 0.35)}
+//                       </p>
+//                     </div>
+//                     <div className="p-3 rounded-xl bg-blue-500 text-white">
+//                       <Activity className="w-6 h-6" />
+//                     </div>
+//                   </div>
+//                   <Progress value={35} />
+//                 </Card>
+//               </div>
+//             </section>
+
+//             {/* -------- RECENT ACTIVITY -------- */}
+//             <section>
+//               <h2 className="text-xl font-semibold mb-4 dark:text-white">Recent Activity</h2>
+//               <Card className="divide-y dark:divide-gray-700">
+//                 {recentActivities.map((act, i) => {
+//                   const Icon = act.icon;
+//                   return (
+//                     <div key={i} className="p-4 hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition">
+//                       <div className="flex gap-4 items-start">
+//                         <div className="p-2.5 rounded-xl bg-gray-100 dark:bg-gray-800">
+//                           <Icon className="w-5 h-5 text-gray-600 dark:text-gray-400" />
+//                         </div>
+
+//                         <div className="flex-1">
+//                           <div className="flex justify-between items-start">
+//                             <p className="font-semibold dark:text-white">{act.title}</p>
+//                             {getStatusBadge(act.status)}
+//                           </div>
+
+//                           <p className="text-sm text-gray-600 dark:text-gray-300">{act.desc}</p>
+
+//                           <div className="flex gap-2 text-xs text-gray-500 mt-1">
+//                             <Clock className="w-3 h-3" />
+//                             {act.time}
+//                           </div>
+//                         </div>
+//                       </div>
+//                     </div>
+//                   );
+//                 })}
+//               </Card>
+//             </section>
+
+//             {/* -------- FOOTER STATS -------- */}
+//             <section>
+//               <Card className="p-5 bg-gradient-to-br from-gray-100 to-gray-200 dark:from-gray-800 dark:to-gray-900">
+//                 <div className="grid grid-cols-2 md:grid-cols-4 text-center gap-4">
+//                   <div>
+//                     <p className="text-2xl font-bold">99.9%</p>
+//                     <p className="text-xs">Uptime</p>
+//                   </div>
+//                   <div>
+//                     <p className="text-2xl font-bold">{stats.totalShops + stats.totalAds}</p>
+//                     <p className="text-xs">Total Listings</p>
+//                   </div>
+//                   <div>
+//                     <p className="text-2xl font-bold">4.8★</p>
+//                     <p className="text-xs">Avg Rating</p>
+//                   </div>
+//                   <div>
+//                     <p className="text-2xl font-bold">24/7</p>
+//                     <p className="text-xs">Support</p>
+//                   </div>
+//                 </div>
+//               </Card>
+//             </section>
+
+//           </div>
+//         </ScrollArea>
+//       </div>
+//     </div>
+//   );
+// }

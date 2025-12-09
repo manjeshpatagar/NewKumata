@@ -9,12 +9,16 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { NammaKumtaLogo } from '../NammaKumtaLogo';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
+import { useRouter } from 'next/navigation';
+
 
 interface AdminLoginPageProps {
   onNavigate: (page: string) => void;
 }
 
-export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
+export function AdminLoginPage() {
+  const router = useRouter();
+
   const { adminLogin } = useAdmin();
   const { t } = useLanguage();
   const [email, setEmail] = useState('');
@@ -31,7 +35,7 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
     try {
       const success = await adminLogin(email, password);
       if (success) {
-        onNavigate('admin');
+        router.push('/admin');
       } else {
         setError('Invalid admin credentials. Please try again.');
       }
@@ -146,7 +150,7 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
         {/* Back to App */}
         <div className="mt-6 text-center">
           <button
-            onClick={() => onNavigate('home')}
+            onClick={() => router.push('home')}
             className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           >
             ← Back to App

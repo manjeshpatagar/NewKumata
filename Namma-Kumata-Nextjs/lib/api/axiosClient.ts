@@ -7,7 +7,12 @@ export const axiosClient = axios.create({
 // Request interceptor for adding auth token
 axiosClient.interceptors.request.use((config) => {
   if (typeof window !== "undefined") {
-    const token = localStorage.getItem("token");
+    // Admin token first
+    const adminToken = localStorage.getItem("adminToken");
+    const userToken = localStorage.getItem("token");
+
+    const token = adminToken || userToken; // <-- admin has priority
+
     if (token) {
       config.headers = config.headers || {};
       config.headers.Authorization = `Bearer ${token}`;
@@ -20,11 +25,18 @@ axiosClient.interceptors.request.use((config) => {
 axiosClient.interceptors.response.use(
   (response) => response,
   (error) => {
+    // Token expired or invalid
     if (error.response?.status === 401 && typeof window !== "undefined") {
       localStorage.removeItem("token");
-      window.location.href = "/auth/login";
+      localStorage.removeItem("adminToken");
+
+      // Redirect based on user or admin
+      if (window.location.pathname.startsWith("/admin")) {
+        window.location.href = "/admin/login";
+      } else {
+        window.location.href = "/auth/login";
+      }
     }
     return Promise.reject(error);
   }
 );
-
