@@ -1,16 +1,22 @@
-'use client';
+import { subCategoryServerApi } from "@/lib/api-ssr/subCategoryServerApi";
+import { cookies } from "next/headers";
+import SubcategoryPageComponent from "@/components/SubcategoryPage"; // ⬅ rename import
 
-import { useSearchParams } from 'next/navigation';
-import { SubcategoryPage } from '@/components/SubcategoryPage';
+export default async function SubcategoryPageServer({ searchParams }: any) { // ⬅ rename function
+  const { categoryId, categoryName } = searchParams;
 
-export default function Subcategory() {
-  const searchParams = useSearchParams();
-  
+  const token = cookies().get("token")?.value;
+
+  const result = await subCategoryServerApi.getAll(token);
+  const list = Array.isArray(result) ? result : result?.data || [];
+
+  const subcategories = list.filter((s: any) => s.categoryId === categoryId);
+
   return (
-    <SubcategoryPage
-      categoryId={searchParams.get('categoryId') || ''}
-      categoryName={searchParams.get('categoryName') || ''}
+    <SubcategoryPageComponent
+      categoryId={categoryId}
+      categoryName={categoryName}
+      subcategories={subcategories}
     />
   );
 }
-
