@@ -26,7 +26,7 @@ export const advertisementApi = {
   },
 
   delete: async (id: string) => {
-    const res = await axiosClient.delete(`/advertisement/${id}`);
+    const res = await axiosClient.delete(`/advertisements/${id}`);
     return res.data;
   },
 };

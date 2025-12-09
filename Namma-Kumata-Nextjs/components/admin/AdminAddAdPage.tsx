@@ -14,41 +14,49 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
+import { advertisementApi } from '@/lib/api/advertisementApi';
 
-interface AdminAddAdPageProps {
-  onBack: () => void;
+interface Category {
+  _id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  type: string;
+  isActive: boolean;
+  emoji?: string;
+  subcategories?: any[];
 }
 
-const adCategories = [
-  { id: 'bikes', name: 'Bikes', emoji: '🏍️' },
-  { id: 'cars', name: 'Cars', emoji: '🚗' },
-  { id: 'home-rentals', name: 'Home Rentals', emoji: '🏠' },
-  { id: 'electronics', name: 'Electronics', emoji: '📱' },
-  { id: 'furniture', name: 'Furniture', emoji: '🪑' },
-  { id: 'jobs', name: 'Jobs', emoji: '💼' },
-  { id: 'services', name: 'Services', emoji: '🔧' },
-  { id: 'education', name: 'Education', emoji: '📚' },
-  { id: 'pets', name: 'Pets', emoji: '🐕' },
-  { id: 'fashion', name: 'Fashion', emoji: '👗' },
-  { id: 'agriculture', name: 'Agriculture', emoji: '🌾' },
-];
+interface AdminAddAdPageProps {
+  categories: Category[];
+}
 
-export function AdminAddAdPage() {
+export function AdminAddAdPage({ categories }: AdminAddAdPageProps) {
   const router = useRouter();
   const { addAd } = useAdmin();
   const { t } = useLanguage();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: '',
-    category: '',
-    owner: '',
-    phone: '',
-    location: '',
+    category: '', // Changed from categoryId to category (matches backend)
     price: '',
     description: '',
-    status: 'approved' as 'pending' | 'approved' | 'rejected',
-    featured: false,
-    sponsored: false,
+    address: '',
+    location: '',
+    badges: '', // You might want to change this to an array later
+    addetails: '', // Additional details
+    contactinfo: JSON.stringify({
+      owner: '',
+      phone: '',
+      email: '',
+    }),
+  });
+
+  const [contactInfo, setContactInfo] = useState({
+    owner: '',
+    phone: '',
+    email: '',
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -64,6 +72,21 @@ export function AdminAddAdPage() {
     }
   };
 
+  const handleContactInfoChange = (field: string, value: string) => {
+    const updatedContactInfo = { ...contactInfo, [field]: value };
+    setContactInfo(updatedContactInfo);
+    
+    // Update the contactinfo field in formData as JSON string
+    setFormData(prev => ({
+      ...prev,
+      contactinfo: JSON.stringify(updatedContactInfo)
+    }));
+    
+    if (errors[field]) {
+      setErrors(prev => ({ ...prev, [field]: '' }));
+    }
+  };
+
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -73,12 +96,12 @@ export function AdminAddAdPage() {
     if (!formData.category) {
       newErrors.category = 'Category is required';
     }
-    if (!formData.owner.trim()) {
+    if (!contactInfo.owner.trim()) {
       newErrors.owner = 'Owner name is required';
     }
-    if (!formData.phone.trim()) {
+    if (!contactInfo.phone.trim()) {
       newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
+    } else if (!/^\+?[\d\s-]{10,}$/.test(contactInfo.phone)) {
       newErrors.phone = 'Invalid phone number';
     }
     if (!formData.location.trim()) {
@@ -87,20 +110,88 @@ export function AdminAddAdPage() {
     if (!formData.description.trim()) {
       newErrors.description = 'Description is required';
     }
+    if (!formData.address.trim()) {
+      newErrors.address = 'Address is required';
+    }
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    addAd(formData);
-    toast.success('Advertisement added successfully!');
-    router.back();
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare FormData
+      const formDataToSend = new FormData();
+      
+      // Add all form fields (exactly as backend expects)
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('category', formData.category); // Category ID
+      formDataToSend.append('price', formData.price || '0');
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('address', formData.address);
+      formDataToSend.append('location', formData.location);
+      formDataToSend.append('badges', formData.badges || '');
+      formDataToSend.append('addetails', formData.addetails || '');
+      formDataToSend.append('contactinfo', formData.contactinfo);
+      
+      // Add images (backend expects 'images' field with multiple files)
+      images.forEach((image, index) => {
+        formDataToSend.append('images', image);
+      });
+      
+      // Add video (backend expects 'video' field with single file)
+      if (videos.length > 0) {
+        formDataToSend.append('video', videos[0]); // Only first video
+      }
+      
+      // Log for debugging
+      console.log('Sending form data:', {
+        title: formData.title,
+        category: formData.category,
+        price: formData.price,
+        description: formData.description,
+        address: formData.address,
+        location: formData.location,
+        badges: formData.badges,
+        addetails: formData.addetails,
+        contactinfo: formData.contactinfo,
+        imagesCount: images.length,
+        videosCount: videos.length
+      });
+      
+      // Call the API
+      const response = await advertisementApi.create(formDataToSend);
+      
+      // Also add to local context if needed
+      addAd({
+        ...formData,
+        contactinfo: contactInfo,
+        id: response.data?._id || Date.now().toString(),
+        images: imagePreviews,
+        videos: videoPreviews,
+        createdAt: new Date().toISOString(),
+      });
+      
+      toast.success('Advertisement created successfully!');
+      router.back();
+    } catch (error: any) {
+      console.error('Error creating advertisement:', error);
+      
+      // Handle specific error messages
+      const errorMessage = error.response?.data?.message || 
+                          error.message || 
+                          'Failed to create advertisement';
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -111,6 +202,18 @@ export function AdminAddAdPage() {
     const newPreviews: string[] = [];
 
     newFiles.forEach(file => {
+      // Validate file size (max 5MB)
+      if (file.size > 5 * 1024 * 1024) {
+        toast.error(`Image ${file.name} is too large. Max size is 5MB.`);
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('image/')) {
+        toast.error(`File ${file.name} is not a valid image.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         newPreviews.push(reader.result as string);
@@ -121,7 +224,9 @@ export function AdminAddAdPage() {
       reader.readAsDataURL(file);
     });
 
-    setImages(prev => [...prev, ...newFiles]);
+    setImages(prev => [...prev, ...newFiles.filter(file => 
+      file.size <= 5 * 1024 * 1024 && file.type.startsWith('image/')
+    )]);
   };
 
   const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,6 +237,18 @@ export function AdminAddAdPage() {
     const newPreviews: string[] = [];
 
     newFiles.forEach(file => {
+      // Validate file size (max 50MB for videos)
+      if (file.size > 50 * 1024 * 1024) {
+        toast.error(`Video ${file.name} is too large. Max size is 50MB.`);
+        return;
+      }
+
+      // Validate file type
+      if (!file.type.startsWith('video/')) {
+        toast.error(`File ${file.name} is not a valid video.`);
+        return;
+      }
+
       const reader = new FileReader();
       reader.onloadend = () => {
         newPreviews.push(reader.result as string);
@@ -142,7 +259,9 @@ export function AdminAddAdPage() {
       reader.readAsDataURL(file);
     });
 
-    setVideos(prev => [...prev, ...newFiles]);
+    setVideos(prev => [...prev, ...newFiles.filter(file => 
+      file.size <= 50 * 1024 * 1024 && file.type.startsWith('video/')
+    )]);
   };
 
   const removeImage = (index: number) => {
@@ -159,20 +278,48 @@ export function AdminAddAdPage() {
     setFormData({
       title: '',
       category: '',
-      owner: '',
-      phone: '',
-      location: '',
       price: '',
       description: '',
-      status: 'approved',
-      featured: false,
-      sponsored: false,
+      address: '',
+      location: '',
+      badges: '',
+      addetails: '',
+      contactinfo: JSON.stringify({
+        owner: '',
+        phone: '',
+        email: '',
+      }),
+    });
+    setContactInfo({
+      owner: '',
+      phone: '',
+      email: '',
     });
     setImages([]);
     setImagePreviews([]);
     setVideos([]);
     setVideoPreviews([]);
     setErrors({});
+  };
+
+  // Helper function to get category emoji based on name
+  const getCategoryEmoji = (categoryName: string): string => {
+    const emojiMap: Record<string, string> = {
+      'Hospital': '🏥',
+      'Home Rental': '🏠',
+      'Bikes': '🏍️',
+      'Cars': '🚗',
+      'Electronics': '📱',
+      'Furniture': '🪑',
+      'Jobs': '💼',
+      'Services': '🔧',
+      'Education': '📚',
+      'Pets': '🐕',
+      'Fashion': '👗',
+      'Agriculture': '🌾',
+    };
+    
+    return emojiMap[categoryName] || '📋';
   };
 
   return (
@@ -211,6 +358,7 @@ export function AdminAddAdPage() {
                   value={formData.title}
                   onChange={(e) => handleChange('title', e.target.value)}
                   className={errors.title ? 'border-red-500' : ''}
+                  disabled={isSubmitting}
                 />
                 {errors.title && (
                   <p className="text-xs text-red-500">{errors.title}</p>
@@ -225,16 +373,30 @@ export function AdminAddAdPage() {
                 <Select
                   value={formData.category}
                   onValueChange={(value) => handleChange('category', value)}
+                  disabled={isSubmitting}
                 >
                   <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select a category">
+                      {formData.category 
+                        ? categories.find(cat => cat._id === formData.category)?.name
+                        : "Select a category"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {adCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        {cat.emoji} {cat.name}
+                    {categories.length > 0 ? (
+                      categories.map((cat) => {
+                        const emoji = getCategoryEmoji(cat.name);
+                        return (
+                          <SelectItem key={cat._id} value={cat._id}>
+                            {emoji} {cat.name}
+                          </SelectItem>
+                        );
+                      })
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No categories available
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.category && (
@@ -242,52 +404,36 @@ export function AdminAddAdPage() {
                 )}
               </div>
 
-              {/* Owner Name */}
+              {/* Address */}
               <div className="space-y-2">
-                <Label htmlFor="owner" className="text-sm">
-                  Owner Name <span className="text-red-500">*</span>
+                <Label htmlFor="address" className="text-sm">
+                  Address <span className="text-red-500">*</span>
                 </Label>
                 <Input
-                  id="owner"
-                  placeholder="Enter owner name"
-                  value={formData.owner}
-                  onChange={(e) => handleChange('owner', e.target.value)}
-                  className={errors.owner ? 'border-red-500' : ''}
+                  id="address"
+                  placeholder="Enter full address"
+                  value={formData.address}
+                  onChange={(e) => handleChange('address', e.target.value)}
+                  className={errors.address ? 'border-red-500' : ''}
+                  disabled={isSubmitting}
                 />
-                {errors.owner && (
-                  <p className="text-xs text-red-500">{errors.owner}</p>
+                {errors.address && (
+                  <p className="text-xs text-red-500">{errors.address}</p>
                 )}
               </div>
 
-              {/* Phone */}
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm">
-                  Phone Number <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+91 9876543210"
-                  value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  className={errors.phone ? 'border-red-500' : ''}
-                />
-                {errors.phone && (
-                  <p className="text-xs text-red-500">{errors.phone}</p>
-                )}
-              </div>
-
-              {/* Location */}
+              {/* Location (City/Area) */}
               <div className="space-y-2">
                 <Label htmlFor="location" className="text-sm">
-                  Location <span className="text-red-500">*</span>
+                  Location (City/Area) <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="location"
-                  placeholder="Enter location"
+                  placeholder="Enter city or area"
                   value={formData.location}
                   onChange={(e) => handleChange('location', e.target.value)}
                   className={errors.location ? 'border-red-500' : ''}
+                  disabled={isSubmitting}
                 />
                 {errors.location && (
                   <p className="text-xs text-red-500">{errors.location}</p>
@@ -304,7 +450,62 @@ export function AdminAddAdPage() {
                   placeholder="e.g., ₹25,000 or ₹8,000/month"
                   value={formData.price}
                   onChange={(e) => handleChange('price', e.target.value)}
+                  disabled={isSubmitting}
                 />
+              </div>
+
+              {/* Contact Information */}
+              <div className="space-y-4 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
+                <h3 className="text-sm font-medium">Contact Information <span className="text-red-500">*</span></h3>
+                
+                <div className="space-y-2">
+                  <Label htmlFor="owner" className="text-sm">
+                    Owner Name
+                  </Label>
+                  <Input
+                    id="owner"
+                    placeholder="Enter owner name"
+                    value={contactInfo.owner}
+                    onChange={(e) => handleContactInfoChange('owner', e.target.value)}
+                    className={errors.owner ? 'border-red-500' : ''}
+                    disabled={isSubmitting}
+                  />
+                  {errors.owner && (
+                    <p className="text-xs text-red-500">{errors.owner}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="phone" className="text-sm">
+                    Phone Number
+                  </Label>
+                  <Input
+                    id="phone"
+                    type="tel"
+                    placeholder="+91 9876543210"
+                    value={contactInfo.phone}
+                    onChange={(e) => handleContactInfoChange('phone', e.target.value)}
+                    className={errors.phone ? 'border-red-500' : ''}
+                    disabled={isSubmitting}
+                  />
+                  {errors.phone && (
+                    <p className="text-xs text-red-500">{errors.phone}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-sm">
+                    Email (Optional)
+                  </Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="owner@example.com"
+                    value={contactInfo.email}
+                    onChange={(e) => handleContactInfoChange('email', e.target.value)}
+                    disabled={isSubmitting}
+                  />
+                </div>
               </div>
 
               {/* Description */}
@@ -319,15 +520,45 @@ export function AdminAddAdPage() {
                   onChange={(e) => handleChange('description', e.target.value)}
                   rows={5}
                   className={errors.description ? 'border-red-500' : ''}
+                  disabled={isSubmitting}
                 />
                 {errors.description && (
                   <p className="text-xs text-red-500">{errors.description}</p>
                 )}
               </div>
 
+              {/* Additional Details */}
+              <div className="space-y-2">
+                <Label htmlFor="addetails" className="text-sm">
+                  Additional Details (Optional)
+                </Label>
+                <Textarea
+                  id="addetails"
+                  placeholder="Any additional information, features, or specifications"
+                  value={formData.addetails}
+                  onChange={(e) => handleChange('addetails', e.target.value)}
+                  rows={3}
+                  disabled={isSubmitting}
+                />
+              </div>
+
+              {/* Badges (comma-separated) */}
+              <div className="space-y-2">
+                <Label htmlFor="badges" className="text-sm">
+                  Badges (Optional)
+                </Label>
+                <Input
+                  id="badges"
+                  placeholder="e.g., Verified, Featured, Urgent (comma separated)"
+                  value={formData.badges}
+                  onChange={(e) => handleChange('badges', e.target.value)}
+                  disabled={isSubmitting}
+                />
+              </div>
+
               {/* Image Upload */}
               <div className="space-y-2">
-                <Label className="text-sm">Ad Images</Label>
+                <Label className="text-sm">Ad Images (Up to 10)</Label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Button
@@ -335,6 +566,7 @@ export function AdminAddAdPage() {
                       variant="outline"
                       onClick={() => document.getElementById('ad-image-upload')?.click()}
                       className="w-full"
+                      disabled={isSubmitting}
                     >
                       <Upload className="w-4 h-4 mr-2" />
                       Upload Images
@@ -346,6 +578,7 @@ export function AdminAddAdPage() {
                       multiple
                       className="hidden"
                       onChange={handleImageUpload}
+                      disabled={isSubmitting}
                     />
                   </div>
                   
@@ -361,6 +594,7 @@ export function AdminAddAdPage() {
                           <button
                             type="button"
                             onClick={() => removeImage(index)}
+                            disabled={isSubmitting}
                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
                           >
                             <X className="w-4 h-4" />
@@ -383,7 +617,7 @@ export function AdminAddAdPage() {
 
               {/* Video Upload */}
               <div className="space-y-2">
-                <Label className="text-sm">Ad Videos</Label>
+                <Label className="text-sm">Ad Video (Optional)</Label>
                 <div className="space-y-3">
                   <div className="flex items-center gap-2">
                     <Button
@@ -391,23 +625,24 @@ export function AdminAddAdPage() {
                       variant="outline"
                       onClick={() => document.getElementById('ad-video-upload')?.click()}
                       className="w-full"
+                      disabled={isSubmitting}
                     >
                       <Video className="w-4 h-4 mr-2" />
-                      Upload Videos
+                      Upload Video
                     </Button>
                     <input
                       id="ad-video-upload"
                       type="file"
                       accept="video/*"
-                      multiple
                       className="hidden"
                       onChange={handleVideoUpload}
+                      disabled={isSubmitting}
                     />
                   </div>
                   
                   {videoPreviews.length > 0 && (
-                    <div className="grid grid-cols-2 gap-3">
-                      {videoPreviews.map((preview, index) => (
+                    <div className="grid grid-cols-1 gap-3">
+                      {videoPreviews.slice(0, 1).map((preview, index) => (
                         <div key={index} className="relative group aspect-video rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
                           <video
                             src={preview}
@@ -417,6 +652,7 @@ export function AdminAddAdPage() {
                           <button
                             type="button"
                             onClick={() => removeVideo(index)}
+                            disabled={isSubmitting}
                             className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity z-10"
                           >
                             <X className="w-4 h-4" />
@@ -430,57 +666,10 @@ export function AdminAddAdPage() {
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
                       <Video className="w-12 h-12 mx-auto text-gray-400 mb-2" />
                       <p className="text-sm text-gray-500 dark:text-gray-400">
-                        No videos uploaded yet
+                        No video uploaded yet
                       </p>
                     </div>
                   )}
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm">
-                  Status
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'pending' | 'approved' | 'rejected') => 
-                    handleChange('status', value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Featured & Sponsored */}
-              <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="featured"
-                    checked={formData.featured}
-                    onCheckedChange={(checked) => handleChange('featured', checked === true)}
-                  />
-                  <Label htmlFor="featured" className="text-sm cursor-pointer">
-                    ⭐ Featured Advertisement
-                  </Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="sponsored"
-                    checked={formData.sponsored}
-                    onCheckedChange={(checked) => handleChange('sponsored', checked === true)}
-                  />
-                  <Label htmlFor="sponsored" className="text-sm cursor-pointer">
-                    💎 Sponsored Advertisement
-                  </Label>
                 </div>
               </div>
             </div>
@@ -492,6 +681,7 @@ export function AdminAddAdPage() {
               variant="outline"
               className="flex-1"
               onClick={handleReset}
+              disabled={isSubmitting}
             >
               <X className="w-4 h-4 mr-2" />
               Reset
@@ -499,9 +689,10 @@ export function AdminAddAdPage() {
             <Button
               className="flex-1 bg-purple-600 hover:bg-purple-700"
               onClick={handleSubmit}
+              disabled={isSubmitting}
             >
               <Save className="w-4 h-4 mr-2" />
-              Add Advertisement
+              {isSubmitting ? 'Creating...' : 'Add Advertisement'}
             </Button>
           </div>
         </div>
