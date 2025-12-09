@@ -1,9 +1,9 @@
 
-import { AdminAddShopPage } from "@/components/admin/AdminAddShopPage";
+import { AdminShopsPage } from "@/components/admin/AdminShopsPage";
 
 export default function AdminDashboardPage() {
 
   return (
-    <AdminAddShopPage/>
+    <AdminShopsPage/>
   );
 }

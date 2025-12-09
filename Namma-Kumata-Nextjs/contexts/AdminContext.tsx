@@ -138,6 +138,30 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [shops, setShops] = useState<Shop[]>([
     { 
       id: '1', 
+      name: 'Rajesh General Store',
+      category: 'Grocery', 
+      status: 'approved', 
+      owner: 'Rajesh Kumar', 
+      submittedDate: '2025-10-01',
+      phone: '+91 9876543210',
+      address: 'Main Road, Kumta',
+      description: 'Your daily needs store with fresh groceries',
+      openingHours: '8:00 AM - 9:00 PM'
+    },
+    { 
+      id: '2', 
+      name: 'Rajesh General Store',
+      category: 'Grocery', 
+      status: 'approved', 
+      owner: 'Rajesh Kumar', 
+      submittedDate: '2025-10-01',
+      phone: '+91 9876543210',
+      address: 'Main Road, Kumta',
+      description: 'Your daily needs store with fresh groceries',
+      openingHours: '8:00 AM - 9:00 PM'
+    },
+    { 
+      id: '3', 
       name: 'Rajesh General Store', 
       category: 'Grocery', 
       status: 'approved', 
@@ -153,6 +177,38 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [ads, setAds] = useState<Ad[]>([
     { 
       id: '1', 
+      title: 'Honda Activa 2020', 
+      category: 'Bikes', 
+      status: 'approved',
+      owner: 'Ramesh K', 
+      submittedDate: '2025-10-10',
+      description: 'Well maintained Honda Activa',
+      price: '₹45,000',
+      phone: '+91 9876543215',
+      location: 'Kumta',
+      featured: true,
+      duration: '1month',
+      expiryDate: '2025-11-10',
+      approvedDate: '2025-10-11'
+    },
+    { 
+      id: '2', 
+      title: 'Honda Activa 2020', 
+      category: 'Bikes', 
+      status: 'approved',
+      owner: 'Ramesh K', 
+      submittedDate: '2025-10-10',
+      description: 'Well maintained Honda Activa',
+      price: '₹45,000',
+      phone: '+91 9876543215',
+      location: 'Kumta',
+      featured: true,
+      duration: '1month',
+      expiryDate: '2025-11-10',
+      approvedDate: '2025-10-11'
+    },
+    { 
+      id: '3', 
       title: 'Honda Activa 2020', 
       category: 'Bikes', 
       status: 'approved',

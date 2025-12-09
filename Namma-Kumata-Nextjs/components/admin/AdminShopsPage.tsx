@@ -20,13 +20,13 @@ import {
 import { useAdmin, Shop } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
-interface AdminShopsPageProps {
-  onBack: () => void;
-  onNavigate: (page: string, data?: any) => void;
-}
 
-export function AdminShopsPage({ onBack, onNavigate }: AdminShopsPageProps) {
+
+export function AdminShopsPage() {
+  const router = useRouter();
+
   const { shops, deleteShop } = useAdmin();
   const { t } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
@@ -87,7 +87,7 @@ export function AdminShopsPage({ onBack, onNavigate }: AdminShopsPageProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onNavigate('admin/edit-shop', { shop })}>
+                <DropdownMenuItem onClick={() => router.push(`AdminEditShopPage/${shop.id}`)}>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Shop
                 </DropdownMenuItem>
@@ -168,7 +168,7 @@ export function AdminShopsPage({ onBack, onNavigate }: AdminShopsPageProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={onBack}
+                onClick={()=>{router.back()}}
                 className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -191,7 +191,7 @@ export function AdminShopsPage({ onBack, onNavigate }: AdminShopsPageProps) {
             <Button 
               size="sm"
               className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white border-0 shadow-lg hover:shadow-xl transition-all hover:scale-105 rounded-xl"
-              onClick={() => onNavigate('admin/add-shop')}
+              onClick={() => router.push('AdminAddShopPage')}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Shop
