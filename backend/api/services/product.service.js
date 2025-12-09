@@ -1,4 +1,4 @@
-import { Product } from "../models/shop.model.js";
+import { Product } from "../models/product.model.js";
 import { Category } from "../models/category.model.js";
 import { SubCategory } from "../models/subcategory.model.js";
 import { ApiError } from "../utils/ApiError.js";

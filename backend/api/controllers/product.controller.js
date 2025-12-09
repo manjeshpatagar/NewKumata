@@ -5,9 +5,9 @@ import {
   getProductById,
   updateProduct,
   deleteProduct,
-} from "../services/shop.service.js";
+} from "../services/product.service.js";
 import { deleteFile } from "../middleware/upload.middleware.js";
-import { Product } from "../models/shop.model.js";
+import { Product } from "../models/product.model.js";
 
 /* -----------------------------
  📌 Create Product
