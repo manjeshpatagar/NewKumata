@@ -42,7 +42,7 @@ export const addAdvertisement = asyncHandler(async (req, res) => {
     images,
     video,
   });
-
+// console.log(ad);
   res.status(201).json({
     success: true,
     message: "Advertisement created successfully",
