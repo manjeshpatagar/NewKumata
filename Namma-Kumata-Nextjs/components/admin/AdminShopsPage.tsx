@@ -25,6 +25,7 @@ export interface Shop {
   id: string;
   name: string;
   category: string;
+  subCategory?: string;
   owner: string;
   phone?: string;
   address?: string;
@@ -53,13 +54,18 @@ export function AdminShopsPage() {
 
       const normalized: Shop[] = items.map((item) => ({
         id: item._id || item.id,
-        name: item.shopName || item.name || 'Untitled Shop',
+        name: item.shopName || item.name || "Untitled Shop",
         category:
           item.categoryId?.name ||
           item.category?.name ||
           item.category ||
-          'Uncategorized',
-        owner: item.contact?.ownerName || item.owner || 'Unknown owner',
+          "Uncategorized",
+        subCategory:
+          item.subCategoryId?.name ||
+          item.subCategory?.name ||
+          item.subCategory ||
+          undefined,
+        owner: item.contact?.ownerName || item.owner || "Unknown owner",
         phone: item.contact?.phone || item.phone,
         address: item.address,
         description: item.description || item.about,
@@ -125,7 +131,7 @@ export function AdminShopsPage() {
     Services: 'from-indigo-500 to-blue-600',
   };
 
-  // SHOP CARD (UI untouched)
+  // SHOP CARD
   const ShopCard = ({ shop }: { shop: Shop }) => {
     const gradient = categoryColors[shop.category] || 'from-gray-500 to-gray-600';
 
@@ -147,45 +153,66 @@ export function AdminShopsPage() {
                   <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-white truncate">
                     {shop.name}
                   </h3>
-
-                  <Badge className={`bg-gradient-to-r ${gradient} text-white border-0 text-xs mt-1`}>
-                    {shop.category}
-                  </Badge>
+                  <div className="flex flex-wrap items-center gap-2 mt-1">
+                    <Badge className={`bg-gradient-to-r ${gradient} text-white border-0 text-xs`}>
+                      {shop.category}
+                    </Badge>
+                    {shop.subCategory && (
+                      <Badge variant="secondary" className="text-xs">
+                        {shop.subCategory}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
 
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
-                  <MoreVertical className="w-4 h-4" />
-                </Button>
-              </DropdownMenuTrigger>
+            {/* FIXED DROPDOWN MENU */}
+            <div className="relative z-50">
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button 
+                    variant="ghost" 
+                    size="icon" 
+                    className="h-8 w-8 relative z-50 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <MoreVertical className="w-4 h-4" />
+                  </Button>
+                </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end">
-
-                <DropdownMenuItem onClick={() => router.push(`/AdminEditShopPage/${shop.id}`)}>
-                  <Edit className="w-4 h-4 mr-2" />
-                  Edit Shop
-                </DropdownMenuItem>
-
-                <DropdownMenuItem>
-                  <Eye className="w-4 h-4 mr-2" />
-                  View Details
-                </DropdownMenuItem>
-
-                <DropdownMenuSeparator />
-
-                <DropdownMenuItem 
-                  className="text-red-600" 
-                  onClick={() => handleDelete(shop.id, shop.name)}
+                <DropdownMenuContent 
+                  align="end"
+                  className="min-w-[180px] z-[100] relative"
+                  sideOffset={5}
                 >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Shop
-                </DropdownMenuItem>
+                  <DropdownMenuItem 
+                    onClick={() => router.push(`/AdminEditShopPage/${shop.id}`)}
+                    className="cursor-pointer flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                  >
+                    <Edit className="w-4 h-4 mr-2" />
+                    Edit Shop
+                  </DropdownMenuItem>
 
-              </DropdownMenuContent>
-            </DropdownMenu>
+                  <DropdownMenuItem 
+                    className="cursor-pointer flex items-center px-3 py-2 hover:bg-gray-100 dark:hover:bg-gray-800"
+                    onClick={() => router.push(`/shop/${shop.id}`)}
+                  >
+                    <Eye className="w-4 h-4 mr-2" />
+                    View Details
+                  </DropdownMenuItem>
+
+                  <DropdownMenuSeparator />
+
+                  <DropdownMenuItem 
+                    className="text-red-600 cursor-pointer flex items-center px-3 py-2 hover:bg-red-50 dark:hover:bg-red-900/20" 
+                    onClick={() => handleDelete(shop.id, shop.name)}
+                  >
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Delete Shop
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
@@ -305,8 +332,10 @@ export function AdminShopsPage() {
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-      {loading ? (
-              <p className="text-center w-full py-4 text-gray-600 dark:text-gray-400">Loading…</p>
+            {loading ? (
+              <div className="col-span-full flex justify-center items-center py-12">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+              </div>
             ) : filteredShops.length > 0 ? (
               filteredShops.map(shop => (
                 <ShopCard key={shop.id} shop={shop} />
@@ -317,6 +346,15 @@ export function AdminShopsPage() {
                 <p className="text-gray-500 dark:text-gray-400 text-lg">
                   {searchQuery ? 'No shops found' : 'No shops yet'}
                 </p>
+                {searchQuery && (
+                  <Button 
+                    variant="outline" 
+                    className="mt-4"
+                    onClick={() => setSearchQuery('')}
+                  >
+                    Clear Search
+                  </Button>
+                )}
               </div>
             )}
 

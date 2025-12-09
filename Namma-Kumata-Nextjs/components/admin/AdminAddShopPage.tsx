@@ -108,7 +108,7 @@ export function AdminAddShopPage() {
     const newErrors: Record<string, string> = {};
 
     if (!formData.name.trim()) newErrors.name = 'Shop name is required';
-    if (!formData.category) newErrors.category = 'Category is required';
+    if (!formData.subCategory) newErrors.subCategory = 'Subcategory is required';
     if (!formData.owner.trim()) newErrors.owner = 'Owner name is required';
     if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
     if (!/^\+?[\d\s-]{10,}$/.test(formData.phone)) newErrors.phone = 'Invalid phone number';
@@ -137,8 +137,15 @@ export function AdminAddShopPage() {
         form.append("openingHours[open]", formData.openingHours);
         form.append("openingHours[close]", "");
       }
-      if (formData.category) form.append("categoryId", formData.category);
-      if (formData.subCategory) form.append("subCategoryId", formData.subCategory);
+
+      const selectedSub = subCategories.find((s) => s.id === formData.subCategory);
+      const derivedCategory = selectedSub?.categoryId;
+      if (!derivedCategory) {
+        toast.error("Selected subcategory is missing category mapping");
+        return;
+      }
+      form.append("categoryId", derivedCategory);
+      form.append("subCategoryId", formData.subCategory);
 
       const statusPayload =
         formData.status === "approved" ? "active" : "inactive";
@@ -243,55 +250,35 @@ export function AdminAddShopPage() {
                 {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
               </div>
 
-              {/* CATEGORY */}
+              {/* SUBCATEGORY */}
               <div className="space-y-2">
-                <Label>Category *</Label>
+                <Label>Subcategory *</Label>
                 <Select
-                  value={formData.category}
-                  onValueChange={(value) => handleChange("category", value)}
+                  value={formData.subCategory}
+                  onValueChange={(value) => {
+                    // derive and store category based on selected subcategory
+                    const matched = subCategories.find((s) => s.id === value);
+                    setFormData((prev) => ({
+                      ...prev,
+                      subCategory: value,
+                      category: matched?.categoryId || '',
+                    }));
+                    if (errors.subCategory) setErrors((prev) => ({ ...prev, subCategory: '' }));
+                  }}
                 >
-                  <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                    <SelectValue placeholder={loadingCategories ? "Loading..." : "Select category"} />
+                  <SelectTrigger className={errors.subCategory ? "border-red-500" : ""}>
+                    <SelectValue placeholder={loadingSubCategories ? "Loading..." : "Select subcategory"} />
                   </SelectTrigger>
                   <SelectContent>
-                    {categories.map(cat => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
+                    {subCategories.map((sub) => (
+                      <SelectItem key={sub.id} value={sub.id}>
+                        {sub.name}
                       </SelectItem>
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.category && <p className="text-red-500 text-xs">{errors.category}</p>}
+                {errors.subCategory && <p className="text-red-500 text-xs">{errors.subCategory}</p>}
               </div>
-
-              {/* SUBCATEGORY (required for business categories) */}
-              {categories.find((c) => c.id === formData.category && c.type === "business") && (
-                <div className="space-y-2">
-                  <Label>Subcategory *</Label>
-                  <Select
-                    value={formData.subCategory}
-                    onValueChange={(value) => handleChange("subCategory", value)}
-                  >
-                    <SelectTrigger className={errors.category ? "border-red-500" : ""}>
-                      <SelectValue placeholder={loadingSubCategories ? "Loading..." : "Select subcategory"} />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {subCategories
-                        .filter((s) => s.categoryId === formData.category)
-                        .map((sub) => (
-                          <SelectItem key={sub.id} value={sub.id}>
-                            {sub.name}
-                          </SelectItem>
-                        ))}
-                    </SelectContent>
-                  </Select>
-                  {!formData.subCategory && (
-                    <p className="text-xs text-gray-500">
-                      Required for business categories
-                    </p>
-                  )}
-                </div>
-              )}
 
               {/* OWNER */}
               <div className="space-y-2">
