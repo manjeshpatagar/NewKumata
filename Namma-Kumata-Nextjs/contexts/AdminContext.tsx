@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import { authApi } from "@/lib/api/authApi";  // <-- your API import
 
 export interface Shop {
   id: string;
@@ -55,7 +56,7 @@ interface AdminStats {
 
 interface AdminContextType {
   isAdminLoggedIn: boolean;
-  adminUser: { email: string; name: string } | null;
+  adminUser: User | null;
   shops: Shop[];
   ads: Ad[];
   users: User[];
@@ -82,7 +83,57 @@ const AdminContext = createContext<AdminContextType | undefined>(undefined);
 
 export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
-  const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
+  const [adminUser, setAdminUser] = useState<User | null>(null);
+
+  /* ------------------------------------
+     LOAD ADMIN FROM TOKEN (AUTO LOGIN)
+  -------------------------------------*/
+  useEffect(() => {
+    const token = localStorage.getItem("adminToken");
+    const user = localStorage.getItem("adminUser");
+
+    if (token && user) {
+      setIsAdminLoggedIn(true);
+      setAdminUser(JSON.parse(user));
+    }
+  }, []);
+
+  /* ------------------------------------
+      ███ REAL ADMIN LOGIN WITH API ███
+  -------------------------------------*/
+  const adminLogin = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const res = await authApi.login(email, password);
+
+      // Check if API returned admin
+      if (res.data.role !== "admin") {
+        return false; // ❌ Not an admin
+      }
+
+      // Save token
+      localStorage.setItem("adminToken", res.token);
+      localStorage.setItem("adminUser", JSON.stringify(res.data));
+
+      setIsAdminLoggedIn(true);
+      setAdminUser(res.data);
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  };
+
+  const adminLogout = () => {
+    localStorage.removeItem("adminToken");
+    localStorage.removeItem("adminUser");
+
+    setIsAdminLoggedIn(false);
+    setAdminUser(null);
+  };
+
+  /* ------------------------------------
+       REMAINING YOUR LOCAL MOCK DATA
+  -------------------------------------*/
 
   const [shops, setShops] = useState<Shop[]>([
     { 
@@ -131,26 +182,16 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     totalEvents: 3,
   };
 
-  const adminLogin = async (email: string, password: string): Promise<boolean> => {
-    if (email === 'admin@nammakumta.com' && password === 'admin123') {
-      setIsAdminLoggedIn(true);
-      setAdminUser({ email, name: 'Admin User' });
-      return true;
-    }
-    return false;
-  };
-
-  const adminLogout = () => {
-    setIsAdminLoggedIn(false);
-    setAdminUser(null);
-  };
+  /* ------------------------------------
+           ALL OTHER FUNCTIONS SAME
+  -------------------------------------*/
 
   const approveShop = (id: string) => {
-    setShops(shops.map(s => s.id === id ? { ...s, status: 'approved' as const } : s));
+    setShops(shops.map(s => s.id === id ? { ...s, status: 'approved' } : s));
   };
 
   const rejectShop = (id: string) => {
-    setShops(shops.map(s => s.id === id ? { ...s, status: 'rejected' as const } : s));
+    setShops(shops.map(s => s.id === id ? { ...s, status: 'rejected' } : s));
   };
 
   const addShop = (shop: Omit<Shop, 'id' | 'submittedDate'>) => {
@@ -176,29 +217,21 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
     const now = new Date();
     let expiryDate = new Date(now);
-    
+
     if (ad.duration) {
       switch (ad.duration) {
-        case '1day':
-          expiryDate.setDate(now.getDate() + 1);
-          break;
-        case '3days':
-          expiryDate.setDate(now.getDate() + 3);
-          break;
-        case '1week':
-          expiryDate.setDate(now.getDate() + 7);
-          break;
-        case '1month':
-          expiryDate.setMonth(now.getMonth() + 1);
-          break;
+        case '1day': expiryDate.setDate(now.getDate() + 1); break;
+        case '3days': expiryDate.setDate(now.getDate() + 3); break;
+        case '1week': expiryDate.setDate(now.getDate() + 7); break;
+        case '1month': expiryDate.setMonth(now.getMonth() + 1); break;
       }
     }
 
-    setAds(ads.map(a => a.id === id ? { 
-      ...a, 
-      status: 'approved' as const,
-      approvedDate: new Date().toISOString().split('T')[0],
-      expiryDate: ad.duration ? expiryDate.toISOString().split('T')[0] : undefined
+    setAds(ads.map(a => a.id === id ? {
+      ...a,
+      status: "approved",
+      approvedDate: now.toISOString().split("T")[0],
+      expiryDate: expiryDate.toISOString().split("T")[0]
     } : a));
   };
 
@@ -207,7 +240,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const rejectAd = (id: string) => {
-    setAds(ads.map(a => a.id === id ? { ...a, status: 'rejected' as const } : a));
+    setAds(ads.map(a => a.id === id ? { ...a, status: 'rejected' } : a));
   };
 
   const addAd = (ad: Omit<Ad, 'id' | 'submittedDate' | 'status'>) => {
@@ -215,7 +248,7 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       ...ad,
       id: Date.now().toString(),
       submittedDate: new Date().toISOString().split('T')[0],
-      status: 'pending' as const,
+      status: 'pending',
     };
     setAds([newAd, ...ads]);
   };
@@ -234,34 +267,26 @@ export function AdminProvider({ children }: { children: ReactNode }) {
 
     const now = new Date();
     let expiryDate = new Date(now);
-    
+
     switch (ad.duration) {
-      case '1day':
-        expiryDate.setDate(now.getDate() + 1);
-        break;
-      case '3days':
-        expiryDate.setDate(now.getDate() + 3);
-        break;
-      case '1week':
-        expiryDate.setDate(now.getDate() + 7);
-        break;
-      case '1month':
-        expiryDate.setMonth(now.getMonth() + 1);
-        break;
+      case '1day': expiryDate.setDate(now.getDate() + 1); break;
+      case '3days': expiryDate.setDate(now.getDate() + 3); break;
+      case '1week': expiryDate.setDate(now.getDate() + 7); break;
+      case '1month': expiryDate.setMonth(now.getMonth() + 1); break;
     }
 
-    setAds(ads.map(a => a.id === id ? { 
-      ...a, 
-      expiryDate: expiryDate.toISOString().split('T')[0]
+    setAds(ads.map(a => a.id === id ? {
+      ...a,
+      expiryDate: expiryDate.toISOString().split("T")[0]
     } : a));
   };
 
   const blockUser = (id: string) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: 'blocked' as const } : u));
+    setUsers(users.map(u => u.id === id ? { ...u, status: 'blocked' } : u));
   };
 
   const unblockUser = (id: string) => {
-    setUsers(users.map(u => u.id === id ? { ...u, status: 'active' as const } : u));
+    setUsers(users.map(u => u.id === id ? { ...u, status: 'active' } : u));
   };
 
   return (
@@ -303,4 +328,3 @@ export function useAdmin() {
   }
   return context;
 }
-

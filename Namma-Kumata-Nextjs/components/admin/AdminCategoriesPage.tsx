@@ -32,12 +32,10 @@ import {
   AlertDialogTitle,
 } from '../ui/alert-dialog';
 import { toast } from 'sonner';
+import { useRouter } from "next/navigation";
 
-interface AdminCategoriesPageProps {
-  onBack: () => void;
-}
 
-export function AdminCategoriesPage({ onBack }: AdminCategoriesPageProps) {
+export function AdminCategoriesPage() {
   const [shopCategories, setShopCategories] = useState([
     { id: 1, name: 'Associations', icon: 'https://images.unsplash.com/photo-1529156069898-49953e39b3ac?w=100&h=100&fit=crop', itemCount: 12, active: true },
     { id: 2, name: 'Cultural Programs', icon: 'https://images.unsplash.com/photo-1533174072545-7a4b6ad7a6c3?w=100&h=100&fit=crop', itemCount: 8, active: true },
@@ -63,7 +61,7 @@ export function AdminCategoriesPage({ onBack }: AdminCategoriesPageProps) {
     { id: 6, name: 'Jobs', icon: 'https://images.unsplash.com/photo-1454165804606-c3d57bc86b40?w=100&h=100&fit=crop', itemCount: 64, active: true },
     { id: 7, name: 'Services', icon: 'https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=100&h=100&fit=crop', itemCount: 42, active: true },
   ]);
-
+  const router = useRouter();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState('shops');
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
@@ -279,7 +277,7 @@ export function AdminCategoriesPage({ onBack }: AdminCategoriesPageProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={onBack}
+                onClick={()=>router.back()}
                 className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="w-5 h-5" />
