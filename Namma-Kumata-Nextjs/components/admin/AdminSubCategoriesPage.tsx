@@ -688,7 +688,7 @@ export function AdminSubCategoriesPage({
             </Card>
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
               <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                {subCategories.filter((sub) => sub.isActive).length}
+                {subCategories.filter((sub) => sub.active).length}
               </div>
               <div className="text-xs font-medium text-emerald-700 dark:text-emerald-500">
                 Active
@@ -696,7 +696,7 @@ export function AdminSubCategoriesPage({
             </Card>
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
               <div className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">
-                {subCategories.filter((sub) => !sub.isActive).length}
+                {subCategories.filter((sub) => !sub.active).length}
               </div>
               <div className="text-xs font-medium text-purple-700 dark:text-purple-500">
                 Inactive
