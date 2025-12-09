@@ -20,8 +20,8 @@ const uploadProducts = useUpload({
 const router = express.Router();
 
 // Public
-router.get("/", getProducts);
-router.get("/:id", getSingleProduct);
+router.get("/", protect, getProducts);
+router.get("/:id", protect, getSingleProduct);
 
 // Admin
 router.post("/", protect, adminOnly, uploadProducts, addProduct);
