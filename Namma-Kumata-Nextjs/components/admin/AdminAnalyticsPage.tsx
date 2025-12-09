@@ -12,12 +12,13 @@ import { Badge } from '../ui/badge';
 import { ScrollArea } from '../ui/scroll-area';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '../ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import { useRouter } from 'next/router';
 
-interface AdminAnalyticsPageProps {
-  onBack: () => void;
-}
 
-export function AdminAnalyticsPage({ onBack }: AdminAnalyticsPageProps) {
+
+export function AdminAnalyticsPage() {
+const router = useRouter();
+
   const [timeRange, setTimeRange] = useState('7days');
 
   const overviewStats = [
@@ -114,7 +115,7 @@ export function AdminAnalyticsPage({ onBack }: AdminAnalyticsPageProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={onBack}
+                onClick={()=> router.back() }
                 className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="w-5 h-5" />

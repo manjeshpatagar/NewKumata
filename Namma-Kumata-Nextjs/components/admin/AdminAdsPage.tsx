@@ -36,13 +36,14 @@ import { useAdmin } from '../../contexts/AdminContext';
 import { useNotifications } from '../../contexts/NotificationContext';
 import { adCategories } from '../../lib/advertisementData';
 import { toast } from 'sonner';
+import { useRouter } from "next/navigation";
 
-interface AdminAdsPageProps {
-  onBack: () => void;
-  onNavigate: (page: string, data?: any) => void;
-}
 
-export function AdminAdsPage({ onBack, onNavigate }: AdminAdsPageProps) {
+
+
+export function AdminAdsPage() {
+  const router = useRouter();
+
   const { t } = useLanguage();
   const { ads, approveAd, rejectAd, deleteAd, editAd } = useAdmin();
   // const { ads, approveAdWithPrice, rejectAd, deleteAd, editAd } = useAdmin(); // Old payment-based approval
@@ -175,7 +176,7 @@ export function AdminAdsPage({ onBack, onNavigate }: AdminAdsPageProps) {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => onNavigate('admin/edit-ad', { 
+                <DropdownMenuItem onClick={() => router.push('admin/edit-ad', { 
                   ad: {
                     id: ad.id,
                     title: ad.title,
@@ -362,7 +363,7 @@ export function AdminAdsPage({ onBack, onNavigate }: AdminAdsPageProps) {
               <Button 
                 variant="ghost" 
                 size="icon" 
-                onClick={onBack}
+                onClick={() => router.back()}
                 className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
               >
                 <ArrowLeft className="w-5 h-5" />
@@ -385,7 +386,7 @@ export function AdminAdsPage({ onBack, onNavigate }: AdminAdsPageProps) {
             <Button 
               size="sm"
               className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white border-0 shadow-lg hover:shadow-xl transition-all hover:scale-105 rounded-xl"
-              onClick={() => onNavigate('admin/add-ad')}
+              onClick={() => router.push('/AdminAddAdPage')}
             >
               <Plus className="w-4 h-4 mr-2" />
               Add Advertisement

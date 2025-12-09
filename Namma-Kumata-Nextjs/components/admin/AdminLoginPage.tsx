@@ -1,42 +1,45 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import { Shield, Lock, Mail, Eye, EyeOff, AlertCircle } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Card } from '../ui/card';
-import { Alert, AlertDescription } from '../ui/alert';
-import { NammaKumtaLogo } from '../NammaKumtaLogo';
-import { useAdmin } from '../../contexts/AdminContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { useState } from "react";
+import { Shield, Lock, Mail, Eye, EyeOff, AlertCircle } from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Card } from "../ui/card";
+import { Alert, AlertDescription } from "../ui/alert";
+import { NammaKumtaLogo } from "../NammaKumtaLogo";
+import { useAdmin } from "../../contexts/AdminContext";
+import { useLanguage } from "../../contexts/LanguageContext";
+import { useRouter } from "next/navigation";
 
 interface AdminLoginPageProps {
   onNavigate: (page: string) => void;
 }
 
-export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
+export function AdminLoginPage() {
+  const router = useRouter();
+
   const { adminLogin } = useAdmin();
   const { t } = useLanguage();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    setError('');
+    setError("");
     setIsLoading(true);
 
     try {
       const success = await adminLogin(email, password);
       if (success) {
-        onNavigate('admin');
+        router.push("/AdminDashboard");
       } else {
-        setError('Invalid admin credentials. Please try again.');
+        setError("Invalid admin credentials. Please try again.");
       }
     } catch (err) {
-      setError('An error occurred. Please try again.');
+      setError("An error occurred. Please try again.");
     } finally {
       setIsLoading(false);
     }
@@ -61,8 +64,10 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
         <Alert className="mb-6 bg-blue-50 dark:bg-blue-950 border-blue-200 dark:border-blue-800">
           <AlertCircle className="w-4 h-4 text-blue-600 dark:text-blue-400" />
           <AlertDescription className="text-sm text-blue-800 dark:text-blue-300">
-            <strong>Demo Credentials:</strong><br />
-            Email: admin@nammakumta.com<br />
+            <strong>Demo Credentials:</strong>
+            <br />
+            Email: admin@nammakumta.com
+            <br />
             Password: admin123
           </AlertDescription>
         </Alert>
@@ -105,7 +110,7 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
               <Input
-                type={showPassword ? 'text' : 'password'}
+                type={showPassword ? "text" : "password"}
                 placeholder="Enter your password"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
@@ -138,7 +143,7 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
                 Logging in...
               </span>
             ) : (
-              'Login to Dashboard'
+              "Login to Dashboard"
             )}
           </Button>
         </form>
@@ -146,7 +151,7 @@ export function AdminLoginPage({ onNavigate }: AdminLoginPageProps) {
         {/* Back to App */}
         <div className="mt-6 text-center">
           <button
-            onClick={() => onNavigate('home')}
+            onClick={() => router.push("home")}
             className="text-sm text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-gray-200"
           >
             ← Back to App

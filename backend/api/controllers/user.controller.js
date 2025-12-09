@@ -76,7 +76,6 @@ export const getUsers = asyncHandler(async (req, res) => {
       data: users,
     });
   }
-
   // Normal user → only their own data
   const user = await getUserById(req.user._id);
 

@@ -18,10 +18,8 @@ import { Alert, AlertDescription } from '../ui/alert';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '../ui/tabs';
 import { toast } from 'sonner';
+import { useRouter } from "next/navigation";
 
-interface AdminNotificationsPageProps {
-  onBack: () => void;
-}
 
 interface SentNotification {
   id: number;
@@ -36,7 +34,8 @@ interface SentNotification {
   status: 'sent' | 'scheduled' | 'draft';
 }
 
-export function AdminNotificationsPage({ onBack }: AdminNotificationsPageProps) {
+export function AdminNotificationsPage() {
+  const router = useRouter();
   const [sent, setSent] = useState(false);
   const [selectedTab, setSelectedTab] = useState('send');
   const [searchQuery, setSearchQuery] = useState('');
@@ -320,7 +319,7 @@ export function AdminNotificationsPage({ onBack }: AdminNotificationsPageProps) 
             <Button 
               variant="ghost" 
               size="icon" 
-              onClick={onBack}
+              onClick={() => router.back()}
               className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
             >
               <ArrowLeft className="w-5 h-5" />

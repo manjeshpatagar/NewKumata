@@ -11,9 +11,13 @@ export const authApi = {
     return res.data;
   },
 
+  updateProfile: async (data: any) => {
+    const res = await axiosClient.patch("/auth/update", data);
+    return res.data;
+  },
+
   getProfile: async () => {
     const res = await axiosClient.get("/auth/me");
     return res.data;
   },
 };
-

@@ -13,6 +13,7 @@ import { Checkbox } from '../ui/checkbox';
 import { useAdmin } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
 
 interface AdminAddAdPageProps {
   onBack: () => void;
@@ -32,7 +33,8 @@ const adCategories = [
   { id: 'agriculture', name: 'Agriculture', emoji: '🌾' },
 ];
 
-export function AdminAddAdPage({ onBack }: AdminAddAdPageProps) {
+export function AdminAddAdPage() {
+  const router = useRouter();
   const { addAd } = useAdmin();
   const { t } = useLanguage();
 
@@ -98,7 +100,7 @@ export function AdminAddAdPage({ onBack }: AdminAddAdPageProps) {
 
     addAd(formData);
     toast.success('Advertisement added successfully!');
-    onBack();
+    router.back();
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -179,7 +181,7 @@ export function AdminAddAdPage({ onBack }: AdminAddAdPageProps) {
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 border-b dark:border-gray-800">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto w-full">
           <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onBack}>
+            <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5" />
             </Button>
             <div>
