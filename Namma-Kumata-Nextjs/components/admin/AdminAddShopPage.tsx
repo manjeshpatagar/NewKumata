@@ -35,6 +35,8 @@ export function AdminAddShopPage() {
     status: 'approved' as 'pending' | 'approved' | 'rejected',
   });
 
+  
+
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
