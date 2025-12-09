@@ -1,5 +1,4 @@
 import { Product } from "../models/product.model.js";
-import { Category } from "../models/category.model.js";
 import { SubCategory } from "../models/subcategory.model.js";
 import { ApiError } from "../utils/ApiError.js";
 
@@ -7,27 +6,8 @@ import { ApiError } from "../utils/ApiError.js";
  📌 Create Product (All fields optional except shopName + address)
 ----------------------------- */
 export const createProduct = async (data) => {
-  const category = await Category.findById(data.categoryId);
-  if (!category) throw new ApiError(404, "Category not found");
-
-  // Business category requires subcategory
-  if (category.type === "business") {
-    if (!data.subCategoryId) {
-      throw new ApiError(
-        400,
-        "subCategoryId is required for business category"
-      );
-    }
-
-    const sub = await SubCategory.findById(data.subCategoryId);
-    if (!sub) throw new ApiError(404, "SubCategory not found");
-  }
-
-  // Advertisement category must NOT have a subcategory
-  if (category.type === "advertisement" && data.subCategoryId) {
-    throw new ApiError(400, "Advertisements cannot have subcategories");
-  }
-
+  const sub = await SubCategory.findById(data.subCategoryId);
+  if (!sub) throw new ApiError(404, "SubCategory not found");
   return Product.create(data);
 };
 
