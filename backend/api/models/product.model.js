@@ -16,9 +16,6 @@ const productSchema = new mongoose.Schema(
       ownerName: { type: String },
       email: { type: String },
     },
-
-    // FIXED: use categoryId & subCategoryId
-    categoryId: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
     subCategoryId: { type: mongoose.Schema.Types.ObjectId, ref: "SubCategory" },
 
     website: { type: String },
