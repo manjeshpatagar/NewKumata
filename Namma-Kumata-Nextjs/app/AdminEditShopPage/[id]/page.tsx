@@ -13,3 +13,4 @@ export default function EditShopPage({ params }: { params: { id: string } }) {
     />
   );
 }
+

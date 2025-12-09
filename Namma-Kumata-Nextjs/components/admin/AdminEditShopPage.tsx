@@ -208,7 +208,6 @@ export function AdminEditShopPage({ shopId, onBack }: AdminEditShopPageProps) {
     fetchSubCategories();
   }, []);
 
-  // Load shop details
   useEffect(() => {
     const fetchShop = async () => {
       try {

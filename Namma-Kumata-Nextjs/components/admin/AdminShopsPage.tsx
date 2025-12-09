@@ -1,5 +1,4 @@
 'use client';
-
 import { useState, useEffect } from 'react';
 import { 
   ArrowLeft, Edit, Trash2, Plus, Search, Store,
