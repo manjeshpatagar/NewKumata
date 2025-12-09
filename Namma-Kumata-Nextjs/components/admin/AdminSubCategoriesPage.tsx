@@ -363,12 +363,12 @@ export function AdminSubCategoriesPage({
             <div className="flex items-center gap-2">
               <Badge
                 className={`${
-                  subCategory.isActive
+                  subCategory.active
                     ? "bg-emerald-500 text-white"
                     : "bg-gray-400 text-white"
                 } border-0`}
               >
-                {subCategory.isActive ? "Active" : "Inactive"}
+                {subCategory.active ? "Active" : "Inactive"}
               </Badge>
 
               <DropdownMenu>
@@ -459,7 +459,7 @@ export function AdminSubCategoriesPage({
                     Manage Sub-Categories
                   </h1>
                   <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-0">
-                    {initialSubCategories.length} Sub-Categories
+                    {subCategories.length} Sub-Categories
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -680,7 +680,7 @@ export function AdminSubCategoriesPage({
           <div className="grid grid-cols-3 gap-3 mt-4">
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
               <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">
-                {initialSubCategories.length}
+                {subCategories.length}
               </div>
               <div className="text-xs font-medium text-blue-700 dark:text-blue-500">
                 Total Sub-Categories
@@ -688,7 +688,7 @@ export function AdminSubCategoriesPage({
             </Card>
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
               <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                {initialSubCategories.filter((sub) => sub.isActive).length}
+                {subCategories.filter((sub) => sub.isActive).length}
               </div>
               <div className="text-xs font-medium text-emerald-700 dark:text-emerald-500">
                 Active
@@ -696,7 +696,7 @@ export function AdminSubCategoriesPage({
             </Card>
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
               <div className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">
-                {initialSubCategories.filter((sub) => !sub.isActive).length}
+                {subCategories.filter((sub) => !sub.isActive).length}
               </div>
               <div className="text-xs font-medium text-purple-700 dark:text-purple-500">
                 Inactive
@@ -729,13 +729,13 @@ export function AdminSubCategoriesPage({
                 className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
               >
                 <Store className="w-4 h-4 mr-2" />
-                Sub-Categories ({initialSubCategories.length})
+                Sub-Categories ({subCategories.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="shops">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {initialSubCategories.map((sub) => (
+                {subCategories.map((sub) => (
                   <SubCategoryCard key={sub.id} subCategory={sub} />
                 ))}
               </div>
