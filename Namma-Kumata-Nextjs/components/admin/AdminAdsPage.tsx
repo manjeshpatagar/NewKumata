@@ -176,22 +176,7 @@ export function AdminAdsPage() {
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push('admin/edit-ad', { 
-                  ad: {
-                    id: ad.id,
-                    title: ad.title,
-                    category: adCategories.find(c => c.id === ad.category)?.name || ad.category,
-                    owner: ad.postedBy,
-                    submittedDate: ad.postedOn,
-                    description: ad.description,
-                    price: ad.price || ad.salary,
-                    phone: ad.phone || '+91 9876543210',
-                    location: ad.location || 'Kumta',
-                    status: ad.status,
-                    featured: ad.featured,
-                    sponsored: ad.sponsored,
-                  }
-                })}>
+                <DropdownMenuItem onClick={() => router.push(`/AdminEditAdPage/${ad.id}`)}>
                   <Edit className="w-4 h-4 mr-2" />
                   Edit Ad
                 </DropdownMenuItem>
