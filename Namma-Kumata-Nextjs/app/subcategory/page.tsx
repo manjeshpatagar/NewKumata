@@ -1,8 +1,9 @@
-import { subCategoryServerApi } from "@/lib/api-ssr/subCategoryServerApi";
 import { cookies } from "next/headers";
+import { subCategoryServerApi } from "@/lib/api-ssr/subCategoryServerApi";
 import SubcategoryPageComponent from "@/components/SubcategoryPage"; // ⬅ rename import
 
-export default async function SubcategoryPageServer({ searchParams }: any) { // ⬅ rename function
+export default async function SubcategoryPageServer({ searchParams }: any) {
+  // ⬅ rename function
   const { categoryId, categoryName } = searchParams;
 
   const token = cookies().get("token")?.value;
