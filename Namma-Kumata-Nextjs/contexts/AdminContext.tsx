@@ -1,17 +1,8 @@
 "use client";
 
-import {
-  createContext,
-  useContext,
-  useState,
-  ReactNode,
-  useEffect,
-} from "react";
-import { authApi } from "@/lib/api/authApi";
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { authApi } from '@/lib/api/authApi';
 
-/* --------------------------
-   TYPES
----------------------------*/
 export interface Shop {
   id: string;
   name: string;
@@ -104,73 +95,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
 
-  /* -----------------------------------------
-     LOAD ADMIN FROM COOKIE + LOCAL STORAGE
-  ------------------------------------------*/
+  // Restore admin session on refresh
   useEffect(() => {
-    const browser = typeof window !== "undefined";
-    if (!browser) return;
+    const role = localStorage.getItem('role');
+    const name = localStorage.getItem('admin_name');
+    const email = localStorage.getItem('admin_email');
 
-    const localToken = localStorage.getItem("adminToken");
-    const cookieToken = document.cookie
-      ?.split("; ")
-      ?.find((row) => row.startsWith("adminToken="))
-      ?.split("=")?.[1];
-
-    const finalToken = localToken || cookieToken;
-    const storedUser = localStorage.getItem("adminUser");
-
-    if (finalToken && storedUser) {
+    if (role === 'admin' && name && email) {
       setIsAdminLoggedIn(true);
-      setAdminUser(JSON.parse(storedUser));
+      setAdminUser({ name, email });
     }
   }, []);
 
-  /* -----------------------------------------
-     ADMIN LOGIN — STORE TOKEN (LOCAL + COOKIE)
-  ------------------------------------------*/
-  const adminLogin = async (
-    email: string,
-    password: string
-  ): Promise<boolean> => {
-    try {
-      const res = await authApi.login(email, password);
-
-      if (res.data.role !== "admin") return false;
-
-      const token = res.token;
-
-      localStorage.setItem("adminToken", token);
-      localStorage.setItem("adminUser", JSON.stringify(res.data));
-
-      // Save cookie for SSR
-      document.cookie = `adminToken=${token}; Path=/; Max-Age=86400; SameSite=Lax;`;
-
-      setAdminUser(res.data);
-      setIsAdminLoggedIn(true);
-
-      return true;
-    } catch (err) {
-      return false;
-    }
-  };
-
-  /* -----------------------------------------
-     ADMIN LOGOUT — REMOVE TOKEN (LOCAL + COOKIE)
-  ------------------------------------------*/
-  const adminLogout = () => {
-    localStorage.removeItem("adminToken");
-    localStorage.removeItem("adminUser");
-
-    document.cookie = "adminToken=; Max-Age=0; Path=/;";
-
-    setIsAdminLoggedIn(false);
-    setAdminUser(null);
-  };
-
-  /* -----------------------------------------
-     MOCK SHOPS / ADS / USERS (your existing data)
-  ------------------------------------------*/
   const [shops, setShops] = useState<Shop[]>([
     {
       id: "1",
@@ -224,13 +160,40 @@ export function AdminProvider({ children }: { children: ReactNode }) {
     totalEvents: 3,
   };
 
-  /* -----------------------------------------
-     SHOP OPERATIONS
-  ------------------------------------------*/
-  const approveShop = (id: string) =>
-    setShops(
-      shops.map((s) => (s.id === id ? { ...s, status: "approved" } : s))
-    );
+  const adminLogin = async (email: string, password: string): Promise<boolean> => {
+    try {
+      const res = await authApi.login(email, password);
+      const { token, data } = res;
+
+      if (data.role !== 'admin') return false;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('admin_name', data.name);
+      localStorage.setItem('admin_email', data.email);
+
+      setIsAdminLoggedIn(true);
+      setAdminUser({ email: data.email, name: data.name });
+      return true;
+    } catch (error) {
+      console.error('Admin login failed:', error);
+      return false;
+    }
+  };
+
+  const adminLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('admin_name');
+    localStorage.removeItem('admin_email');
+
+    setIsAdminLoggedIn(false);
+    setAdminUser(null);
+  };
+
+  const approveShop = (id: string) => {
+    setShops(shops.map(s => s.id === id ? { ...s, status: 'approved' } : s));
+  };
 
   const rejectShop = (id: string) =>
     setShops(
