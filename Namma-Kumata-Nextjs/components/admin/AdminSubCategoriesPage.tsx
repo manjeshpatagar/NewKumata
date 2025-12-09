@@ -55,82 +55,84 @@ import {
 } from "../ui/alert-dialog";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
+import { subCategoryApi } from "@/lib/api/subCategoryApi";
+
+type BackendCategory = {
+  _id: string;
+  name: string;
+  type?: string;
+  description?: string;
+  image?: string;
+  isActive?: boolean;
+};
+
+type BackendSubCategory = {
+  _id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  categoryId: string;
+  isActive?: boolean;
+};
 
 type Category = {
-  id: number;
+  id: string;
   name: string;
 };
 
 type SubCategory = {
-  id: number;
+  id: string;
   name: string;
   icon: string;
   description?: string;
-  itemCount: number;
+  itemCount: number; // UI only
   active: boolean;
-  categoryId: number;
+  categoryId: string;
 };
 
-export function AdminSubCategoriesPage() {
+type AdminSubCategoriesPageProps = {
+  initialCategories: BackendCategory[];
+  initialSubCategories: BackendSubCategory[];
+};
+
+export function AdminSubCategoriesPage({
+  initialCategories,
+  initialSubCategories,
+}: AdminSubCategoriesPageProps) {
   const router = useRouter();
 
-  // 🔹 Parent Categories (dummy – from your previous shopCategories list)
-  const [categories] = useState<Category[]>([
-    { id: 1, name: "Associations" },
-    { id: 2, name: "Cultural Programs" },
-    { id: 3, name: "Departments" },
-    { id: 4, name: "Doctors" },
-    { id: 5, name: "Emergency Services" },
-    { id: 6, name: "Hotels" },
-    { id: 7, name: "Rent Vehicles" },
-    { id: 8, name: "Schools & Colleges" },
-    { id: 9, name: "Services" },
-    { id: 10, name: "Shops" },
-    { id: 11, name: "Sports & Equipments" },
-    { id: 12, name: "Tourism" },
-    { id: 13, name: "Temples" },
-  ]);
+  // 🔹 Parent Categories (business categories from backend)
+  const [categories] = useState<Category[]>(
+    () =>
+      (initialCategories || []).map((c) => ({
+        id: c._id,
+        name: c.name,
+      })) || []
+  );
 
-  // 🔹 Dummy Subcategories (linked via categoryId)
-  const [subCategories, setSubCategories] = useState<SubCategory[]>([
-    {
-      id: 101,
-      name: "Grocery Stores",
-      icon: "https://images.unsplash.com/photo-1581578731548-c64695cc6952?w=100&h=100&fit=crop",
-      description: "All types of grocery shops",
-      itemCount: 22,
-      active: true,
-      categoryId: 10, // Shops
-    },
-    {
-      id: 102,
-      name: "Clothing Stores",
-      icon: "https://images.unsplash.com/photo-1521336575822-6da63fb45455?w=100&h=100&fit=crop",
-      description: "Boutiques, fashion outlets, etc.",
-      itemCount: 18,
-      active: true,
-      categoryId: 10, // Shops
-    },
-    {
-      id: 103,
-      name: "Primary Schools",
-      icon: "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=100&h=100&fit=crop",
-      description: "Lower and primary schools",
-      itemCount: 10,
-      active: true,
-      categoryId: 8, // Schools & Colleges
-    },
-  ]);
+  // 🔹 Subcategories mapped to UI shape
+  const [subCategories, setSubCategories] = useState<SubCategory[]>(
+    () =>
+      (initialSubCategories || []).map((s) => ({
+        id: s._id,
+        name: s.name,
+        icon: s.image || "",
+        description: s.description || "",
+        itemCount: 0, // UI-only; not stored in DB
+        active: s.isActive ?? true,
+        categoryId: s.categoryId,
+      })) || []
+  );
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedTab] = useState("shops"); // single tab, keep UI same
-  const [selectedCategoryId, setSelectedCategoryId] = useState<number>(
-    categories[0]?.id ?? 1
+  const [selectedTab] = useState("shops"); // keep structure same
+  const [selectedCategoryId, setSelectedCategoryId] = useState<string>(
+    categories[0]?.id ?? ""
   );
 
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [deleteConfirmId, setDeleteConfirmId] = useState<number | null>(null);
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const [editingSubCategory, setEditingSubCategory] =
     useState<SubCategory | null>(null);
@@ -139,7 +141,7 @@ export function AdminSubCategoriesPage() {
     name: string;
     icon: string;
     description: string;
-    categoryId: number | "";
+    categoryId: string | "";
   }>({
     name: "",
     icon: "",
@@ -150,101 +152,166 @@ export function AdminSubCategoriesPage() {
   const [imagePreview, setImagePreview] = useState<string>("");
   const [editImagePreview, setEditImagePreview] = useState<string>("");
 
-  // 🔍 Filtered subcategories for UI (by category + search)
-  const currentSubCategories = useMemo(
-    () =>
-      subCategories.filter(
-        (s) =>
-          s.categoryId === selectedCategoryId &&
-          s.name.toLowerCase().includes(searchQuery.toLowerCase())
-      ),
-    [subCategories, selectedCategoryId, searchQuery]
-  );
-
-  // 📊 Stats for selected category
-  const stats = useMemo(() => {
-    const list = subCategories.filter(
-      (s) => s.categoryId === selectedCategoryId
-    );
-    return {
-      total: list.length,
-      active: list.filter((s) => s.active).length,
-      items: list.reduce((acc, s) => acc + s.itemCount, 0),
-    };
-  }, [subCategories, selectedCategoryId]);
+  // Store File objects for upload
+  const [newIconFile, setNewIconFile] = useState<File | null>(null);
+  const [editIconFile, setEditIconFile] = useState<File | null>(null);
 
   const selectedCategory = categories.find((c) => c.id === selectedCategoryId);
 
   /* -----------------------------
-   ➕ Add Sub-category
+   ➕ Add Sub-category (API)
   ----------------------------- */
-  const handleAddSubCategory = () => {
-    if (
-      !newSubCategory.name ||
-      !newSubCategory.icon ||
-      !newSubCategory.categoryId
-    ) {
-      toast.error("Please fill all required fields");
-      return;
+  const handleAddSubCategory = async () => {
+    try {
+      const categoryId =
+        (newSubCategory.categoryId as string) || selectedCategoryId;
+
+      if (!newSubCategory.name || !categoryId) {
+        toast.error("Please fill all required fields");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", newSubCategory.name);
+      if (newSubCategory.description) {
+        formData.append("description", newSubCategory.description);
+      }
+      formData.append("categoryId", categoryId);
+      if (newIconFile) {
+        formData.append("image", newIconFile);
+      }
+
+      const res = await subCategoryApi.create(formData);
+      const created: BackendSubCategory = (res as any)?.data ?? res;
+
+      const uiSub: SubCategory = {
+        id: created._id,
+        name: created.name,
+        icon: created.image || "",
+        description: created.description || "",
+        itemCount: 0,
+        active: created.isActive ?? true,
+        categoryId: created.categoryId,
+      };
+
+      setSubCategories((prev) => [...prev, uiSub]);
+
+      setNewSubCategory({
+        name: "",
+        icon: "",
+        description: "",
+        categoryId: "",
+      });
+      setImagePreview("");
+      setNewIconFile(null);
+      setIsAddDialogOpen(false);
+      toast.success("Sub-category added successfully!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(err?.response?.data?.message || "Failed to add sub-category");
     }
-
-    const newId = Math.max(0, ...subCategories.map((s) => s.id)) + 1;
-
-    const newSub: SubCategory = {
-      id: newId,
-      name: newSubCategory.name,
-      icon: newSubCategory.icon,
-      description: newSubCategory.description || "",
-      itemCount: 0,
-      active: true,
-      categoryId: newSubCategory.categoryId as number,
-    };
-
-    setSubCategories((prev) => [...prev, newSub]);
-
-    setNewSubCategory({ name: "", icon: "", description: "", categoryId: "" });
-    setImagePreview("");
-    setIsAddDialogOpen(false);
-    toast.success("Sub-category added successfully!");
   };
 
   /* -----------------------------
-   ✏️ Edit Sub-category
+   ✏️ Edit Sub-category (API)
   ----------------------------- */
-  const handleEditSubCategory = () => {
+  const handleEditSubCategory = async () => {
     if (!editingSubCategory) return;
-    if (!editingSubCategory.name || !editingSubCategory.icon) {
-      toast.error("Please fill all required fields");
-      return;
+    try {
+      if (!editingSubCategory.name) {
+        toast.error("Please fill all required fields");
+        return;
+      }
+
+      const formData = new FormData();
+      formData.append("name", editingSubCategory.name);
+      if (editingSubCategory.description) {
+        formData.append("description", editingSubCategory.description);
+      }
+      formData.append("categoryId", editingSubCategory.categoryId);
+      // we map active → isActive in backend
+      formData.append("isActive", String(editingSubCategory.active));
+      if (editIconFile) {
+        formData.append("image", editIconFile);
+      }
+
+      const res = await subCategoryApi.update(editingSubCategory.id, formData);
+      const updated: BackendSubCategory = (res as any)?.data ?? res;
+
+      setSubCategories((prev) =>
+        prev.map((s) =>
+          s.id === editingSubCategory.id
+            ? {
+                ...s,
+                name: updated.name,
+                icon: updated.image || s.icon,
+                description: updated.description || "",
+                categoryId: updated.categoryId,
+                // keep active from state (backend can also handle isActive if needed)
+                active: editingSubCategory.active,
+              }
+            : s
+        )
+      );
+
+      setIsEditDialogOpen(false);
+      setEditingSubCategory(null);
+      setEditImagePreview("");
+      setEditIconFile(null);
+      toast.success("Sub-category updated successfully!");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err?.response?.data?.message || "Failed to update sub-category"
+      );
     }
-
-    setSubCategories((prev) =>
-      prev.map((s) => (s.id === editingSubCategory.id ? editingSubCategory : s))
-    );
-
-    setIsEditDialogOpen(false);
-    setEditingSubCategory(null);
-    setEditImagePreview("");
-    toast.success("Sub-category updated successfully!");
   };
 
   /* -----------------------------
-   🗑️ Delete Sub-category
+   🗑️ Delete Sub-category (API)
   ----------------------------- */
-  const handleDeleteSubCategory = (id: number) => {
-    setSubCategories((prev) => prev.filter((s) => s.id !== id));
-    setDeleteConfirmId(null);
-    toast.success("Sub-category deleted successfully");
+  const handleDeleteSubCategory = async (id: string) => {
+    try {
+      await subCategoryApi.delete(id);
+      setSubCategories((prev) => prev.filter((s) => s.id !== id));
+      setDeleteConfirmId(null);
+      toast.success("Sub-category deleted successfully");
+    } catch (err: any) {
+      console.error(err);
+      toast.error(
+        err?.response?.data?.message || "Failed to delete sub-category"
+      );
+    }
   };
 
   /* -----------------------------
-   🔁 Toggle Active/Inactive
+   🔁 Toggle Active/Inactive (local + optional API)
   ----------------------------- */
-  const toggleSubCategoryStatus = (id: number) => {
+  const toggleSubCategoryStatus = async (id: string) => {
+    const target = subCategories.find((s) => s.id === id);
+    if (!target) return;
+
+    const newActive = !target.active;
+
+    // Optimistic UI
     setSubCategories((prev) =>
-      prev.map((s) => (s.id === id ? { ...s, active: !s.active } : s))
+      prev.map((s) => (s.id === id ? { ...s, active: newActive } : s))
     );
-    toast.success("Sub-category status updated");
+
+    try {
+      const formData = new FormData();
+      formData.append("isActive", String(newActive));
+      const res = await subCategoryApi.update(id, formData);
+      // if backend responds ok, nothing more to do
+      toast.success("Sub-category status updated");
+    } catch (err: any) {
+      console.error(err);
+      // revert if failed
+      setSubCategories((prev) =>
+        prev.map((s) => (s.id === id ? { ...s, active: !newActive } : s))
+      );
+      toast.error(err?.response?.data?.message || "Failed to update status");
+    }
   };
 
   /* -----------------------------
@@ -296,12 +363,12 @@ export function AdminSubCategoriesPage() {
             <div className="flex items-center gap-2">
               <Badge
                 className={`${
-                  subCategory.active
+                  subCategory.isActive
                     ? "bg-emerald-500 text-white"
                     : "bg-gray-400 text-white"
                 } border-0`}
               >
-                {subCategory.active ? "Active" : "Inactive"}
+                {subCategory.isActive ? "Active" : "Inactive"}
               </Badge>
 
               <DropdownMenu>
@@ -315,6 +382,7 @@ export function AdminSubCategoriesPage() {
                     onClick={() => {
                       setEditingSubCategory(subCategory);
                       setEditImagePreview("");
+                      setEditIconFile(null);
                       setIsEditDialogOpen(true);
                     }}
                   >
@@ -391,7 +459,7 @@ export function AdminSubCategoriesPage() {
                     Manage Sub-Categories
                   </h1>
                   <Badge className="bg-gradient-to-r from-indigo-600 to-purple-600 text-white border-0">
-                    {currentSubCategories.length} Sub-Categories
+                    {initialSubCategories.length} Sub-Categories
                   </Badge>
                 </div>
                 <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
@@ -401,7 +469,7 @@ export function AdminSubCategoriesPage() {
               </div>
             </div>
 
-            {/* Category Selector */}
+            {/* Category Selector + Add Button */}
             <div className="flex items-center gap-3">
               <div className="flex flex-col">
                 <Label className="text-xs mb-1 text-gray-600 dark:text-gray-300">
@@ -410,9 +478,7 @@ export function AdminSubCategoriesPage() {
                 <select
                   className="border rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
                   value={selectedCategoryId}
-                  onChange={(e) =>
-                    setSelectedCategoryId(Number(e.target.value))
-                  }
+                  onChange={(e) => setSelectedCategoryId(e.target.value)}
                 >
                   {categories.map((cat) => (
                     <option key={cat.id} value={cat.id}>
@@ -451,11 +517,13 @@ export function AdminSubCategoriesPage() {
                       </Label>
                       <select
                         className="mt-1 w-full border rounded-lg px-3 py-2 text-sm bg-white dark:bg-gray-900 dark:text-white dark:border-gray-700"
-                        value={newSubCategory.categoryId || selectedCategoryId}
+                        value={
+                          newSubCategory.categoryId || selectedCategoryId || ""
+                        }
                         onChange={(e) =>
                           setNewSubCategory((prev) => ({
                             ...prev,
-                            categoryId: Number(e.target.value),
+                            categoryId: e.target.value,
                           }))
                         }
                       >
@@ -481,6 +549,7 @@ export function AdminSubCategoriesPage() {
                             onChange={(e) => {
                               const file = e.target.files?.[0];
                               if (file) {
+                                setNewIconFile(file);
                                 const reader = new FileReader();
                                 reader.onload = (ev) => {
                                   const result = ev.target?.result as string;
@@ -533,6 +602,7 @@ export function AdminSubCategoriesPage() {
                               size="icon"
                               onClick={() => {
                                 setImagePreview("");
+                                setNewIconFile(null);
                                 setNewSubCategory((prev) => ({
                                   ...prev,
                                   icon: "",
@@ -610,7 +680,7 @@ export function AdminSubCategoriesPage() {
           <div className="grid grid-cols-3 gap-3 mt-4">
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-blue-50 to-indigo-50 dark:from-blue-950/30 dark:to-indigo-950/30">
               <div className="text-2xl font-extrabold text-blue-600 dark:text-blue-400">
-                {stats.total}
+                {initialSubCategories.length}
               </div>
               <div className="text-xs font-medium text-blue-700 dark:text-blue-500">
                 Total Sub-Categories
@@ -618,7 +688,7 @@ export function AdminSubCategoriesPage() {
             </Card>
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/30 dark:to-teal-950/30">
               <div className="text-2xl font-extrabold text-emerald-600 dark:text-emerald-400">
-                {stats.active}
+                {initialSubCategories.filter((sub) => sub.isActive).length}
               </div>
               <div className="text-xs font-medium text-emerald-700 dark:text-emerald-500">
                 Active
@@ -626,10 +696,10 @@ export function AdminSubCategoriesPage() {
             </Card>
             <Card className="p-3 text-center border-0 shadow-md bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/30 dark:to-pink-950/30">
               <div className="text-2xl font-extrabold text-purple-600 dark:text-purple-400">
-                {stats.items}
+                {initialSubCategories.filter((sub) => !sub.isActive).length}
               </div>
               <div className="text-xs font-medium text-purple-700 dark:text-purple-500">
-                Total Items
+                Inactive
               </div>
             </Card>
           </div>
@@ -659,18 +729,18 @@ export function AdminSubCategoriesPage() {
                 className="rounded-lg data-[state=active]:bg-gradient-to-r data-[state=active]:from-blue-500 data-[state=active]:to-indigo-600 data-[state=active]:text-white"
               >
                 <Store className="w-4 h-4 mr-2" />
-                Sub-Categories ({currentSubCategories.length})
+                Sub-Categories ({initialSubCategories.length})
               </TabsTrigger>
             </TabsList>
 
             <TabsContent value="shops">
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {currentSubCategories.map((sub) => (
+                {initialSubCategories.map((sub) => (
                   <SubCategoryCard key={sub.id} subCategory={sub} />
                 ))}
               </div>
 
-              {currentSubCategories.length === 0 && (
+              {initialSubCategories.length === 0 && (
                 <div className="text-center py-16">
                   <Tag className="w-16 h-16 mx-auto mb-4 text-gray-300 dark:text-gray-700" />
                   <p className="text-gray-500 dark:text-gray-400 text-lg">
@@ -706,9 +776,7 @@ export function AdminSubCategoriesPage() {
                   value={editingSubCategory.categoryId}
                   onChange={(e) =>
                     setEditingSubCategory((prev) =>
-                      prev
-                        ? { ...prev, categoryId: Number(e.target.value) }
-                        : prev
+                      prev ? { ...prev, categoryId: e.target.value } : prev
                     )
                   }
                 >
@@ -734,6 +802,7 @@ export function AdminSubCategoriesPage() {
                       onChange={(e) => {
                         const file = e.target.files?.[0];
                         if (file) {
+                          setEditIconFile(file);
                           const reader = new FileReader();
                           reader.onload = (ev) => {
                             const result = ev.target?.result as string;
@@ -788,6 +857,7 @@ export function AdminSubCategoriesPage() {
                           size="icon"
                           onClick={() => {
                             setEditImagePreview("");
+                            setEditIconFile(null);
                           }}
                         >
                           <X className="w-4 h-4" />
