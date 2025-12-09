@@ -1,6 +1,7 @@
 'use client';
 
-import { createContext, useContext, useState, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, ReactNode } from 'react';
+import { authApi } from '@/lib/api/authApi';
 
 export interface Shop {
   id: string;
@@ -84,6 +85,18 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const [isAdminLoggedIn, setIsAdminLoggedIn] = useState(false);
   const [adminUser, setAdminUser] = useState<{ email: string; name: string } | null>(null);
 
+  // Restore admin session on refresh
+  useEffect(() => {
+    const role = localStorage.getItem('role');
+    const name = localStorage.getItem('admin_name');
+    const email = localStorage.getItem('admin_email');
+
+    if (role === 'admin' && name && email) {
+      setIsAdminLoggedIn(true);
+      setAdminUser({ name, email });
+    }
+  }, []);
+
   const [shops, setShops] = useState<Shop[]>([
     { 
       id: '1', 
@@ -132,15 +145,32 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   };
 
   const adminLogin = async (email: string, password: string): Promise<boolean> => {
-    if (email === 'admin@nammakumta.com' && password === 'admin123') {
+    try {
+      const res = await authApi.login(email, password);
+      const { token, data } = res;
+
+      if (data.role !== 'admin') return false;
+
+      localStorage.setItem('token', token);
+      localStorage.setItem('role', data.role);
+      localStorage.setItem('admin_name', data.name);
+      localStorage.setItem('admin_email', data.email);
+
       setIsAdminLoggedIn(true);
-      setAdminUser({ email, name: 'Admin User' });
+      setAdminUser({ email: data.email, name: data.name });
       return true;
+    } catch (error) {
+      console.error('Admin login failed:', error);
+      return false;
     }
-    return false;
   };
 
   const adminLogout = () => {
+    localStorage.removeItem('token');
+    localStorage.removeItem('role');
+    localStorage.removeItem('admin_name');
+    localStorage.removeItem('admin_email');
+
     setIsAdminLoggedIn(false);
     setAdminUser(null);
   };
