@@ -5,7 +5,7 @@ export const categoryServerApi = {
     const res = await axiosServer.get("/categories", {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
-    return res.data;
+    return res.data; // IMPORTANT: res.data is already the array of categories
   },
 
   getById: async (id: string, token?: string) => {
