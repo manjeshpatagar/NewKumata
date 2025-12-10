@@ -24,29 +24,30 @@ import {
 import { useAdmin, Ad } from '../../contexts/AdminContext';
 import { useLanguage } from '../../contexts/LanguageContext';
 import { toast } from 'sonner';
+import { advertisementApi } from '@/lib/api/advertisementApi';
+import { useRouter } from 'next/navigation';
+
+interface Category {
+  _id: string;
+  name: string;
+  description?: string;
+  image?: string;
+  type: string;
+  isActive: boolean;
+  emoji?: string;
+}
 
 interface AdminEditAdPageProps {
   ad: Ad;
+  categories: Category[];
   onBack: () => void;
 }
 
-const adCategories = [
-  { id: 'bikes', name: 'Bikes', emoji: '🏍️' },
-  { id: 'cars', name: 'Cars', emoji: '🚗' },
-  { id: 'home-rentals', name: 'Home Rentals', emoji: '🏠' },
-  { id: 'electronics', name: 'Electronics', emoji: '📱' },
-  { id: 'furniture', name: 'Furniture', emoji: '🪑' },
-  { id: 'jobs', name: 'Jobs', emoji: '💼' },
-  { id: 'services', name: 'Services', emoji: '🔧' },
-  { id: 'education', name: 'Education', emoji: '📚' },
-  { id: 'pets', name: 'Pets', emoji: '🐕' },
-  { id: 'fashion', name: 'Fashion', emoji: '👗' },
-  { id: 'agriculture', name: 'Agriculture', emoji: '🌾' },
-];
-
-export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
+export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPageProps) {
   const { editAd, deleteAd } = useAdmin();
   const { t } = useLanguage();
+  const router = useRouter();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const [formData, setFormData] = useState({
     title: ad.title || '',
@@ -104,15 +105,73 @@ export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    editAd(ad.id, formData);
-    toast.success('Advertisement updated successfully!');
-    onBack();
+    setIsSubmitting(true);
+
+    try {
+      // Prepare FormData
+      const formDataToSend = new FormData();
+
+      // Add all form fields (exactly as backend expects)
+      formDataToSend.append('title', formData.title);
+      formDataToSend.append('category', formData.category); // Category ID
+      formDataToSend.append('price', formData.price || '0');
+      formDataToSend.append('description', formData.description);
+      formDataToSend.append('location', formData.location);
+      
+      // Add contactinfo as JSON string
+      const contactinfo = {
+        owner: formData.owner,
+        phone: formData.phone,
+        email: '', // Add email field if you have it in the form
+      };
+      formDataToSend.append('contactinfo', JSON.stringify(contactinfo));
+
+      // Add optional fields
+      if (formData.status) {
+        formDataToSend.append('status', formData.status);
+      }
+      if (formData.featured !== undefined) {
+        formDataToSend.append('featured', formData.featured.toString());
+      }
+      if (formData.sponsored !== undefined) {
+        formDataToSend.append('sponsored', formData.sponsored.toString());
+      }
+
+      // Add images (backend expects 'images' field with multiple files)
+      images.forEach((image) => {
+        formDataToSend.append('images', image);
+      });
+
+      // Add video (backend expects 'video' field with single file)
+      if (videos.length > 0) {
+        formDataToSend.append('video', videos[0]); // Only first video
+      }
+
+      // Call the API to update
+      const response = await advertisementApi.update(ad.id, formDataToSend);
+
+      // Also update local context if needed
+      editAd(ad.id, formData);
+
+      toast.success('Advertisement updated successfully!');
+      router.back();
+    } catch (error: any) {
+      console.error('Error updating advertisement:', error);
+
+      // Handle specific error messages
+      const errorMessage = error.response?.data?.message ||
+                          error.message ||
+                          'Failed to update advertisement';
+      toast.error(errorMessage);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -167,10 +226,39 @@ export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
     setVideoPreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleDelete = () => {
-    deleteAd(ad.id);
-    toast.success('Advertisement deleted successfully!');
-    onBack();
+  const handleDelete = async () => {
+    try {
+      await advertisementApi.delete(ad.id);
+      deleteAd(ad.id);
+      toast.success('Advertisement deleted successfully!');
+      router.back();
+    } catch (error: any) {
+      console.error('Error deleting advertisement:', error);
+      const errorMessage = error.response?.data?.message ||
+                          error.message ||
+                          'Failed to delete advertisement';
+      toast.error(errorMessage);
+    }
+  };
+
+  // Helper function to get category emoji based on name
+  const getCategoryEmoji = (categoryName: string): string => {
+    const emojiMap: Record<string, string> = {
+      'Hospital': '🏥',
+      'Home Rental': '🏠',
+      'Bikes': '🏍️',
+      'Cars': '🚗',
+      'Electronics': '📱',
+      'Furniture': '🪑',
+      'Jobs': '💼',
+      'Services': '🔧',
+      'Education': '📚',
+      'Pets': '🐕',
+      'Fashion': '👗',
+      'Agriculture': '🌾',
+    };
+    
+    return emojiMap[categoryName] || '📋';
   };
 
   return (
@@ -225,14 +313,27 @@ export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
                   onValueChange={(value) => handleChange('category', value)}
                 >
                   <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select category" />
+                    <SelectValue placeholder="Select category">
+                      {formData.category 
+                        ? categories.find(cat => cat._id === formData.category)?.name
+                        : "Select category"}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    {adCategories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.name}>
-                        {cat.emoji} {cat.name}
+                    {categories.length > 0 ? (
+                      categories.map((cat) => {
+                        const emoji = getCategoryEmoji(cat.name);
+                        return (
+                          <SelectItem key={cat._id} value={cat._id}>
+                            {emoji} {cat.name}
+                          </SelectItem>
+                        );
+                      })
+                    ) : (
+                      <SelectItem value="none" disabled>
+                        No categories available
                       </SelectItem>
-                    ))}
+                    )}
                   </SelectContent>
                 </Select>
                 {errors.category && (
@@ -305,7 +406,7 @@ export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
                 />
               </div>
 
-              {/* Admin Price (Custom pricing for advertisement) */}
+              {/* Admin Price (Custom pricing for advertisement)
               <div className="space-y-2">
                 <Label htmlFor="adminPrice" className="text-sm">
                   Admin Price (₹)
@@ -324,7 +425,7 @@ export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
                 <p className="text-xs text-gray-500 dark:text-gray-400">
                   Custom price set for this advertisement that user pays to publish the ad
                 </p>
-              </div>
+              </div> */}
 
               {/* Description */}
               <div className="space-y-2">
@@ -536,9 +637,10 @@ export function AdminEditAdPage({ ad, onBack }: AdminEditAdPageProps) {
             <Button
               className="flex-1 bg-purple-600 hover:bg-purple-700"
               onClick={handleSubmit}
+              disabled={isSubmitting}
             >
               <Save className="w-4 h-4 mr-2" />
-              Save Changes
+              {isSubmitting ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
         </div>

@@ -125,6 +125,10 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     const [showDelete, setShowDelete] = useState(false);
     const gradient = categoryGradients[ad.category?.name] || 'from-gray-500 to-gray-600';
 
+    const getImageUrl = (imagePath: string) => {
+      if (imagePath.startsWith('http')) return imagePath;
+      return `${process.env.NEXT_PUBLIC_API_BASE_URL}/${imagePath}`;
+    }
     return (
       <Card className="group overflow-hidden border shadow-lg">
         <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
@@ -154,6 +158,14 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
                 )}
               </div>
               <h3 className="font-bold text-lg">{ad.title}</h3>
+              {Array.isArray(ad.images) && ad.images.length > 0 && (
+                <img
+                  src={getImageUrl(ad.images[0])}
+                  alt={ad.title}
+                  className="rounded-lg object-cover"
+                />
+              )}
+
             </div>
 
             <DropdownMenu>

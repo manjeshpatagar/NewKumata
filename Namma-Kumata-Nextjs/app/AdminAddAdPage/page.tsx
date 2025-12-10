@@ -1,27 +1,25 @@
 import { AdminAddAdPage } from "@/components/admin/AdminAddAdPage";
-import { categoryApi } from "@/lib/api/categoryApi";
+import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
+import { cookies } from "next/headers";
 
 async function getBusinessCategoriesSSR() {
   try {
-    const res = await categoryApi.getAll();
+    const cookieStore = cookies();
+    const token = cookieStore.get("adminToken")?.value;
+
+    const res = await categoryServerApi.getAll(token);
     
-    // Debug: Log the raw response
-    console.log("Raw API response:", res);
-    
-    // Check if response has data property
-    const data = res.data || res;
+    // Get categories array from response (same pattern as AdminCategories)
+    const categories = res.data || [];
     
     // Filter for advertisement categories that are active
-    const filteredCategories = (Array.isArray(data) ? data : []).filter(
+    const filteredCategories = (Array.isArray(categories) ? categories : []).filter(
       (cat: any) => cat.type === "advertisement" && cat.isActive
     );
     
-    // Debug: Log filtered categories
-    console.log("Filtered categories:", filteredCategories);
-    
     return filteredCategories;
   } catch (error) {
-    console.error("Failed to fetch business categories", error);
+    console.error("Failed to fetch categories", error);
     return [];
   }
 }
