@@ -3,6 +3,7 @@ import type { Metadata } from "next";
 import { AdvertisementsPage } from "@/components/AdvertisementsPage";
 import { BottomNav } from "@/components/BottomNav";
 import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
+import { advertisementServerApi } from "@/lib/api-ssr/advertisementServerApi";
 import { cookies } from "next/headers";
 
 export const metadata: Metadata = {
@@ -11,31 +12,38 @@ export const metadata: Metadata = {
     "Browse and post advertisements for bikes, cars, rentals, jobs, and more in Kumta.",
 };
 
-async function getCategoriesSSR() {
+async function getSSRData() {
   try {
     const cookieStore = cookies();
     const token = cookieStore.get("token")?.value || null;
 
     const categoriesRes = await categoryServerApi.getAll(token);
+    const advertisementsRes = await advertisementServerApi.getAll(token);
+    console.log("✅ SSR load successful", advertisementsRes.data);
 
-    // Filter only advertisement type categories
     const advertisementCategories = (categoriesRes.data || []).filter(
       (cat: any) => cat.type === "advertisement"
     );
 
-    return advertisementCategories;
+    return {
+      categories: advertisementCategories,
+      advertisments: advertisementsRes.data || [],
+    };
   } catch (error) {
-    console.error("❌ Failed to load categories SSR:", error);
-    return [];
+    console.error("❌ SSR load failed:", error);
+    return { categories: [], advertisments: [] };
   }
 }
 
 export default async function Advertisements() {
-  const advertisementCategories = await getCategoriesSSR();
+  const { categories, advertisments } = await getSSRData();
 
   return (
     <>
-      <AdvertisementsPage initialCategories={advertisementCategories} />
+      <AdvertisementsPage
+        initialCategories={categories}
+        initialAdvertisment={advertisments}
+      />
       <BottomNav />
     </>
   );
