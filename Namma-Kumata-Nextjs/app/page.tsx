@@ -3,19 +3,21 @@ import { HomePage } from "@/components/HomePage";
 import { BottomNav } from "@/components/BottomNav";
 import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 
-export default async function Home() {
+async function getDataSSR() {
   const cookieStore = cookies();
   const token = cookieStore.get("token")?.value || "";
 
   const result = await categoryServerApi.getAll(token);
 
-  const categories =
-    Array.isArray(result)
-      ? result
-      : Array.isArray(result?.data)
-      ? result.data
-      : [];
-
+  const businessCategories = (result.data || []).filter(
+    (cat: any) => cat.type === "business"
+  );
+  return {
+    categories: businessCategories,
+  };
+}
+export default async function Home() {
+  const { categories } = await getDataSSR();
   return (
     <>
       <HomePage categories={categories} />
