@@ -30,9 +30,9 @@ axiosClient.interceptors.response.use(
       localStorage.removeItem("token");
       localStorage.removeItem("adminToken");
 
-      // Redirect based on user or admin
+      // Redirect to admin login for admin pages; otherwise user login
       if (window.location.pathname.startsWith("/admin")) {
-        window.location.href = "/admin/login";
+        window.location.href = "/admin-login";
       } else {
         window.location.href = "/auth/login";
       }

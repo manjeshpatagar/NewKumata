@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { ArrowLeft, Store, Save, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
@@ -20,43 +20,33 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from '../ui/alert-dialog';
-import { useAdmin, Shop } from '../../contexts/AdminContext';
-import { useLanguage } from '../../contexts/LanguageContext';
+import { productApi } from '@/lib/api/productApi';
+import { categoryApi } from '@/lib/api/categoryApi';
+import { subCategoryApi } from '@/lib/api/subCategoryApi';
 import { toast } from 'sonner';
 
 interface AdminEditShopPageProps {
-  shop: Shop;
+  shopId: string;
   onBack: () => void;
 }
 
-const shopCategories = [
-  'Grocery',
-  'Medical',
-  'Electronics',
-  'Furniture',
-  'Clothing',
-  'Restaurants',
-  'Hardware',
-  'Bakery',
-  'Stationery',
-  'Jewelry',
-  'Sports',
-  'Books'
-];
-
-export function AdminEditShopPage({ shop, onBack }: AdminEditShopPageProps) {
-  const { editShop, deleteShop } = useAdmin();
-  const { t } = useLanguage();
+export function AdminEditShopPage({ shopId, onBack }: AdminEditShopPageProps) {
+  const [loading, setLoading] = useState(true);
+  const [categories, setCategories] = useState<{ id: string; name: string; type?: string }[]>([]);
+  const [subCategories, setSubCategories] = useState<{ id: string; name: string; categoryId?: string }[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(false);
+  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
+  const [authorized, setAuthorized] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: shop.name,
-    category: shop.category,
-    owner: shop.owner,
-    phone: shop.phone || '',
-    address: shop.address || '',
-    description: shop.description || '',
-    openingHours: shop.openingHours || '',
-    status: shop.status,
+    name: '',
+    category: '',
+    owner: '',
+    phone: '',
+    address: '',
+    description: '',
+    openingHours: '',
+    status: 'approved' as 'pending' | 'approved' | 'rejected',
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -95,15 +85,41 @@ export function AdminEditShopPage({ shop, onBack }: AdminEditShopPageProps) {
     return Object.keys(newErrors).length === 0;
   };
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!validateForm()) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    editShop(shop.id, formData);
-    toast.success('Shop updated successfully!');
-    onBack();
+    try {
+      const form = new FormData();
+
+      form.append("shopName", formData.name);
+      form.append("address", formData.address);
+      if (formData.description) form.append("description", formData.description);
+      if (formData.owner) form.append("contact[ownerName]", formData.owner);
+      if (formData.phone) form.append("contact[phone]", formData.phone);
+      if (formData.openingHours) {
+        form.append("openingHours[open]", formData.openingHours);
+        form.append("openingHours[close]", "");
+      }
+      if (formData.category) form.append("categoryId", formData.category);
+      if (formData.category) form.append("subCategoryId", formData.category);
+
+      const statusPayload =
+        formData.status === "approved" ? "active" : "inactive";
+      form.append("status", statusPayload);
+
+      images.forEach((file) => form.append("images", file));
+
+      await productApi.update(shopId, form);
+
+      toast.success('Shop updated successfully!');
+      onBack();
+    } catch (error) {
+      toast.error('Failed to update shop');
+      console.error(error);
+    }
   };
 
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -132,11 +148,117 @@ export function AdminEditShopPage({ shop, onBack }: AdminEditShopPageProps) {
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleDelete = () => {
-    deleteShop(shop.id);
-    toast.success('Shop deleted successfully!');
-    onBack();
+  const handleDelete = async () => {
+    try {
+      await productApi.delete(shopId);
+      toast.success('Shop deleted successfully!');
+      onBack();
+    } catch (error) {
+      toast.error('Failed to delete shop');
+      console.error(error);
+    }
   };
+
+  // Load categories
+  useEffect(() => {
+    const fetchCategories = async () => {
+      try {
+        setLoadingCategories(true);
+        const res = await categoryApi.getAll();
+        const payload = res.data || res;
+        const list = (payload.data || payload) as any[];
+        const normalized = list.map((cat) => ({
+          id: cat._id || cat.id,
+          name: cat.name,
+          type: cat.type,
+        }));
+        setCategories(normalized);
+      } catch (error) {
+        console.error("Failed to load categories", error);
+        toast.error("Could not load categories");
+      } finally {
+        setLoadingCategories(false);
+      }
+    };
+
+    fetchCategories();
+  }, []);
+
+  // Load subcategories once
+  useEffect(() => {
+    const fetchSubCategories = async () => {
+      try {
+        setLoadingSubCategories(true);
+        const res = await subCategoryApi.getAll();
+        const payload = res.data || res;
+        const list = (payload.data || payload) as any[];
+        const normalized = list.map((sub) => ({
+          id: sub._id || sub.id,
+          name: sub.name,
+          categoryId: sub.categoryId?._id || sub.categoryId,
+        }));
+        setSubCategories(normalized);
+      } catch (error) {
+        console.error("Failed to load subcategories", error);
+        toast.error("Could not load subcategories");
+      } finally {
+        setLoadingSubCategories(false);
+      }
+    };
+    fetchSubCategories();
+  }, []);
+
+  useEffect(() => {
+    const fetchShop = async () => {
+      try {
+        setLoading(true);
+        const res = await productApi.getById(shopId);
+        const payload = res.data || res;
+        const item = payload.data || payload;
+
+        setFormData({
+          name: item.shopName || item.name || '',
+          category: item.categoryId?._id || item.categoryId || '',
+          owner: item.contact?.ownerName || item.owner || '',
+          phone: item.contact?.phone || item.phone || '',
+          address: item.address || '',
+          description: item.description || item.about || '',
+          openingHours:
+            item.openingHours?.open && item.openingHours?.close
+              ? `${item.openingHours.open} - ${item.openingHours.close}`
+              : item.openingHours?.open || item.openingHours || '',
+          status: item.status === 'inactive' ? 'pending' : 'approved',
+        });
+      } catch (error) {
+        console.error("Failed to load shop", error);
+        toast.error("Could not load shop details");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchShop();
+  }, [shopId]);
+
+  // Auth guard
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    const role = localStorage.getItem("role");
+    if (!token || role !== "admin") {
+      toast.error("Please login as admin to edit shops");
+      onBack();
+      return;
+    }
+    setAuthorized(true);
+  }, [onBack]);
+
+  if (loading) {
+    return (
+      <div className="p-6 text-center text-gray-600 dark:text-gray-300">
+        Loading shop details...
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
@@ -193,9 +315,9 @@ export function AdminEditShopPage({ shop, onBack }: AdminEditShopPageProps) {
                     <SelectValue placeholder="Select category" />
                   </SelectTrigger>
                   <SelectContent>
-                    {shopCategories.map((cat) => (
-                      <SelectItem key={cat} value={cat}>
-                        {cat}
+                    {categories.map((cat) => (
+                      <SelectItem key={cat.id} value={cat.id}>
+                        {cat.name}
                       </SelectItem>
                     ))}
                   </SelectContent>

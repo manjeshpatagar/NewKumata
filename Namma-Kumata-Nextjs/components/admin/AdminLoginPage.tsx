@@ -34,7 +34,7 @@ export function AdminLoginPage() {
     try {
       const success = await adminLogin(email, password);
       if (success) {
-        router.push("/AdminDashboard");
+        router.push('/AdminDashboard');
       } else {
         setError("Invalid admin credentials. Please try again.");
       }
