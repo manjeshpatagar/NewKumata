@@ -1,5 +1,6 @@
 'use client';
-import { useState, useEffect } from 'react';
+
+import { useState } from 'react';
 import { 
   ArrowLeft, Edit, Trash2, Plus, Search, Store,
   MapPin, Phone, User, Calendar, Eye, MoreVertical
@@ -18,9 +19,8 @@ import {
 } from '../ui/dropdown-menu';
 import { toast } from 'sonner';
 import { useRouter } from 'next/navigation';
-import { productApi } from '@/lib/api/productApi';   // ⭐ API ADDED
+import { productApi } from '@/lib/api/productApi';
 
-// Local Shop Type
 export interface Shop {
   id: string;
   name: string;
@@ -34,74 +34,22 @@ export interface Shop {
   location?: string;
   openingHours?: string;
   status?: string;
+  thumbnail?: React.ReactNode;
+
+  // ⭐ RAW API PAYLOAD FROM SSR
+  raw?: any;
 }
 
-export function AdminShopsPage() {
+export function AdminShopsPage({ ssrShops = [] }) {
   const router = useRouter();
 
-  const [shops, setShops] = useState<Shop[]>([]);
-  const [loading, setLoading] = useState(true);
+  // ✔ Data comes only from SSR
+  const [shops, setShops] = useState<Shop[]>(ssrShops);
+  console.log("Initial Shops:", shops);
+  const [loading] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
-  const [authorized, setAuthorized] = useState(false);
 
-  // ⭐ Load shops from API
-  const loadShops = async () => {
-    try {
-      setLoading(true);
-      const res = await productApi.getAll();
-      const payload = res.data || res;
-      const items = (payload.data || payload) as any[];
-
-      const normalized: Shop[] = items.map((item) => ({
-        id: item._id || item.id,
-        name: item.shopName || item.name || "Untitled Shop",
-        category:
-          item.categoryId?.name ||
-          item.category?.name ||
-          item.category ||
-          "Uncategorized",
-        subCategory:
-          item.subCategoryId?.name ||
-          item.subCategory?.name ||
-          item.subCategory ||
-          undefined,
-        owner: item.contact?.ownerName || item.owner || "Unknown owner",
-        phone: item.contact?.phone || item.phone,
-        address: item.address,
-        description: item.description || item.about,
-        submittedDate: item.createdAt
-          ? new Date(item.createdAt).toLocaleDateString()
-          : item.submittedDate,
-        location: item.address,
-        openingHours:
-          item.openingHours?.open && item.openingHours?.close
-            ? `${item.openingHours.open} - ${item.openingHours.close}`
-            : item.openingHours,
-        status: item.status,
-      }));
-
-      setShops(normalized);
-    } catch (error) {
-      console.error(error);
-      toast.error("Failed to load shops");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (!token || role !== "admin") {
-      toast.error("Please login as admin to manage shops");
-      router.push("/admin-login");
-      return;
-    }
-    setAuthorized(true);
-    loadShops();
-  }, []);
-
-  // ⭐ DELETE via API
+  // ⭐ DELETE via API (same UI)
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"? This cannot be undone.`)) return;
 
@@ -117,6 +65,7 @@ export function AdminShopsPage() {
 
   // SEARCH FILTER
   const filteredShops = shops.filter(shop =>
+    shop.thumbnail &&
     shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
     shop.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
     shop.owner.toLowerCase().includes(searchQuery.toLowerCase())
@@ -146,7 +95,7 @@ export function AdminShopsPage() {
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-2 mb-2">
                 <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
-                  <Store className="w-5 h-5 text-white" />
+                  {/* <Store className="w-5 h-5 text-white" /> */}<img src={shop.thumbnail} alt={shop.name} className="w-5 h-5 text-white"/>
                 </div>
 
                 <div className="flex-1 min-w-0">
@@ -216,7 +165,8 @@ export function AdminShopsPage() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-
+            
+            {/* OWNER */}
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
               <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                 <User className="w-4 h-4 text-blue-500" />
@@ -227,6 +177,7 @@ export function AdminShopsPage() {
               </div>
             </div>
 
+            {/* PHONE */}
             {shop.phone && (
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -239,6 +190,7 @@ export function AdminShopsPage() {
               </div>
             )}
 
+            {/* DATE */}
             <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
               <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
                 <Calendar className="w-4 h-4 text-purple-500" />
@@ -249,6 +201,7 @@ export function AdminShopsPage() {
               </div>
             </div>
 
+            {/* LOCATION */}
             {shop.location && (
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
@@ -300,7 +253,9 @@ export function AdminShopsPage() {
                   </Badge>
                 </div>
 
-                <p className="text-sm text-gray-600 dark:text-gray-400">Add, edit, and manage all shops</p>
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Add, edit, and manage all shops
+                </p>
               </div>
             </div>
 
@@ -314,6 +269,7 @@ export function AdminShopsPage() {
             </Button>
           </div>
 
+          {/* SEARCH BAR */}
           <div className="relative mt-4">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
             <Input
