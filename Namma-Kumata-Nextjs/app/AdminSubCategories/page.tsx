@@ -12,18 +12,21 @@ export const metadata = {
 async function getDataSSR() {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("adminToken")?.value;
+    const token =
+      cookieStore.get("adminToken")?.value ||
+      cookieStore.get("token")?.value ||
+      "";
     const categoriesRes = await categoryServerApi.getAll(token);
     const subCatRes = await subCategoryServerApi.getAll(token);
 
     // Filter only business categories (for subcategories)
-    const businessCategories = (categoriesRes.data || []).filter(
+    const businessCategories = (categoriesRes.data || categoriesRes || []).filter(
       (cat: any) => cat.type === "business"
     );
 
     return {
       categories: businessCategories,
-      subCategories: subCatRes.data || [],
+      subCategories: subCatRes.data || subCatRes || [],
     };
   } catch (error) {
     console.error("SSR fetch error:", error);

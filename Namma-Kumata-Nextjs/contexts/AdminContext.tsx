@@ -132,7 +132,9 @@ export function AdminProvider({ children }: { children: ReactNode }) {
       const token = res.token;
 
       localStorage.setItem("adminToken", token);
+      localStorage.setItem("token", token); // keep in sync for shared interceptors
       localStorage.setItem("adminUser", JSON.stringify(res.data));
+      localStorage.setItem("role", "admin");
 
       document.cookie = `adminToken=${token}; Path=/; Max-Age=86400; SameSite=Lax`;
 
@@ -151,6 +153,8 @@ export function AdminProvider({ children }: { children: ReactNode }) {
   const adminLogout = () => {
     localStorage.removeItem("adminToken");
     localStorage.removeItem("adminUser");
+    localStorage.removeItem("token");
+    localStorage.removeItem("role");
     document.cookie = "adminToken=; Max-Age=0; Path=/";
 
     setIsAdminLoggedIn(false);

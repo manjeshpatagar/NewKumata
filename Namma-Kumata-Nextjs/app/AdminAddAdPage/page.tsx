@@ -5,12 +5,15 @@ import { cookies } from "next/headers";
 async function getBusinessCategoriesSSR() {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("adminToken")?.value;
+    const token =
+      cookieStore.get("adminToken")?.value ||
+      cookieStore.get("token")?.value ||
+      "";
 
     const res = await categoryServerApi.getAll(token);
     
     // Get categories array from response (same pattern as AdminCategories)
-    const categories = res.data || [];
+    const categories = res.data || res || [];
     
     // Filter for advertisement categories that are active
     const filteredCategories = (Array.isArray(categories) ? categories : []).filter(
