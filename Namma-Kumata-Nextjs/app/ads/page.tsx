@@ -1,7 +1,6 @@
 // app/Advertisements/page.tsx
 import type { Metadata } from "next";
 import { AdvertisementsPage } from "@/components/AdvertisementsPage";
-import { BottomNav } from "@/components/BottomNav";
 import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 import { advertisementServerApi } from "@/lib/api-ssr/advertisementServerApi";
 import { cookies } from "next/headers";
@@ -44,7 +43,7 @@ export default async function Advertisements() {
         initialCategories={categories}
         initialAdvertisment={advertisments}
       />
-      <BottomNav />
+      {/* <BottomNav /> */}
     </>
   );
 }

@@ -8,6 +8,7 @@ import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { AdminProvider } from '@/contexts/AdminContext';
 import { Toaster } from '@/components/ui/sonner';
 import '@/styles/globals.css';
+import { BottomNav } from '@/components/BottomNav';
 
 const inter = Inter({ subsets: ['latin'] });
 
@@ -40,6 +41,7 @@ export default function RootLayout({
                     <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full">
                       <div className="w-full max-w-[1920px] mx-auto bg-white dark:bg-gray-950 min-h-screen relative">
                         {children}
+                        <BottomNav />
                       </div>
                     </div>
                     <Toaster />

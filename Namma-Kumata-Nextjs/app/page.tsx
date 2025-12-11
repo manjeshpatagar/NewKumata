@@ -27,13 +27,11 @@
 // }
 
 import { HomePage } from "@/components/HomePage";
-import { BottomNav } from "@/components/BottomNav";
 
 export default async function Home() {
   return (
     <>
       <HomePage />
-      <BottomNav />
     </>
   );
 }
