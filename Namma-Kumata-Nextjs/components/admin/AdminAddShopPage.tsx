@@ -1,5 +1,4 @@
 "use client";
-
 import { useEffect, useState } from "react";
 import {
   ArrowLeft,
@@ -49,6 +48,16 @@ export function AdminAddShopPage() {
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
   const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    subCategory: "",
+    owner: "",
+    phone: "",
+    address: "",
+    description: "",
+    openingHours: "",
+    status: "approved" as "pending" | "approved" | "rejected",
+    status: "approved",
     name: "",
     category: "",
     subCategory: "",
@@ -142,6 +151,8 @@ export function AdminAddShopPage() {
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
   // --------------------
@@ -150,6 +161,14 @@ export function AdminAddShopPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
+    if (!formData.name.trim()) newErrors.name = "Shop name is required";
+    if (!formData.subCategory)
+      newErrors.subCategory = "Subcategory is required";
+    if (!formData.owner.trim()) newErrors.owner = "Owner name is required";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    if (!/^\+?[\d\s-]{10,}$/.test(formData.phone))
+      newErrors.phone = "Invalid phone number";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
     if (!formData.name.trim()) newErrors.name = "Shop name is required";
     if (!formData.subCategory)
       newErrors.subCategory = "Subcategory is required";
@@ -179,6 +198,8 @@ export function AdminAddShopPage() {
 
       if (formData.description)
         form.append("description", formData.description);
+      if (formData.description)
+        form.append("description", formData.description);
       if (formData.owner) form.append("contact[ownerName]", formData.owner);
       if (formData.phone) form.append("contact[phone]", formData.phone);
 
@@ -196,6 +217,17 @@ export function AdminAddShopPage() {
         return;
       }
 
+      const derivedCategory = selectedSub?.categoryId;
+      if (!derivedCategory) {
+        toast.error("Selected subcategory is missing category mapping");
+        return;
+      }
+      form.append("categoryId", derivedCategory);
+      form.append("subCategoryId", formData.subCategory);
+      form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
+      const selectedSub = subCategories.find(
+        (s) => s.id === formData.subCategory
+      );
       const derivedCategory = selectedSub?.categoryId;
       if (!derivedCategory) {
         toast.error("Selected subcategory is missing category mapping");
@@ -232,9 +264,13 @@ export function AdminAddShopPage() {
     const newPreviews: string[] = [];
 
     newFiles.forEach((file) => {
+    newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
         newPreviews.push(reader.result as string);
+        if (newPreviews.length === newFiles.length) {
+          setImagePreviews((prev) => [...prev, ...newPreviews]);
+        previews.push(reader.result as string);
         if (newPreviews.length === newFiles.length) {
           setImagePreviews((prev) => [...prev, ...newPreviews]);
         }
@@ -243,15 +279,27 @@ export function AdminAddShopPage() {
     });
 
     setImages((prev) => [...prev, ...newFiles]);
+    setImages((prev) => [...prev, ...newFiles]);
   };
 
   const removeImage = (index: number) => {
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
     setImages((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
   const handleReset = () => {
     setFormData({
+      name: "",
+      category: "",
+      subCategory: "",
+      owner: "",
+      phone: "",
+      address: "",
+      description: "",
+      openingHours: "",
+      status: "approved",
       name: "",
       category: "",
       subCategory: "",
@@ -310,6 +358,9 @@ export function AdminAddShopPage() {
                 {errors.name && (
                   <p className="text-red-500 text-xs">{errors.name}</p>
                 )}
+                {errors.name && (
+                  <p className="text-red-500 text-xs">{errors.name}</p>
+                )}
               </div>
 
               {/* SUBCATEGORY */}
@@ -324,11 +375,24 @@ export function AdminAddShopPage() {
                       ...prev,
                       subCategory: value,
                       category: matched?.categoryId || "",
+                      category: matched?.categoryId || "",
                     }));
+                    if (errors.subCategory)
+                      setErrors((prev) => ({ ...prev, subCategory: "" }));
                     if (errors.subCategory)
                       setErrors((prev) => ({ ...prev, subCategory: "" }));
                   }}
                 >
+                  <SelectTrigger
+                    className={errors.subCategory ? "border-red-500" : ""}
+                  >
+                    <SelectValue
+                      placeholder={
+                        loadingSubCategories
+                          ? "Loading..."
+                          : "Select subcategory"
+                      }
+                    />
                   <SelectTrigger
                     className={errors.subCategory ? "border-red-500" : ""}
                   >
@@ -351,6 +415,9 @@ export function AdminAddShopPage() {
                 {errors.subCategory && (
                   <p className="text-red-500 text-xs">{errors.subCategory}</p>
                 )}
+                {errors.subCategory && (
+                  <p className="text-red-500 text-xs">{errors.subCategory}</p>
+                )}
               </div>
 
               {/* OWNER */}
@@ -362,6 +429,9 @@ export function AdminAddShopPage() {
                   onChange={(e) => handleChange("owner", e.target.value)}
                   className={errors.owner ? "border-red-500" : ""}
                 />
+                {errors.owner && (
+                  <p className="text-red-500 text-xs">{errors.owner}</p>
+                )}
                 {errors.owner && (
                   <p className="text-red-500 text-xs">{errors.owner}</p>
                 )}
@@ -380,6 +450,9 @@ export function AdminAddShopPage() {
                 {errors.phone && (
                   <p className="text-red-500 text-xs">{errors.phone}</p>
                 )}
+                {errors.phone && (
+                  <p className="text-red-500 text-xs">{errors.phone}</p>
+                )}
               </div>
 
               {/* ADDRESS */}
@@ -392,6 +465,9 @@ export function AdminAddShopPage() {
                   rows={3}
                   className={errors.address ? "border-red-500" : ""}
                 />
+                {errors.address && (
+                  <p className="text-red-500 text-xs">{errors.address}</p>
+                )}
                 {errors.address && (
                   <p className="text-red-500 text-xs">{errors.address}</p>
                 )}
@@ -451,6 +527,15 @@ export function AdminAddShopPage() {
                       >
                         <img
                           src={preview}
+                          className="object-cover w-full h-full"
+                        />
+                        <img
+                          src={preview}
+                          alt={`Shop preview ${index + 1}`}
+                          className="object-cover w-full h-full"
+                        />
+                        <img
+                          src={preview}
                           alt={`Shop preview ${index + 1}`}
                           className="object-cover w-full h-full"
                         />
@@ -467,6 +552,9 @@ export function AdminAddShopPage() {
                 ) : (
                   <div className="border-2 border-dashed rounded-lg p-6 text-center">
                     <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">
+                      No images uploaded yet
+                    </p>
                     <p className="text-sm text-gray-500">
                       No images uploaded yet
                     </p>

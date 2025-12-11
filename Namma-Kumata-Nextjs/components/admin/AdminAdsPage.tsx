@@ -1,5 +1,7 @@
 "use client";
+"use client";
 
+import { useState, useEffect } from "react";
 import { useState, useEffect } from "react";
 import {
   ArrowLeft,
@@ -28,12 +30,20 @@ import { Badge } from "../ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
 import { ScrollArea } from "../ui/scroll-area";
 import { Checkbox } from "../ui/checkbox";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Card } from "../ui/card";
+import { Badge } from "../ui/badge";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs";
+import { ScrollArea } from "../ui/scroll-area";
+import { Checkbox } from "../ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+} from "../ui/dropdown-menu";
 } from "../ui/dropdown-menu";
 import {
   AlertDialog,
@@ -44,6 +54,7 @@ import {
   AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
+} from "../ui/alert-dialog";
 } from "../ui/alert-dialog";
 
 import { useRouter } from "next/navigation";
@@ -83,6 +94,9 @@ const categoryGradients: Record<string, string> = {
   Hospital: "from-blue-500 to-cyan-600",
   Bikes: "from-indigo-500 to-blue-600",
   Cars: "from-amber-500 to-orange-600",
+  Hospital: "from-blue-500 to-cyan-600",
+  Bikes: "from-indigo-500 to-blue-600",
+  Cars: "from-amber-500 to-orange-600",
 };
 
 /* ================= PAGE ================= */
@@ -91,6 +105,10 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
   const router = useRouter();
 
   const [ads, setAds] = useState<Advertisement[]>(initialAds);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [selectedTab, setSelectedTab] = useState<"approved" | "all">(
+    "approved"
+  );
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<"approved" | "all">(
     "approved"
@@ -108,6 +126,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
       setAds(res.data || []);
     } catch {
       toast.error("Failed to load advertisements");
+      toast.error("Failed to load advertisements");
     } finally {
       setIsLoading(false);
     }
@@ -116,14 +135,18 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
   const toggleFeatured = async (id: string, val: boolean) => {
     const fd = new FormData();
     fd.append("featured", (!val).toString());
+    fd.append("featured", (!val).toString());
     await advertisementApi.update(id, fd);
+    setAds(ads.map((ad) => (ad._id === id ? { ...ad, featured: !val } : ad)));
     setAds(ads.map((ad) => (ad._id === id ? { ...ad, featured: !val } : ad)));
   };
 
   const toggleSponsored = async (id: string, val: boolean) => {
     const fd = new FormData();
     fd.append("sponsored", (!val).toString());
+    fd.append("sponsored", (!val).toString());
     await advertisementApi.update(id, fd);
+    setAds(ads.map((ad) => (ad._id === id ? { ...ad, sponsored: !val } : ad)));
     setAds(ads.map((ad) => (ad._id === id ? { ...ad, sponsored: !val } : ad)));
   };
 
@@ -131,8 +154,11 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     await advertisementApi.delete(id);
     setAds(ads.filter((ad) => ad._id !== id));
     toast.success("Advertisement deleted");
+    setAds(ads.filter((ad) => ad._id !== id));
+    toast.success("Advertisement deleted");
   };
 
+  const filteredAds = ads.filter((ad) => {
   const filteredAds = ads.filter((ad) => {
     const q = searchQuery.toLowerCase();
     return (
@@ -146,6 +172,8 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     total: ads.length,
     featured: ads.filter((a) => a.featured).length,
     sponsored: ads.filter((a) => a.sponsored).length,
+    featured: ads.filter((a) => a.featured).length,
+    sponsored: ads.filter((a) => a.sponsored).length,
   };
 
   /* ================= CARD ================= */
@@ -154,8 +182,11 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     const [showDelete, setShowDelete] = useState(false);
     const gradient =
       categoryGradients[ad.category?.name] || "from-gray-500 to-gray-600";
+    const gradient =
+      categoryGradients[ad.category?.name] || "from-gray-500 to-gray-600";
 
     const getImageUrl = (imagePath: string) => {
+      if (imagePath.startsWith("http")) return imagePath;
       if (imagePath.startsWith("http")) return imagePath;
       return `${process.env.NEXT_PUBLIC_API_BASE_URL}/${imagePath}`;
     };
@@ -168,6 +199,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
             <div className="space-y-2 min-w-0">
               <div className="flex flex-wrap gap-2">
                 <Badge className={`bg-gradient-to-r ${gradient} text-white`}>
+                  {ad.category?.name || "General"}
                   {ad.category?.name || "General"}
                 </Badge>
                 {ad.badges && (
@@ -207,6 +239,10 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
                   <Eye className="w-4 h-4 mr-2" /> View
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => setShowDelete(true)}
+                >
                 <DropdownMenuItem
                   className="text-red-600"
                   onClick={() => setShowDelete(true)}
@@ -288,9 +324,16 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
               <AlertDialogDescription>
                 This action cannot be undone.
               </AlertDialogDescription>
+              <AlertDialogDescription>
+                This action cannot be undone.
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogAction
+                onClick={() => handleDelete(ad._id)}
+                className="bg-red-600"
+              >
               <AlertDialogAction
                 onClick={() => handleDelete(ad._id)}
                 className="bg-red-600"
@@ -324,6 +367,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
           <div className="flex gap-2">
             <Button variant="outline" onClick={fetchAds}>
               <RefreshCw className={isLoading ? "animate-spin" : ""} />
+              <RefreshCw className={isLoading ? "animate-spin" : ""} />
             </Button>
             <Button onClick={() => router.push("/AdminAddAdPage")}>
               <Plus /> Add Advertisement
@@ -339,6 +383,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
               placeholder="Search advertisements..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => setSearchQuery(e.target.value)}
             />
           </div>
         </div>
@@ -351,7 +396,14 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
             value={selectedTab}
             onValueChange={(v) => setSelectedTab(v as any)}
           >
+          <Tabs
+            value={selectedTab}
+            onValueChange={(v) => setSelectedTab(v as any)}
+          >
             <TabsList>
+              <TabsTrigger value="approved">
+                Approved ({stats.total})
+              </TabsTrigger>
               <TabsTrigger value="approved">
                 Approved ({stats.total})
               </TabsTrigger>
