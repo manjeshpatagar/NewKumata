@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 "use client";
 
 import { useState, useEffect, useMemo } from "react";
@@ -16,13 +17,19 @@ import {
   DropdownMenuItem,
   DropdownMenuSeparator,
   DropdownMenuTrigger,
+<<<<<<< HEAD
 } from "../ui/dropdown-menu";
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { productApi } from "@/lib/api/productApi";
 import { useAdmin } from "@/contexts/AdminContext";
+=======
+} from '../ui/dropdown-menu';
+import { toast } from 'sonner';
+import { useRouter } from 'next/navigation';
+import { productApi } from '@/lib/api/productApi';
+>>>>>>> 05babf6 (add shop)
 
-// Local Shop Type
 export interface Shop {
   id: string;
   name: string;
@@ -42,6 +49,7 @@ export function AdminShopsPage() {
   const router = useRouter();
   const { adminUser } = useAdmin();
 
+<<<<<<< HEAD
   const [shops, setShops] = useState<Shop[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
@@ -100,6 +108,15 @@ export function AdminShopsPage() {
   };
 
   // Delete shop
+=======
+  // ✔ Data comes only from SSR
+  const [shops, setShops] = useState<Shop[]>(ssrShops);
+  console.log("Initial Shops:", shops);
+  const [loading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+
+  // ⭐ DELETE via API (same UI)
+>>>>>>> 05babf6 (add shop)
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
 
@@ -113,6 +130,7 @@ export function AdminShopsPage() {
     }
   };
 
+<<<<<<< HEAD
   // Optimized search
   const filteredShops = useMemo(() => {
     const q = searchQuery.toLowerCase();
@@ -123,6 +141,15 @@ export function AdminShopsPage() {
         s.owner.toLowerCase().includes(q)
     );
   }, [searchQuery, shops]);
+=======
+  // SEARCH FILTER
+  const filteredShops = shops.filter(shop =>
+    shop.thumbnail &&
+    shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    shop.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    shop.owner.toLowerCase().includes(searchQuery.toLowerCase())
+  );
+>>>>>>> 05babf6 (add shop)
 
   // Category Colors
   const categoryColors: Record<string, string> = {
@@ -146,9 +173,15 @@ export function AdminShopsPage() {
           <div className="flex justify-between gap-3">
 
             <div className="flex-1 min-w-0">
+<<<<<<< HEAD
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient}`}>
                   <Store className="w-5 h-5 text-white" />
+=======
+              <div className="flex items-center gap-2 mb-2">
+                <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
+                  {/* <Store className="w-5 h-5 text-white" /> */}<img src={shop.thumbnail} alt={shop.name} className="w-5 h-5 text-white"/>
+>>>>>>> 05babf6 (add shop)
                 </div>
 
                 <div>
@@ -188,6 +221,7 @@ export function AdminShopsPage() {
             </DropdownMenu>
           </div>
 
+<<<<<<< HEAD
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-3 text-sm">
 
@@ -195,12 +229,26 @@ export function AdminShopsPage() {
             <div className="flex gap-2">
               <User className="w-4 h-4 text-blue-500" />
               <div>
+=======
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            
+            {/* OWNER */}
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                <User className="w-4 h-4 text-blue-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+>>>>>>> 05babf6 (add shop)
                 <p className="text-xs text-gray-500">Owner</p>
                 <p className="truncate">{shop.owner}</p>
               </div>
             </div>
 
+<<<<<<< HEAD
             {/* Phone */}
+=======
+            {/* PHONE */}
+>>>>>>> 05babf6 (add shop)
             {shop.phone && (
               <div className="flex gap-2">
                 <Phone className="w-4 h-4 text-emerald-500" />
@@ -211,6 +259,7 @@ export function AdminShopsPage() {
               </div>
             )}
 
+<<<<<<< HEAD
             {/* Date */}
             <div className="flex gap-2">
               <Calendar className="w-4 h-4 text-purple-500" />
@@ -221,6 +270,20 @@ export function AdminShopsPage() {
             </div>
 
             {/* Location */}
+=======
+            {/* DATE */}
+            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+              <div className="p-2 rounded-lg bg-gray-100 dark:bg-gray-800">
+                <Calendar className="w-4 h-4 text-purple-500" />
+              </div>
+              <div className="flex-1 min-w-0">
+                <p className="text-xs text-gray-500">Added Date</p>
+                <p className="font-medium dark:text-white truncate">{shop.submittedDate}</p>
+              </div>
+            </div>
+
+            {/* LOCATION */}
+>>>>>>> 05babf6 (add shop)
             {shop.location && (
               <div className="flex gap-2">
                 <MapPin className="w-4 h-4 text-orange-500" />
@@ -246,6 +309,46 @@ export function AdminShopsPage() {
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5" />
+=======
+        <div className="max-w-7xl mx-auto px-4 py-4">
+          <div className="flex items-center justify-between flex-wrap gap-3">
+
+            <div className="flex items-center gap-3">
+              <Button 
+                variant="ghost" 
+                size="icon"
+                onClick={() => router.back()}
+                className="rounded-xl hover:bg-gray-100 dark:hover:bg-gray-800"
+              >
+                <ArrowLeft className="w-5 h-5" />
+              </Button>
+
+              <div>
+                <div className="flex items-center gap-2">
+                  <h1 className="text-2xl dark:text-white flex items-center gap-2">
+                    <Store className="w-6 h-6 text-blue-500" />
+                    Manage Shops
+                  </h1>
+
+                  <Badge className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white border-0">
+                    {shops.length} Total
+                  </Badge>
+                </div>
+
+                <p className="text-sm text-gray-600 dark:text-gray-400">
+                  Add, edit, and manage all shops
+                </p>
+              </div>
+            </div>
+
+            <Button 
+              size="sm"
+              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:scale-105"
+              onClick={() => router.push('/AdminAddShopPage')}
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Shop
+>>>>>>> 05babf6 (add shop)
             </Button>
 
             <h1 className="text-xl flex items-center gap-2">
@@ -256,11 +359,24 @@ export function AdminShopsPage() {
             <Badge>{shops.length} Total</Badge>
           </div>
 
+<<<<<<< HEAD
           <Button onClick={() => router.push("/AdminAddShopPage")}>
             <Plus className="w-4 h-4 mr-2" />
             Add Shop
           </Button>
         </div>
+=======
+          {/* SEARCH BAR */}
+          <div className="relative mt-4">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+            <Input
+              placeholder="Search shops by name, category, or owner..."
+              className="pl-11 h-11 rounded-xl border-gray-300 dark:border-gray-700 focus:ring-2 focus:ring-blue-500"
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+            />
+          </div>
+>>>>>>> 05babf6 (add shop)
 
         <div className="max-w-7xl mx-auto px-4 pb-3 relative">
           <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 text-gray-400" />
