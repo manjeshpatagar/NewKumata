@@ -14,15 +14,25 @@ import { useRouter } from "next/navigation";
 import { productApi } from "@/lib/api/productApi";
 import { categoryApi } from "@/lib/api/categoryApi";
 import { subCategoryApi } from "@/lib/api/subCategoryApi";
+import { useAdmin } from "@/contexts/AdminContext";
+
 
 export function AdminAddShopPage() {
-  const router = useRouter();
 
+  // --------------------
+  // HOOKS
+  // --------------------
+  const router = useRouter();
+  const { adminUser } = useAdmin();
+
+  // --------------------
+  // STATE FIXED WITH TYPES
+  // --------------------
   const [categories, setCategories] = useState<{ id: string; name: string; type?: string }[]>([]);
-  const [subCategories, setSubCategories] = useState<{ id: string; name: string; categoryId?: string }[]>([]);
+  const [subCategories, setSubCategories] = useState<{ id: string; name: string; categoryId: string }[]>([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
+
   const [formData, setFormData] = useState({
     name: '',
     category: '',
@@ -32,23 +42,32 @@ export function AdminAddShopPage() {
     address: '',
     description: '',
     openingHours: '',
-    status: 'approved' as 'pending' | 'approved' | 'rejected',
+    status: 'approved',
   });
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-  // Load categories from API
+
+  // --------------------
+  // AUTH CHECK (FIXED)
+  // --------------------
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (!token || role !== "admin") {
-      toast.error("Please login as admin to add shops");
+    if (adminUser === null) return; // context loading
+
+    if (!adminUser) {
+      toast.error("Please login as admin to continue");
       router.push("/admin-login");
-      return;
     }
-    setAuthorized(true);
+  }, [adminUser]);
+
+
+  // --------------------
+  // LOAD CATEGORIES
+  // --------------------
+  useEffect(() => {
+    if (!adminUser) return;
 
     const fetchCategories = async () => {
       try {
@@ -56,14 +75,15 @@ export function AdminAddShopPage() {
         const res = await categoryApi.getAll();
         const payload = res.data || res;
         const list = (payload.data || payload) as any[];
+
         const normalized = list.map((cat) => ({
           id: cat._id || cat.id,
           name: cat.name,
-          type: cat.type,
+          type: cat.type
         }));
+
         setCategories(normalized);
       } catch (error) {
-        console.error("Failed to load categories", error);
         toast.error("Could not load categories");
       } finally {
         setLoadingCategories(false);
@@ -71,39 +91,52 @@ export function AdminAddShopPage() {
     };
 
     fetchCategories();
-  }, []);
+  }, [adminUser]);
 
-  // Load subcategories once
+
+  // --------------------
+  // LOAD SUBCATEGORIES
+  // --------------------
   useEffect(() => {
+    if (!adminUser) return;
+
     const fetchSubCategories = async () => {
       try {
         setLoadingSubCategories(true);
         const res = await subCategoryApi.getAll();
         const payload = res.data || res;
         const list = (payload.data || payload) as any[];
+
         const normalized = list.map((sub) => ({
           id: sub._id || sub.id,
           name: sub.name,
           categoryId: sub.categoryId?._id || sub.categoryId,
         }));
+
         setSubCategories(normalized);
       } catch (error) {
-        console.error("Failed to load subcategories", error);
         toast.error("Could not load subcategories");
       } finally {
         setLoadingSubCategories(false);
       }
     };
-    fetchSubCategories();
-  }, []);
 
+    fetchSubCategories();
+  }, [adminUser]);
+
+
+  // --------------------
   // HANDLE INPUT CHANGE
+  // --------------------
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
   };
 
-  // VALIDATION
+
+  // --------------------
+  // VALIDATE FORM
+  // --------------------
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
@@ -118,65 +151,74 @@ export function AdminAddShopPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ⭐ SUBMIT TO API
+
+  // --------------------
+  // SUBMIT FORM TO API
+  // --------------------
   const handleSubmit = async () => {
     if (!validateForm()) {
-      toast.error("Please fill in all required fields");
+      toast.error("Please fill in required fields");
       return;
     }
 
     try {
       const form = new FormData();
-
       form.append("shopName", formData.name);
       form.append("address", formData.address);
+
       if (formData.description) form.append("description", formData.description);
       if (formData.owner) form.append("contact[ownerName]", formData.owner);
       if (formData.phone) form.append("contact[phone]", formData.phone);
+
       if (formData.openingHours) {
         form.append("openingHours[open]", formData.openingHours);
         form.append("openingHours[close]", "");
       }
 
-      const selectedSub = subCategories.find((s) => s.id === formData.subCategory);
-      const derivedCategory = selectedSub?.categoryId;
-      if (!derivedCategory) {
-        toast.error("Selected subcategory is missing category mapping");
-        return;
-      }
-      form.append("categoryId", derivedCategory);
-      form.append("subCategoryId", formData.subCategory);
+   const selectedSub = subCategories.find((s) => s.id === formData.subCategory);
+
+if (!selectedSub) {
+  toast.error("Invalid subcategory");
+  return;
+}
+
+form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
 
       const statusPayload =
         formData.status === "approved" ? "active" : "inactive";
+
       form.append("status", statusPayload);
 
       images.forEach((file) => form.append("images", file));
 
-      await productApi.create(form); // ⭐ Create Product/Shop
+      await productApi.create(form);
 
       toast.success("Shop added successfully!");
-      router.push("/AdminAddShop"); // back to manage list
-    } catch (error: any) {
+      router.push("/AdminAddShop");
+
+    } catch (error) {
       toast.error("Failed to add shop");
       console.error(error);
     }
   };
 
+
+  // --------------------
   // IMAGE UPLOAD
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // --------------------
+  const handleImageUpload = (e: any) => {
     const files = e.target.files;
     if (!files) return;
 
     const newFiles = Array.from(files);
-    const newPreviews: string[] = [];
+    const previews: string[] = [];
 
     newFiles.forEach(file => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        newPreviews.push(reader.result as string);
-        if (newPreviews.length === newFiles.length) {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
+        previews.push(reader.result as string);
+        if (previews.length === newFiles.length) {
+          setImagePreviews(prev => [...prev, ...previews]);
         }
       };
       reader.readAsDataURL(file);
@@ -185,12 +227,13 @@ export function AdminAddShopPage() {
     setImages(prev => [...prev, ...newFiles]);
   };
 
+
   const removeImage = (index: number) => {
     setImages(prev => prev.filter((_, i) => i !== index));
     setImagePreviews(prev => prev.filter((_, i) => i !== index));
   };
 
-  // RESET FORM
+
   const handleReset = () => {
     setFormData({
       name: '',
@@ -208,6 +251,10 @@ export function AdminAddShopPage() {
     setErrors({});
   };
 
+
+  // --------------------
+  // UI RETURN
+  // --------------------
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
 
@@ -231,10 +278,11 @@ export function AdminAddShopPage() {
         </div>
       </div>
 
+
       {/* FORM */}
       <ScrollArea className="flex-1">
         <div className="p-4 pb-6 max-w-4xl mx-auto w-full">
-          <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
+         <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
             <div className="space-y-6">
 
               {/* NAME */}
@@ -423,8 +471,10 @@ export function AdminAddShopPage() {
               Add Shop
             </Button>
           </div>
+
         </div>
       </ScrollArea>
+
     </div>
   );
 }

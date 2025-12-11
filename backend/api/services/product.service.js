@@ -3,7 +3,7 @@ import { SubCategory } from "../models/subcategory.model.js";
 import { ApiError } from "../utils/ApiError.js";
 
 /* -----------------------------
- 📌 Create Product (All fields optional except shopName + address)
+ 📌 Create Product
 ----------------------------- */
 export const createProduct = async (data) => {
   const sub = await SubCategory.findById(data.subCategoryId);
@@ -16,8 +16,7 @@ export const createProduct = async (data) => {
 ----------------------------- */
 export const getAllProducts = async () => {
   return Product.find()
-    .populate("categoryId")
-    .populate("subCategoryId")
+    .populate("subCategoryId")  // ✅ ONLY THIS (categoryId removed)
     .sort({ createdAt: -1 });
 };
 
@@ -26,15 +25,14 @@ export const getAllProducts = async () => {
 ----------------------------- */
 export const getProductById = async (id) => {
   const product = await Product.findById(id)
-    .populate("categoryId")
-    .populate("subCategoryId");
-
+    .populate("subCategoryId"); // ✅ ONLY THIS
+  
   if (!product) throw new ApiError(404, "Product not found");
   return product;
 };
 
 /* -----------------------------
- 📌 Update Product (All fields optional)
+ 📌 Update Product
 ----------------------------- */
 export const updateProduct = async (id, data) => {
   return Product.findByIdAndUpdate(id, data, {
