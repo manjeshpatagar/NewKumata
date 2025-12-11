@@ -131,6 +131,7 @@ export function AdvertisementsPage({
     const categoryInfo = getCategoryInfo(ad.category?._id);
     const isLiked = isFavorite(ad._id);
 
+
     return (
       <Card
         className={`relative group cursor-pointer rounded-2xl overflow-hidden bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:shadow-xl hover:border-transparent transition-all duration-300 hover:-translate-y-1 ${
@@ -241,6 +242,11 @@ export function AdvertisementsPage({
   /* --------------------------
      MAIN UI
   --------------------------- */
+
+const latestAds = [...initialAdvertisment]
+  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+  .slice(0, 5);
+
   return (
     <div className="min-h-screen flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-950">
       {/* HEADER */}
@@ -321,7 +327,7 @@ export function AdvertisementsPage({
         <div className="pb-24 md:pb-28 lg:pb-32">
           {/* BANNERS */}
           <div className="mb-4 md:mb-6">
-            <BrandingBanners />
+            <BrandingBanners latestAds={latestAds} />
           </div>
 
           {/* FEATURED */}

@@ -49,8 +49,6 @@ import { useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { advertisementApi } from "@/lib/api/advertisementApi";
 
-/* ================= TYPES ================= */
-
 interface Advertisement {
   _id: string;
   title: string;
