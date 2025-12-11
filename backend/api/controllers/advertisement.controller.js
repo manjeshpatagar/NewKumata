@@ -23,8 +23,13 @@ export const addAdvertisement = asyncHandler(async (req, res) => {
     location,
     badges,
     addetails,
-    contactinfo,
+    contactinfo = {
+    whatsapp: req.body["contactinfo.whatsapp"],
+        phone: req.body["contactinfo.phone"],
+        email: req.body["contactinfo.email"],
+  }
   } = req.body;
+  
 
   const images = req.files?.images?.map((f) => f.url) || [];
   const video = req.files?.video?.[0]?.url || null;

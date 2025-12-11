@@ -123,14 +123,16 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
       formDataToSend.append('price', formData.price || '0');
       formDataToSend.append('description', formData.description);
       formDataToSend.append('location', formData.location);
-      
+
       // Add contactinfo as JSON string
       const contactinfo = {
         owner: formData.owner,
         phone: formData.phone,
         email: '', // Add email field if you have it in the form
       };
-      formDataToSend.append('contactinfo', JSON.stringify(contactinfo));
+      formDataToSend.append('contactinfo.whatsapp', contactinfo.owner);   // if owner = whatsapp
+      formDataToSend.append('contactinfo.phone', contactinfo.phone);
+      formDataToSend.append('contactinfo.email', contactinfo.email || "");
 
       // Add optional fields
       if (formData.status) {
@@ -166,8 +168,8 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
 
       // Handle specific error messages
       const errorMessage = error.response?.data?.message ||
-                          error.message ||
-                          'Failed to update advertisement';
+        error.message ||
+        'Failed to update advertisement';
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
@@ -235,8 +237,8 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
     } catch (error: any) {
       console.error('Error deleting advertisement:', error);
       const errorMessage = error.response?.data?.message ||
-                          error.message ||
-                          'Failed to delete advertisement';
+        error.message ||
+        'Failed to delete advertisement';
       toast.error(errorMessage);
     }
   };
@@ -257,7 +259,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
       'Fashion': '👗',
       'Agriculture': '🌾',
     };
-    
+
     return emojiMap[categoryName] || '📋';
   };
 
@@ -314,7 +316,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                 >
                   <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
                     <SelectValue placeholder="Select category">
-                      {formData.category 
+                      {formData.category
                         ? categories.find(cat => cat._id === formData.category)?.name
                         : "Select category"}
                     </SelectValue>
@@ -344,11 +346,11 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
               {/* Owner Name */}
               <div className="space-y-2">
                 <Label htmlFor="owner" className="text-sm">
-                  Owner Name <span className="text-red-500">*</span>
+                  What'sApp Number <span className="text-red-500">*</span>
                 </Label>
                 <Input
                   id="owner"
-                  placeholder="Enter owner name"
+                  placeholder="Enter What'sApp Number"
                   value={formData.owner}
                   onChange={(e) => handleChange('owner', e.target.value)}
                   className={errors.owner ? 'border-red-500' : ''}
@@ -406,27 +408,6 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                 />
               </div>
 
-              {/* Admin Price (Custom pricing for advertisement)
-              <div className="space-y-2">
-                <Label htmlFor="adminPrice" className="text-sm">
-                  Admin Price (₹)
-                </Label>
-                <div className="flex items-start gap-2">
-                  <Input
-                    id="adminPrice"
-                    type="number"
-                    placeholder="0"
-                    value={formData.adminPrice}
-                    onChange={(e) => handleChange('adminPrice', parseFloat(e.target.value) || 0)}
-                    min="0"
-                    step="1"
-                  />
-                </div>
-                <p className="text-xs text-gray-500 dark:text-gray-400">
-                  Custom price set for this advertisement that user pays to publish the ad
-                </p>
-              </div> */}
-
               {/* Description */}
               <div className="space-y-2">
                 <Label htmlFor="description" className="text-sm">
@@ -468,7 +449,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                       onChange={handleImageUpload}
                     />
                   </div>
-                  
+
                   {imagePreviews.length > 0 && (
                     <div className="grid grid-cols-3 gap-3">
                       {imagePreviews.map((preview, index) => (
@@ -489,7 +470,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                       ))}
                     </div>
                   )}
-                  
+
                   {imagePreviews.length === 0 && (
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
                       <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
@@ -524,7 +505,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                       onChange={handleVideoUpload}
                     />
                   </div>
-                  
+
                   {videoPreviews.length > 0 && (
                     <div className="grid grid-cols-2 gap-3">
                       {videoPreviews.map((preview, index) => (
@@ -545,7 +526,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                       ))}
                     </div>
                   )}
-                  
+
                   {videoPreviews.length === 0 && (
                     <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
                       <Video className="w-12 h-12 mx-auto text-gray-400 mb-2" />
@@ -557,52 +538,7 @@ export function AdminEditAdPage({ ad, categories = [], onBack }: AdminEditAdPage
                 </div>
               </div>
 
-              {/* Status */}
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm">
-                  Status
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'pending' | 'approved' | 'rejected') => 
-                    handleChange('status', value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
 
-              {/* Featured & Sponsored */}
-              <div className="space-y-3 p-4 bg-gray-50 dark:bg-gray-800 rounded-lg">
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="featured"
-                    checked={formData.featured}
-                    onCheckedChange={(checked) => handleChange('featured', checked === true)}
-                  />
-                  <Label htmlFor="featured" className="text-sm cursor-pointer">
-                    ⭐ Featured Advertisement
-                  </Label>
-                </div>
-
-                <div className="flex items-center gap-2">
-                  <Checkbox
-                    id="sponsored"
-                    checked={formData.sponsored}
-                    onCheckedChange={(checked) => handleChange('sponsored', checked === true)}
-                  />
-                  <Label htmlFor="sponsored" className="text-sm cursor-pointer">
-                    💎 Sponsored Advertisement
-                  </Label>
-                </div>
-              </div>
             </div>
           </Card>
 

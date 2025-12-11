@@ -77,14 +77,19 @@ interface AdminAdsPageProps {
   initialAds?: Advertisement[];
 }
 
+/* ================= CONSTANTS ================= */
+
 const categoryGradients: Record<string, string> = {
   Hospital: "from-blue-500 to-cyan-600",
   Bikes: "from-indigo-500 to-blue-600",
   Cars: "from-amber-500 to-orange-600",
 };
 
+/* ================= PAGE ================= */
+
 export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
   const router = useRouter();
+
   const [ads, setAds] = useState<Advertisement[]>(initialAds);
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedTab, setSelectedTab] = useState<"approved" | "all">(
@@ -143,6 +148,8 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     sponsored: ads.filter((a) => a.sponsored).length,
   };
 
+  /* ================= CARD ================= */
+
   const AdCard = ({ ad }: { ad: Advertisement }) => {
     const [showDelete, setShowDelete] = useState(false);
     const gradient =
@@ -153,13 +160,13 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
       return `${process.env.NEXT_PUBLIC_API_BASE_URL}/${imagePath}`;
     };
     return (
-      <Card className="group overflow-hidden border shadow-lg">
+      <Card className="group overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-lg transition">
         <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
         <div className="p-5 space-y-4">
           {/* Header */}
-          <div className="flex justify-between">
-            <div className="space-y-1">
-              <div className="flex gap-2 flex-wrap">
+          <div className="flex justify-between gap-3">
+            <div className="space-y-2 min-w-0">
+              <div className="flex flex-wrap gap-2">
                 <Badge className={`bg-gradient-to-r ${gradient} text-white`}>
                   {ad.category?.name || "General"}
                 </Badge>
@@ -168,12 +175,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
                 )}
                 {ad.featured && (
                   <Badge className="bg-pink-600 text-white">
-                    <Sparkles className="w-3 h-3 mr-1" /> Featured
-                  </Badge>
-                )}
-                {ad.sponsored && (
-                  <Badge className="bg-yellow-600 text-white">
-                    <Zap className="w-3 h-3 mr-1" /> Sponsored
+                    <Sparkles className="w-3 h-3 mr-1" /> {ad.badges.charAt(0).toUpperCase() + ad.badges.slice(1)}
                   </Badge>
                 )}
               </div>
@@ -215,8 +217,21 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
             </DropdownMenu>
           </div>
 
+          {/* Image */}
+          {Array.isArray(ad.images) && ad.images.length > 0 && (
+            <div className="aspect-video rounded-lg overflow-hidden">
+              <img
+                src={getImageUrl(ad.images[0])}
+                alt={ad.title}
+                className="h-full w-full object-cover group-hover:scale-105 transition"
+              />
+            </div>
+          )}
+
           {/* Description */}
-          <p className="text-sm text-gray-600 line-clamp-2">{ad.description}</p>
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {ad.description}
+          </p>
 
           {/* Info */}
           <div className="grid grid-cols-2 gap-3 text-sm">
@@ -289,6 +304,8 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     );
   };
 
+  /* ================= JSX ================= */
+
   return (
     <div className="min-h-screen bg-gray-50">
       {/* HEADER (UNCHANGED) */}
@@ -298,8 +315,8 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft />
             </Button>
-            <h1 className="text-2xl font-bold flex gap-2">
-              <ShoppingBag /> Manage Advertisements
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <ShoppingBag /> Advertisements
               <Badge>{stats.total}</Badge>
             </h1>
           </div>
@@ -316,9 +333,9 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
 
         <div className="max-w-7xl mx-auto px-4 pb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" />
+            <Search className="absolute left-3 top-2.5 text-gray-400 w-4" />
             <Input
-              className="pl-10"
+              className="pl-9"
               placeholder="Search advertisements..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
@@ -327,7 +344,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
         </div>
       </div>
 
-      {/* CONTENT */}
+      {/* Content */}
       <ScrollArea>
         <div className="max-w-7xl mx-auto p-6">
           <Tabs
