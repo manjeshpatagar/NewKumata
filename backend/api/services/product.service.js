@@ -15,18 +15,15 @@ export const createProduct = async (data) => {
  📌 Get All Products
 ----------------------------- */
 export const getAllProducts = async () => {
-  return Product.find()
-    .populate("subCategoryId")  // ✅ ONLY THIS (categoryId removed)
-    .sort({ createdAt: -1 });
+  return Product.find().populate("subCategoryId").sort({ createdAt: -1 });
 };
 
 /* -----------------------------
  📌 Get Product By ID
 ----------------------------- */
 export const getProductById = async (id) => {
-  const product = await Product.findById(id)
-    .populate("subCategoryId"); // ✅ ONLY THIS
-  
+  const product = await Product.findById(id).populate("subCategoryId");
+
   if (!product) throw new ApiError(404, "Product not found");
   return product;
 };

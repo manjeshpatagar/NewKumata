@@ -1,15 +1,28 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { ArrowLeft, Store, Save, X, Upload, Image as ImageIcon } from 'lucide-react';
-import { Button } from '../ui/button';
-import { Input } from '../ui/input';
-import { Label } from '../ui/label';
-import { Textarea } from '../ui/textarea';
-import { Card } from '../ui/card';
-import { ScrollArea } from '../ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
-import { toast } from 'sonner';
+import { useEffect, useState } from "react";
+import {
+  ArrowLeft,
+  Store,
+  Save,
+  X,
+  Upload,
+  Image as ImageIcon,
+} from "lucide-react";
+import { Button } from "../ui/button";
+import { Input } from "../ui/input";
+import { Label } from "../ui/label";
+import { Textarea } from "../ui/textarea";
+import { Card } from "../ui/card";
+import { ScrollArea } from "../ui/scroll-area";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "../ui/select";
+import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { productApi } from "@/lib/api/productApi";
 import { categoryApi } from "@/lib/api/categoryApi";
@@ -25,24 +38,25 @@ export function AdminAddShopPage() {
   const router = useRouter();
   const { adminUser } = useAdmin();
 
-  // --------------------
-  // STATE FIXED WITH TYPES
-  // --------------------
-  const [categories, setCategories] = useState<{ id: string; name: string; type?: string }[]>([]);
-  const [subCategories, setSubCategories] = useState<{ id: string; name: string; categoryId: string }[]>([]);
+  const [categories, setCategories] = useState<
+    { id: string; name: string; type?: string }[]
+  >([]);
+  const [subCategories, setSubCategories] = useState<
+    { id: string; name: string; categoryId?: string }[]
+  >([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
   const [formData, setFormData] = useState({
-    name: '',
-    category: '',
-    subCategory: '',
-    owner: '',
-    phone: '',
-    address: '',
-    description: '',
-    openingHours: '',
-    status: 'approved',
+    name: "",
+    category: "",
+    subCategory: "",
+    owner: "",
+    phone: "",
+    address: "",
+    description: "",
+    openingHours: "",
+    status: "approved" as "pending" | "approved" | "rejected",
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -129,8 +143,8 @@ export function AdminAddShopPage() {
   // HANDLE INPUT CHANGE
   // --------------------
   const handleChange = (field: string, value: string) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
+    setFormData((prev) => ({ ...prev, [field]: value }));
+    if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
 
 
@@ -140,12 +154,14 @@ export function AdminAddShopPage() {
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
 
-    if (!formData.name.trim()) newErrors.name = 'Shop name is required';
-    if (!formData.subCategory) newErrors.subCategory = 'Subcategory is required';
-    if (!formData.owner.trim()) newErrors.owner = 'Owner name is required';
-    if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
-    if (!/^\+?[\d\s-]{10,}$/.test(formData.phone)) newErrors.phone = 'Invalid phone number';
-    if (!formData.address.trim()) newErrors.address = 'Address is required';
+    if (!formData.name.trim()) newErrors.name = "Shop name is required";
+    if (!formData.subCategory)
+      newErrors.subCategory = "Subcategory is required";
+    if (!formData.owner.trim()) newErrors.owner = "Owner name is required";
+    if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
+    if (!/^\+?[\d\s-]{10,}$/.test(formData.phone))
+      newErrors.phone = "Invalid phone number";
+    if (!formData.address.trim()) newErrors.address = "Address is required";
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
@@ -165,8 +181,8 @@ export function AdminAddShopPage() {
       const form = new FormData();
       form.append("shopName", formData.name);
       form.append("address", formData.address);
-
-      if (formData.description) form.append("description", formData.description);
+      if (formData.description)
+        form.append("description", formData.description);
       if (formData.owner) form.append("contact[ownerName]", formData.owner);
       if (formData.phone) form.append("contact[phone]", formData.phone);
 
@@ -175,14 +191,16 @@ export function AdminAddShopPage() {
         form.append("openingHours[close]", "");
       }
 
-   const selectedSub = subCategories.find((s) => s.id === formData.subCategory);
-
-if (!selectedSub) {
-  toast.error("Invalid subcategory");
-  return;
-}
-
-form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
+      const selectedSub = subCategories.find(
+        (s) => s.id === formData.subCategory
+      );
+      const derivedCategory = selectedSub?.categoryId;
+      if (!derivedCategory) {
+        toast.error("Selected subcategory is missing category mapping");
+        return;
+      }
+      form.append("categoryId", derivedCategory);
+      form.append("subCategoryId", formData.subCategory);
 
       const statusPayload =
         formData.status === "approved" ? "active" : "inactive";
@@ -213,38 +231,38 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
     const newFiles = Array.from(files);
     const previews: string[] = [];
 
-    newFiles.forEach(file => {
+    newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        previews.push(reader.result as string);
-        if (previews.length === newFiles.length) {
-          setImagePreviews(prev => [...prev, ...previews]);
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === newFiles.length) {
+          setImagePreviews((prev) => [...prev, ...newPreviews]);
         }
       };
       reader.readAsDataURL(file);
     });
 
-    setImages(prev => [...prev, ...newFiles]);
+    setImages((prev) => [...prev, ...newFiles]);
   };
 
 
   const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setImages((prev) => prev.filter((_, i) => i !== index));
+    setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
 
   const handleReset = () => {
     setFormData({
-      name: '',
-      category: '',
-      subCategory: '',
-      owner: '',
-      phone: '',
-      address: '',
-      description: '',
-      openingHours: '',
-      status: 'approved',
+      name: "",
+      category: "",
+      subCategory: "",
+      owner: "",
+      phone: "",
+      address: "",
+      description: "",
+      openingHours: "",
+      status: "approved",
     });
     setImages([]);
     setImagePreviews([]);
@@ -257,7 +275,6 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
   // --------------------
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
-
       {/* HEADER */}
       <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 border-b dark:border-gray-800">
         <div className="flex items-center justify-between p-4 max-w-4xl mx-auto w-full">
@@ -284,7 +301,6 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
         <div className="p-4 pb-6 max-w-4xl mx-auto w-full">
          <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
             <div className="space-y-6">
-
               {/* NAME */}
               <div className="space-y-2">
                 <Label htmlFor="name">Shop Name *</Label>
@@ -295,7 +311,9 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                   onChange={(e) => handleChange("name", e.target.value)}
                   className={errors.name ? "border-red-500" : ""}
                 />
-                {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+                {errors.name && (
+                  <p className="text-red-500 text-xs">{errors.name}</p>
+                )}
               </div>
 
               {/* SUBCATEGORY */}
@@ -309,13 +327,22 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                     setFormData((prev) => ({
                       ...prev,
                       subCategory: value,
-                      category: matched?.categoryId || '',
+                      category: matched?.categoryId || "",
                     }));
-                    if (errors.subCategory) setErrors((prev) => ({ ...prev, subCategory: '' }));
+                    if (errors.subCategory)
+                      setErrors((prev) => ({ ...prev, subCategory: "" }));
                   }}
                 >
-                  <SelectTrigger className={errors.subCategory ? "border-red-500" : ""}>
-                    <SelectValue placeholder={loadingSubCategories ? "Loading..." : "Select subcategory"} />
+                  <SelectTrigger
+                    className={errors.subCategory ? "border-red-500" : ""}
+                  >
+                    <SelectValue
+                      placeholder={
+                        loadingSubCategories
+                          ? "Loading..."
+                          : "Select subcategory"
+                      }
+                    />
                   </SelectTrigger>
                   <SelectContent>
                     {subCategories.map((sub) => (
@@ -325,7 +352,9 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                     ))}
                   </SelectContent>
                 </Select>
-                {errors.subCategory && <p className="text-red-500 text-xs">{errors.subCategory}</p>}
+                {errors.subCategory && (
+                  <p className="text-red-500 text-xs">{errors.subCategory}</p>
+                )}
               </div>
 
               {/* OWNER */}
@@ -337,7 +366,9 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                   onChange={(e) => handleChange("owner", e.target.value)}
                   className={errors.owner ? "border-red-500" : ""}
                 />
-                {errors.owner && <p className="text-red-500 text-xs">{errors.owner}</p>}
+                {errors.owner && (
+                  <p className="text-red-500 text-xs">{errors.owner}</p>
+                )}
               </div>
 
               {/* PHONE */}
@@ -350,7 +381,9 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                   onChange={(e) => handleChange("phone", e.target.value)}
                   className={errors.phone ? "border-red-500" : ""}
                 />
-                {errors.phone && <p className="text-red-500 text-xs">{errors.phone}</p>}
+                {errors.phone && (
+                  <p className="text-red-500 text-xs">{errors.phone}</p>
+                )}
               </div>
 
               {/* ADDRESS */}
@@ -363,7 +396,9 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                   rows={3}
                   className={errors.address ? "border-red-500" : ""}
                 />
-                {errors.address && <p className="text-red-500 text-xs">{errors.address}</p>}
+                {errors.address && (
+                  <p className="text-red-500 text-xs">{errors.address}</p>
+                )}
               </div>
 
               {/* DESCRIPTION */}
@@ -418,7 +453,10 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                         key={index}
                         className="relative group aspect-square rounded-lg overflow-hidden border"
                       >
-                        <img src={preview} className="object-cover w-full h-full" />
+                        <img
+                          src={preview}
+                          className="object-cover w-full h-full"
+                        />
                         <button
                           type="button"
                           onClick={() => removeImage(index)}
@@ -432,7 +470,9 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                 ) : (
                   <div className="border-2 border-dashed rounded-lg p-6 text-center">
                     <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">No images uploaded yet</p>
+                    <p className="text-sm text-gray-500">
+                      No images uploaded yet
+                    </p>
                   </div>
                 )}
               </div>
@@ -455,7 +495,6 @@ form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
                   </SelectContent>
                 </Select>
               </div>
-
             </div>
           </Card>
 
