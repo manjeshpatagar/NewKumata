@@ -33,7 +33,7 @@ export function AdvertisementsPage({
 }) {
   const router = useRouter();
   const { t } = useLanguage();
-  const { isFavorite, toggleFavorite } = useFavorites();
+  const { isFavorite, toggleFavorite, getFavouriteId } = useFavorites();
   const { isAuthenticated, isGuest } = useAuth();
 
   const [selectedCategory, setSelectedCategory] = useState("all");
@@ -89,18 +89,34 @@ export function AdvertisementsPage({
       return;
     }
 
-    const isLiked = isFavorite(ad._id); // from context to update UI instantly
+    const isLiked = isFavorite(ad._id);
 
     try {
       if (!isLiked) {
-        // ADD TO FAVORITES
-        await favouriteApi.add(ad._id);
-        toggleFavorite({ id: ad._id, type: "ad", data: ad });
+        // ⭐ Add advertisement
+        const res = await favouriteApi.addAdvertisement(ad._id);
+
+        toggleFavorite({
+          favouriteId: res.data.data._id, // backend favouriteId
+          refId: ad._id,
+          type: "ad",
+          data: ad,
+        });
+
         toast.success("Added to favourites");
       } else {
-        // REMOVE FROM FAVORITES
-        await favouriteApi.remove(ad._id);
-        toggleFavorite({ id: ad._id, type: "ad", data: ad });
+        // ⭐ Remove advertisement
+        const favouriteId = getFavouriteId(ad._id);
+
+        await favouriteApi.remove(favouriteId);
+
+        toggleFavorite({
+          favouriteId,
+          refId: ad._id,
+          type: "ad",
+          data: ad,
+        });
+
         toast.success("Removed from favourites");
       }
     } catch (error: any) {

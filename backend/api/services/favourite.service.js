@@ -39,5 +39,7 @@ export const removeFavourite = async (userId, productId) => {
  ⭐ Get User Favourites
 ----------------------------- */
 export const getUserFavourites = async (userId) => {
-  return Favourite.find({ userId }).populate("productId");
+  return Favourite.find({ userId })
+    .populate("productId")
+    .populate("advertisementId");
 };

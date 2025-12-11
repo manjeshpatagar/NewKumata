@@ -1,73 +1,113 @@
-'use client';
+"use client";
 
-import { createContext, useContext, useState, ReactNode, useEffect } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  ReactNode,
+  useEffect,
+} from "react";
 
 export interface FavoriteItem {
-  id: string;
-  type: 'listing' | 'ad';
+  favouriteId: string; // ⭐ backend favourite _id
+  refId: string; // ⭐ productId OR advertisementId
+  type: "listing" | "ad";
   data: any;
 }
 
 interface FavoritesContextType {
   favorites: FavoriteItem[];
+  syncSSR: (items: FavoriteItem[]) => void;
   addFavorite: (item: FavoriteItem) => void;
-  removeFavorite: (id: string) => void;
-  isFavorite: (id: string) => boolean;
+  removeFavorite: (favouriteId: string) => void;
+  isFavorite: (refId: string) => boolean;
+  getFavouriteId: (refId: string) => string | null;
   toggleFavorite: (item: FavoriteItem) => void;
 }
 
-const FavoritesContext = createContext<FavoritesContextType | undefined>(undefined);
+const FavoritesContext = createContext<FavoritesContextType | undefined>(
+  undefined
+);
 
-const STORAGE_KEY = 'namma_kumata_favorites';
+const STORAGE_KEY = "namma_kumata_favorites";
 
 export function FavoritesProvider({ children }: { children: ReactNode }) {
   const [favorites, setFavorites] = useState<FavoriteItem[]>([]);
   const [isLoaded, setIsLoaded] = useState(false);
 
+  /* -----------------------------------------
+     LOAD FROM LOCALSTORAGE
+  ------------------------------------------*/
   useEffect(() => {
     try {
       const stored = localStorage.getItem(STORAGE_KEY);
       if (stored) {
-        const parsed = JSON.parse(stored);
-        setFavorites(parsed);
+        setFavorites(JSON.parse(stored));
       }
-    } catch (error) {
-      console.error('Failed to load favorites from localStorage:', error);
+    } catch (err) {
+      console.error("Error loading favorites:", err);
     } finally {
       setIsLoaded(true);
     }
   }, []);
 
+  /* -----------------------------------------
+     SAVE TO LOCALSTORAGE
+  ------------------------------------------*/
   useEffect(() => {
     if (isLoaded) {
-      try {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
-      } catch (error) {
-        console.error('Failed to save favorites to localStorage:', error);
-      }
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(favorites));
     }
   }, [favorites, isLoaded]);
 
+  /* -----------------------------------------
+     SYNC SSR → CLIENT
+  ------------------------------------------*/
+  const syncSSR = (items: FavoriteItem[]) => {
+    setFavorites(items); // overwrite — SSR is source of truth
+  };
+
+  /* -----------------------------------------
+     ADD
+  ------------------------------------------*/
   const addFavorite = (item: FavoriteItem) => {
     setFavorites((prev) => {
-      if (prev.some((fav) => fav.id === item.id)) {
-        return prev;
-      }
+      if (prev.some((f) => f.refId === item.refId)) return prev;
       return [...prev, item];
     });
   };
 
-  const removeFavorite = (id: string) => {
-    setFavorites((prev) => prev.filter((fav) => fav.id !== id));
+  /* -----------------------------------------
+     REMOVE
+  ------------------------------------------*/
+  const removeFavorite = (favouriteId: string) => {
+    setFavorites((prev) => prev.filter((f) => f.favouriteId !== favouriteId));
   };
 
-  const isFavorite = (id: string) => {
-    return favorites.some((fav) => fav.id === id);
+  /* -----------------------------------------
+     CHECK
+  ------------------------------------------*/
+  const isFavorite = (refId: string) => {
+    return favorites.some((f) => f.refId === refId);
   };
 
+  /* -----------------------------------------
+     GET favouriteId by refId
+  ------------------------------------------*/
+  const getFavouriteId = (refId: string) => {
+    const found = favorites.find((f) => f.refId === refId);
+    return found ? found.favouriteId : null;
+  };
+
+  /* -----------------------------------------
+     TOGGLE
+  ------------------------------------------*/
   const toggleFavorite = (item: FavoriteItem) => {
-    if (isFavorite(item.id)) {
-      removeFavorite(item.id);
+    const exists = isFavorite(item.refId);
+
+    if (exists) {
+      const favId = getFavouriteId(item.refId);
+      if (favId) removeFavorite(favId);
     } else {
       addFavorite(item);
     }
@@ -75,7 +115,15 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
   return (
     <FavoritesContext.Provider
-      value={{ favorites, addFavorite, removeFavorite, isFavorite, toggleFavorite }}
+      value={{
+        favorites,
+        syncSSR,
+        addFavorite,
+        removeFavorite,
+        isFavorite,
+        getFavouriteId,
+        toggleFavorite,
+      }}
     >
       {children}
     </FavoritesContext.Provider>
@@ -84,9 +132,7 @@ export function FavoritesProvider({ children }: { children: ReactNode }) {
 
 export function useFavorites() {
   const context = useContext(FavoritesContext);
-  if (context === undefined) {
-    throw new Error('useFavorites must be used within a FavoritesProvider');
-  }
+  if (!context)
+    throw new Error("useFavorites must be used within a FavoritesProvider");
   return context;
 }
-
