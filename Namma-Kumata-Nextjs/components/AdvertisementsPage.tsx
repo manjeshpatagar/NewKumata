@@ -22,6 +22,7 @@ import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { MapPin, Calendar, Heart, Phone } from "lucide-react";
 import { useFavorites } from "../contexts/FavoritesContext";
 import { toast } from "sonner";
+import { favouriteApi } from "@/lib/api/favouriteApi";
 
 export function AdvertisementsPage({
   initialCategories,
@@ -80,18 +81,31 @@ export function AdvertisementsPage({
   /* --------------------------
      FAVORITE HANDLER
   --------------------------- */
-  const handleFavoriteToggle = (ad: any) => {
+
+  const handleFavoriteToggle = async (ad: any) => {
     if (!isAuthenticated && !isGuest) {
       toast.info("Please login to add favorites");
       router.push("/auth/login");
       return;
     }
 
-    toggleFavorite({
-      id: ad._id,
-      type: "ad",
-      data: ad,
-    });
+    const isLiked = isFavorite(ad._id); // from context to update UI instantly
+
+    try {
+      if (!isLiked) {
+        // ADD TO FAVORITES
+        await favouriteApi.add(ad._id);
+        toggleFavorite({ id: ad._id, type: "ad", data: ad });
+        toast.success("Added to favourites");
+      } else {
+        // REMOVE FROM FAVORITES
+        await favouriteApi.remove(ad._id);
+        toggleFavorite({ id: ad._id, type: "ad", data: ad });
+        toast.success("Removed from favourites");
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
   };
 
   /* --------------------------
