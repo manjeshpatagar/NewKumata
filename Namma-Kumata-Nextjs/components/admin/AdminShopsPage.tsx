@@ -108,6 +108,7 @@ export function AdminShopsPage({ ssrShops = [] }) {
       console.error(err);
     } finally {
       setLoading(false);
+      
     }
   };
 
