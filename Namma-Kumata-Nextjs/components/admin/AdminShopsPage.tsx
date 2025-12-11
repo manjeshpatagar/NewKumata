@@ -375,6 +375,7 @@ export interface Shop {
 
 export function AdminShopsPage({ ssrShops = [] }) {
   const router = useRouter();
+  const { adminUser } = useAdmin();
 
   // ✔ Load ONLY SSR data
   const [shops, setShops] = useState<Shop[]>(ssrShops);
@@ -510,6 +511,7 @@ export function AdminShopsPage({ ssrShops = [] }) {
               </div>
             </div>
 
+            {/* Phone */}
             {shop.phone && (
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <Phone className="w-4 h-4 text-emerald-500" />
@@ -532,6 +534,7 @@ export function AdminShopsPage({ ssrShops = [] }) {
               </div>
             </div>
 
+            {/* Location */}
             {shop.location && (
               <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
                 <MapPin className="w-4 h-4 text-orange-500" />
