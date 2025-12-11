@@ -1,59 +1,94 @@
-'use client';
+"use client";
 
-import { ShoppingBag, Stethoscope, Plane, Sparkles, Wrench, HomeIcon, ChevronRight, User, Star, MapPin, TrendingUp, Phone, Settings, Church, GraduationCap, Users, Drama, Building2, Ambulance, Hotel, Car, Dumbbell, Bell, Zap, Crown, Heart, Search } from 'lucide-react';
-import { useState, useEffect } from 'react';
-import { useRouter } from 'next/navigation';
-import { WeatherWidget } from '@/components/WeatherWidget';
-import { EmergencyContactCard } from '@/components/EmergencyContactCard';
-import { LanguageSelector } from '@/components/LanguageSelector';
-import { BannerCarousel } from '@/components/BannerCarousel';
-import { PopularShopsCarousel } from '@/components/PopularShopsCarousel';
-import { FeaturedAdsCarousel } from '@/components/FeaturedAdsCarousel';
-import { NearbyCard } from '@/components/NearbyCard';
-import { FloatingAddButton } from '@/components/FloatingAddButton';
-import { QuickAddDialog } from '@/components/QuickAddDialog';
-import { NammaKumtaLogo } from '@/components/NammaKumtaLogo';
-import { SmartSearchBarWithImages } from '@/components/SmartSearchBarWithImages';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
-import { useLanguage } from '@/contexts/LanguageContext';
-import { useNotifications } from '@/contexts/NotificationContext';
-import { useRequireAuth } from '@/hooks/useRequireAuth';
+import {
+  ShoppingBag,
+  Stethoscope,
+  Plane,
+  Sparkles,
+  Wrench,
+  HomeIcon,
+  ChevronRight,
+  User,
+  Star,
+  MapPin,
+  TrendingUp,
+  Phone,
+  Settings,
+  Church,
+  GraduationCap,
+  Users,
+  Drama,
+  Building2,
+  Ambulance,
+  Hotel,
+  Car,
+  Dumbbell,
+  Bell,
+  Zap,
+  Crown,
+  Heart,
+  Search,
+} from "lucide-react";
+import { categoryApi } from "@/lib/api/categoryApi";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
+import { WeatherWidget } from "@/components/WeatherWidget";
+import { EmergencyContactCard } from "@/components/EmergencyContactCard";
+import { LanguageSelector } from "@/components/LanguageSelector";
+import { BannerCarousel } from "@/components/BannerCarousel";
+import { PopularShopsCarousel } from "@/components/PopularShopsCarousel";
+import { FeaturedAdsCarousel } from "@/components/FeaturedAdsCarousel";
+import { NearbyCard } from "@/components/NearbyCard";
+import { FloatingAddButton } from "@/components/FloatingAddButton";
+import { QuickAddDialog } from "@/components/QuickAddDialog";
+import { NammaKumtaLogo } from "@/components/NammaKumtaLogo";
+import { SmartSearchBarWithImages } from "@/components/SmartSearchBarWithImages";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { useLanguage } from "@/contexts/LanguageContext";
+import { useNotifications } from "@/contexts/NotificationContext";
+import { useRequireAuth } from "@/hooks/useRequireAuth";
 
-
-export function HomePage({ categories }: { categories: any[] }) {
-
+export function HomePage() {
   const router = useRouter();
 
   // Navigation helper function
   const handleNavigate = (page: string, data?: any) => {
-    if (page === 'subcategory') {
-      router.push(`/subcategory?categoryId=${data.categoryId}&categoryName=${encodeURIComponent(data.categoryName)}`);
-      return;
-    }
-
-    if (page === 'categoryListings') {
+    if (page === "subcategory") {
       router.push(
-        `/category-listings?categoryId=${data.categoryId}&categoryName=${encodeURIComponent(data.categoryName)}&subcategory=${encodeURIComponent(data.subcategory)}`
+        `/subcategory?categoryId=${
+          data.categoryId
+        }&categoryName=${encodeURIComponent(data.categoryName)}`
       );
       return;
     }
 
-    if (page === 'detail') {
+    if (page === "categoryListings") {
+      router.push(
+        `/category-listings?categoryId=${
+          data.categoryId
+        }&categoryName=${encodeURIComponent(
+          data.categoryName
+        )}&subcategory=${encodeURIComponent(data.subcategory)}`
+      );
+      return;
+    }
+
+    if (page === "detail") {
       const listing = data.listing || data;
       if (listing) {
-        sessionStorage.setItem('currentListing', JSON.stringify(listing));
-        router.push('/detail');
+        sessionStorage.setItem("currentListing", JSON.stringify(listing));
+        router.push("/detail");
       }
       return;
     }
 
-    if (page === 'ad-detail') {
+    if (page === "ad-detail") {
       const ad = data.ad || data;
       if (ad && ad.id) {
-        sessionStorage.setItem('currentAd', JSON.stringify(ad));
-        router.push('/ad-detail');
+        sessionStorage.setItem("currentAd", JSON.stringify(ad));
+        router.push("/ad-detail");
       }
       return;
     }
@@ -79,26 +114,26 @@ export function HomePage({ categories }: { categories: any[] }) {
     };
     // Map page names to routes
     const routeMap: Record<string, string> = {
-      'home': '/',
-      'explore': '/explore',
-      'categories': '/categories',
-      'advertisements': '/ads',
-      'favorites': '/favorites',
-      'profile': '/profile',
-      'notifications': '/notifications',
-      'login': '/auth/login',
-      'register': '/auth/register',
-      'settings': '/settings',
-      'emergency': '/emergency',
-      'help': '/help',
-      'contact-us': '/contact-us',
-      'terms-conditions': '/terms-conditions',
-      'about': '/about',
-      'privacy-policy': '/privacy-policy',
-      'add-advertisement': '/add-advertisement',
-      'edit-advertisement': '/edit-advertisement',
-      'add-listing': '/add-listing',
-      'edit-listing': '/edit-listing',
+      home: "/",
+      explore: "/explore",
+      categories: "/categories",
+      advertisements: "/ads",
+      favorites: "/favorites",
+      profile: "/profile",
+      notifications: "/notifications",
+      login: "/auth/login",
+      register: "/auth/register",
+      settings: "/settings",
+      emergency: "/emergency",
+      help: "/help",
+      "contact-us": "/contact-us",
+      "terms-conditions": "/terms-conditions",
+      about: "/about",
+      "privacy-policy": "/privacy-policy",
+      "add-advertisement": "/add-advertisement",
+      "edit-advertisement": "/edit-advertisement",
+      "add-listing": "/add-listing",
+      "edit-listing": "/edit-listing",
     };
 
     const route = routeMap[page] || `/${page}`;
@@ -108,97 +143,117 @@ export function HomePage({ categories }: { categories: any[] }) {
   const { unreadCount } = useNotifications();
   const [showAddDialog, setShowAddDialog] = useState(false);
   const { requireAuth } = useRequireAuth();
+  const [businessCategories, setBusinessCategories] = useState<any[]>([]);
+  const [loadingCategories, setLoadingCategories] = useState(true);
 
   // -------------------------
   // Categories from API
   // -------------------------
 
   const getIconForCategory = (cat: any) => {
-    const slug = (cat.slug || cat.id || cat.name || '').toString().toLowerCase();
+    const slug = (cat.slug || cat.id || cat.name || "")
+      .toString()
+      .toLowerCase();
     switch (slug) {
-      case 'shops':
-      case 'grocery':
+      case "shops":
+      case "grocery":
         return ShoppingBag;
-      case 'doctors':
-      case 'medical':
+      case "doctors":
+      case "medical":
         return Stethoscope;
-      case 'tourism':
-      case 'travel':
+      case "tourism":
+      case "travel":
         return Plane;
-      case 'hotels':
-      case 'hotel':
+      case "hotels":
+      case "hotel":
         return Hotel;
-      case 'services':
+      case "services":
         return Wrench;
-      case 'education':
-      case 'schools':
+      case "education":
+      case "schools":
         return GraduationCap;
-      case 'associations':
+      case "associations":
         return Users;
-      case 'culturalprograms':
-      case 'culture':
+      case "culturalprograms":
+      case "culture":
         return Drama;
-      case 'departments':
+      case "departments":
         return Building2;
-      case 'emergencyservices':
-      case 'emergency':
+      case "emergencyservices":
+      case "emergency":
         return Ambulance;
-      case 'rentvehicles':
-      case 'cars':
+      case "rentvehicles":
+      case "cars":
         return Car;
-      case 'sports':
-      case 'sportsequipment':
+      case "sports":
+      case "sportsequipment":
         return Dumbbell;
       default:
         // fallback: if item already has an `icon` (like mainCategories), use it, otherwise ShoppingBag
         return cat.icon || ShoppingBag;
     }
   };
+  useEffect(() => {
+    async function loadCategories() {
+      try {
+        const result = await categoryApi.getAll();
 
+        const filtered = (result?.data || []).filter(
+          (cat: any) => cat.type === "business"
+        );
 
-  const categoriesFromApi: UnifiedCategory[] = Array.isArray(categories)
-    ? categories.map((c: any) => ({
-      id: c.id ?? c._id,
-      name: c.name,
-      slug: c.slug,
-      image: c.image,
-      gradient: "from-orange-500 to-pink-500", // fallback gradient
-    }))
-    : [];
+        setBusinessCategories(filtered);
+      } catch (err) {
+        console.error("Failed to load categories:", err);
+      } finally {
+        setLoadingCategories(false);
+      }
+    }
 
+    loadCategories();
+  }, []);
 
-
+  const categoriesMapped = businessCategories.map((c: any) => ({
+    id: c._id,
+    name: c.name,
+    slug: c.slug,
+    image: c.image,
+    gradient: "from-orange-500 to-pink-500",
+  }));
 
   const popularShops = [
     {
-      id: '1',
-      name: 'Kumta General Store',
-      category: 'Grocery',
-      image: 'https://images.unsplash.com/photo-1604719312566-8912e9227c6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3RvcmV8ZW58MHx8fHwxNzYwNDIzNDY2fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "1",
+      name: "Kumta General Store",
+      category: "Grocery",
+      image:
+        "https://images.unsplash.com/photo-1604719312566-8912e9227c6a?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxncm9jZXJ5JTIwc3RvcmV8ZW58MHx8fHwxNzYwNDIzNDY2fDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.8,
       reviewCount: 124,
-      distance: '0.5 km',
+      distance: "0.5 km",
       isNew: false,
       isTrending: true,
     },
     {
-      id: '2',
-      name: 'Sri Krishna Medical',
-      category: 'Medical',
-      image: 'https://images.unsplash.com/photo-1631549916768-4119b2e5f926?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpY2FsJTIwc3RvcmV8ZW58MHx8fHwxNzYwNDIzNDY3fDA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "2",
+      name: "Sri Krishna Medical",
+      category: "Medical",
+      image:
+        "https://images.unsplash.com/photo-1631549916768-4119b2e5f926?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxtZWRpY2FsJTIwc3RvcmV8ZW58MHx8fHwxNzYwNDIzNDY3fDA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.9,
       reviewCount: 89,
-      distance: '1.2 km',
+      distance: "1.2 km",
       isNew: true,
     },
     {
-      id: '3',
-      name: 'Classic Furniture Hub',
-      category: 'Furniture',
-      image: 'https://images.unsplash.com/photo-1555041469-a586c61ea9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmdXJuaXR1cmUlMjBzaG93cm9vbXxlbnwwfHx8fDE3NjA0MjM0Njd8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "3",
+      name: "Classic Furniture Hub",
+      category: "Furniture",
+      image:
+        "https://images.unsplash.com/photo-1555041469-a586c61ea9bc?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxmdXJuaXR1cmUlMjBzaG93cm9vbXxlbnwwfHx8fDE3NjA0MjM0Njd8MA&ixlib=rb-4.1.0&q=80&w=1080",
       rating: 4.7,
       reviewCount: 156,
-      distance: '2.1 km',
+      distance: "2.1 km",
       isNew: false,
       isFeatured: true,
     },
@@ -206,96 +261,166 @@ export function HomePage({ categories }: { categories: any[] }) {
 
   const featuredAds = [
     {
-      id: '1',
-      title: 'Honda City 2019',
-      category: 'Cars',
-      price: '₹8,50,000',
-      location: 'Kumta',
-      image: 'https://images.unsplash.com/photo-1619405399517-d7fce0f13302?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXIlMjBzZWRhbnxlbnwwfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "1",
+      title: "Honda City 2019",
+      category: "Cars",
+      price: "₹8,50,000",
+      location: "Kumta",
+      image:
+        "https://images.unsplash.com/photo-1619405399517-d7fce0f13302?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxjYXIlMjBzZWRhbnxlbnwwfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       isFeatured: true,
-      postedDate: '2 days ago',
+      postedDate: "2 days ago",
     },
     {
-      id: '2',
-      title: '3BHK Apartment for Rent',
-      category: 'Property',
-      price: '₹15,000/month',
-      location: 'Kumta',
-      image: 'https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcGFydG1lbnQlMjBpbnRlcmlvcnxlbnwwfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "2",
+      title: "3BHK Apartment for Rent",
+      category: "Property",
+      price: "₹15,000/month",
+      location: "Kumta",
+      image:
+        "https://images.unsplash.com/photo-1502672260266-1c1ef2d93688?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxhcGFydG1lbnQlMjBpbnRlcmlvcnxlbnwwfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       isFeatured: true,
-      postedDate: '1 day ago',
+      postedDate: "1 day ago",
     },
     {
-      id: '3',
-      title: 'iPhone 13 Pro',
-      category: 'Electronics',
-      price: '₹65,000',
-      location: 'Kumta',
-      image: 'https://images.unsplash.com/photo-1632661674596-df8be070a5c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjAxM3xlbnwwfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "3",
+      title: "iPhone 13 Pro",
+      category: "Electronics",
+      price: "₹65,000",
+      location: "Kumta",
+      image:
+        "https://images.unsplash.com/photo-1632661674596-df8be070a5c5?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpcGhvbmUlMjAxM3xlbnwwfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080",
       isFeatured: true,
-      postedDate: '3 days ago',
+      postedDate: "3 days ago",
     },
   ];
 
   const nearbyPlaces = [
     {
-      id: '1',
-      name: 'Om Beach',
-      type: 'Beach',
-      distance: '15 km',
-      image: 'https://images.unsplash.com/photo-1559827260-dc66d52bef19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHBhbG0lMjB0cmVlc3xlbnwxfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "1",
+      name: "Om Beach",
+      type: "Beach",
+      distance: "15 km",
+      image:
+        "https://images.unsplash.com/photo-1559827260-dc66d52bef19?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxiZWFjaCUyMHBhbG0lMjB0cmVlc3xlbnwxfHx8fDE3NjA0MjM0Njh8MA&ixlib=rb-4.1.0&q=80&w=1080",
     },
     {
-      id: '2',
-      name: 'Mirjan Fort',
-      type: 'Historical',
-      distance: '12 km',
-      image: 'https://images.unsplash.com/photo-1738766726243-1476ed4a06f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYSUyMGZvcnQlMjBoaXN0b3JpY2FsfGVufDF8fHx8MTc2MDQyMzQ2OHww&ixlib=rb-4.1.0&q=80&w=1080',
+      id: "2",
+      name: "Mirjan Fort",
+      type: "Historical",
+      distance: "12 km",
+      image:
+        "https://images.unsplash.com/photo-1738766726243-1476ed4a06f9?crop=entropy&cs=tinysrgb&fit=max&fm=jpg&ixid=M3w3Nzg4Nzd8MHwxfHNlYXJjaHwxfHxpbmRpYSUyMGZvcnQlMjBoaXN0b3JpY2FsfGVufDF8fHx8MTc2MDQyMzQ2OHww&ixlib=rb-4.1.0&q=80&w=1080",
     },
   ];
 
   const emergencyContacts = [
     {
-      id: '1',
-      name: t('police'),
-      number: '100',
-      icon: '👮',
-      color: 'from-blue-400 to-blue-600',
-      description: 'Emergency police',
+      id: "1",
+      name: t("police"),
+      number: "100",
+      icon: "👮",
+      color: "from-blue-400 to-blue-600",
+      description: "Emergency police",
     },
     {
-      id: '2',
-      name: t('ambulance'),
-      number: '108',
-      icon: '🚑',
-      color: 'from-red-400 to-red-600',
-      description: 'Medical emergency',
+      id: "2",
+      name: t("ambulance"),
+      number: "108",
+      icon: "🚑",
+      color: "from-red-400 to-red-600",
+      description: "Medical emergency",
     },
     {
-      id: '3',
-      name: t('fireService'),
-      number: '101',
-      icon: '🚒',
-      color: 'from-orange-400 to-orange-600',
-      description: 'Fire & rescue',
+      id: "3",
+      name: t("fireService"),
+      number: "101",
+      icon: "🚒",
+      color: "from-orange-400 to-orange-600",
+      description: "Fire & rescue",
     },
   ];
 
   // All 13 main categories with gradient colors
   const mainCategories = [
-    { id: 'shops', nameKey: 'shops', icon: ShoppingBag, gradient: 'from-orange-500 to-pink-500' },
-    { id: 'temples', nameKey: 'temples', icon: Church, gradient: 'from-purple-500 to-indigo-600' },
-    { id: 'tourism', nameKey: 'tourism', icon: Plane, gradient: 'from-blue-500 to-cyan-500' },
-    { id: 'schoolsColleges', nameKey: 'schoolsColleges', icon: GraduationCap, gradient: 'from-green-500 to-emerald-600' },
-    { id: 'services', nameKey: 'services', icon: Wrench, gradient: 'from-amber-500 to-orange-500' },
-    { id: 'associations', nameKey: 'associations', icon: Users, gradient: 'from-indigo-500 to-purple-600' },
-    { id: 'culturalPrograms', nameKey: 'culturalPrograms', icon: Drama, gradient: 'from-pink-500 to-rose-600' },
-    { id: 'departments', nameKey: 'departments', icon: Building2, gradient: 'from-slate-500 to-gray-600' },
-    { id: 'doctors', nameKey: 'doctors', icon: Stethoscope, gradient: 'from-teal-500 to-cyan-600' },
-    { id: 'emergencyServices', nameKey: 'emergencyServices', icon: Ambulance, gradient: 'from-red-500 to-rose-600' },
-    { id: 'hotels', nameKey: 'hotels', icon: Hotel, gradient: 'from-cyan-500 to-blue-600' },
-    { id: 'rentVehicles', nameKey: 'rentVehicles', icon: Car, gradient: 'from-violet-500 to-purple-600' },
-    { id: 'sportsEquipments', nameKey: 'sportsEquipments', icon: Dumbbell, gradient: 'from-rose-500 to-pink-600' },
+    {
+      id: "shops",
+      nameKey: "shops",
+      icon: ShoppingBag,
+      gradient: "from-orange-500 to-pink-500",
+    },
+    {
+      id: "temples",
+      nameKey: "temples",
+      icon: Church,
+      gradient: "from-purple-500 to-indigo-600",
+    },
+    {
+      id: "tourism",
+      nameKey: "tourism",
+      icon: Plane,
+      gradient: "from-blue-500 to-cyan-500",
+    },
+    {
+      id: "schoolsColleges",
+      nameKey: "schoolsColleges",
+      icon: GraduationCap,
+      gradient: "from-green-500 to-emerald-600",
+    },
+    {
+      id: "services",
+      nameKey: "services",
+      icon: Wrench,
+      gradient: "from-amber-500 to-orange-500",
+    },
+    {
+      id: "associations",
+      nameKey: "associations",
+      icon: Users,
+      gradient: "from-indigo-500 to-purple-600",
+    },
+    {
+      id: "culturalPrograms",
+      nameKey: "culturalPrograms",
+      icon: Drama,
+      gradient: "from-pink-500 to-rose-600",
+    },
+    {
+      id: "departments",
+      nameKey: "departments",
+      icon: Building2,
+      gradient: "from-slate-500 to-gray-600",
+    },
+    {
+      id: "doctors",
+      nameKey: "doctors",
+      icon: Stethoscope,
+      gradient: "from-teal-500 to-cyan-600",
+    },
+    {
+      id: "emergencyServices",
+      nameKey: "emergencyServices",
+      icon: Ambulance,
+      gradient: "from-red-500 to-rose-600",
+    },
+    {
+      id: "hotels",
+      nameKey: "hotels",
+      icon: Hotel,
+      gradient: "from-cyan-500 to-blue-600",
+    },
+    {
+      id: "rentVehicles",
+      nameKey: "rentVehicles",
+      icon: Car,
+      gradient: "from-violet-500 to-purple-600",
+    },
+    {
+      id: "sportsEquipments",
+      nameKey: "sportsEquipments",
+      icon: Dumbbell,
+      gradient: "from-rose-500 to-pink-600",
+    },
   ];
 
   return (
@@ -315,19 +440,29 @@ export function HomePage({ categories }: { categories: any[] }) {
 
               {/* Notification Bell with Gradient Badge */}
               <button
-                onClick={() => requireAuth(() => handleNavigate('notifications'), () => handleNavigate('login'))}
+                onClick={() =>
+                  requireAuth(
+                    () => handleNavigate("notifications"),
+                    () => handleNavigate("login")
+                  )
+                }
                 className="relative flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl hover:bg-gray-100 dark:hover:bg-gray-800 transition-all hover:scale-105 active:scale-95"
               >
                 <Bell className="w-5 h-5 sm:w-6 sm:h-6 text-gray-700 dark:text-gray-300" />
                 {unreadCount > 0 && (
                   <span className="absolute -top-1 -right-1 flex items-center justify-center min-w-[20px] h-5 px-1.5 text-[10px] font-bold text-white bg-gradient-to-r from-pink-500 to-purple-600 rounded-full shadow-lg shadow-pink-500/30 animate-pulse">
-                    {unreadCount > 99 ? '99+' : unreadCount}
+                    {unreadCount > 99 ? "99+" : unreadCount}
                   </span>
                 )}
               </button>
 
               <button
-                onClick={() => requireAuth(() => handleNavigate('profile'), () => handleNavigate('login'))}
+                onClick={() =>
+                  requireAuth(
+                    () => handleNavigate("profile"),
+                    () => handleNavigate("login")
+                  )
+                }
                 className="flex items-center justify-center w-10 h-10 sm:w-11 sm:h-11 rounded-2xl bg-gradient-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 transition-all hover:scale-105 active:scale-95 shadow-lg shadow-blue-500/30"
               >
                 <User className="w-5 h-5 sm:w-6 sm:h-6 text-white" />
@@ -338,7 +473,10 @@ export function HomePage({ categories }: { categories: any[] }) {
           {/* Premium Search Bar */}
           <div className="max-w-3xl mx-auto">
             <SmartSearchBarWithImages
-              placeholder={t('searchPlaceholder') || "Search shops, services, temples, or ads..."}
+              placeholder={
+                t("searchPlaceholder") ||
+                "Search shops, services, temples, or ads..."
+              }
             />
           </div>
         </div>
@@ -350,7 +488,6 @@ export function HomePage({ categories }: { categories: any[] }) {
       {/* Scrollable Content */}
       <ScrollArea className="flex-1">
         <div className="pb-24 md:pb-28 lg:pb-32">
-
           {/* Hero Banner with Premium Cards */}
           <section className="bg-gradient-to-b from-white to-gray-50 dark:from-gray-900 dark:to-gray-950 py-4 sm:py-6 md:py-8">
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
@@ -364,49 +501,57 @@ export function HomePage({ categories }: { categories: any[] }) {
               {/* Section Header with Premium Typography */}
               <div className="mb-6 sm:mb-8 md:mb-10 text-center">
                 <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold bg-gradient-to-r from-gray-900 via-gray-800 to-gray-900 dark:from-white dark:via-gray-100 dark:to-white bg-clip-text text-transparent mb-2 sm:mb-3">
-                  {t('browseServices')}
+                  {t("browseServices")}
                 </h2>
                 <p className="text-base sm:text-lg md:text-xl text-gray-600 dark:text-gray-400">
-                  {t('whatLookingFor')}
+                  {t("whatLookingFor")}
                 </p>
               </div>
 
               {/* Premium Grid with Gradient Icons */}
               <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 xl:grid-cols-6 gap-3 sm:gap-4 md:gap-5 lg:gap-6">
-                {(categoriesFromApi.length > 0 ? categoriesFromApi : mainCategories).map((cat, index) => {
-
+                {(loadingCategories
+                  ? mainCategories
+                  : categoriesMapped.length > 0
+                  ? categoriesMapped
+                  : mainCategories
+                ).map((cat, index) => {
                   const Icon = getIconForCategory(cat);
-                  const gradient = cat.gradient || 'from-orange-500 to-pink-500';
-                  const categoryName = cat.name || t(cat.nameKey) || cat.title || 'Category';
+                  const gradient =
+                    cat.gradient || "from-orange-500 to-pink-500";
+                  const categoryName =
+                    cat.name || t(cat.nameKey) || cat.title || "Category";
                   const categoryId = cat.id ?? cat.slug ?? categoryName;
 
                   return (
                     <button
-                      key={categoryId + '-' + index}
-                      onClick={() => handleNavigate('subcategory', { categoryId, categoryName })}
-                      className="group relative flex flex-col items-center justify-center gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 bg-white dark:bg-gray-800 rounded-3xl shadow-lg shadow-gray-200/50 dark:shadow-none hover:shadow-xl hover:shadow-gray-300/50 dark:hover:shadow-purple-500/10 hover:-translate-y-2 transition-all duration-300 border border-gray-100 dark:border-gray-700 hover:border-transparent min-h-[120px] sm:min-h-[130px] md:min-h-[140px]"
+                      key={categoryId + "-" + index}
+                      onClick={() =>
+                        handleNavigate("subcategory", {
+                          categoryId,
+                          categoryName,
+                        })
+                      }
+                      className="group relative flex flex-col items-center justify-center gap-3 sm:gap-4 p-4 sm:p-5 md:p-6 bg-white dark:bg-gray-800 rounded-3xl shadow-lg"
                     >
-                      {/* Gradient Glow Effect */}
-                      <div className="absolute inset-0 bg-gradient-to-br from-blue-500/0 via-purple-500/0 to-pink-500/0 group-hover:from-blue-500/5 group-hover:via-purple-500/5 group-hover:to-pink-500/5 rounded-3xl transition-all duration-300" />
-
-                      {/* Icon or Category Image */}
-                      <div className={`relative w-14 h-14 sm:w-16 sm:h-16 md:w-18 md:h-18 lg:w-20 lg:h-20 rounded-2xl sm:rounded-3xl flex items-center justify-center overflow-hidden shadow-xl shadow-purple-500/20 group-hover:shadow-2xl group-hover:shadow-purple-500/30 group-hover:scale-110 transition-all duration-300 ${!cat.image ? `bg-gradient-to-br ${gradient}` : ''}`}>
+                      {/* Icon / Image */}
+                      <div
+                        className={`relative w-14 h-14 sm:w-16 sm:h-16 rounded-2xl flex items-center justify-center overflow-hidden ${
+                          !cat.image ? `bg-gradient-to-br ${gradient}` : ""
+                        }`}
+                      >
                         {cat.image ? (
                           <img
                             src={cat.image}
                             alt={categoryName}
-                            loading="lazy"
                             className="w-full h-full object-cover"
-                            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                           />
                         ) : (
-                          <Icon className="w-7 h-7 sm:w-8 sm:h-8 md:w-9 md:h-9 lg:w-10 lg:h-10 text-white drop-shadow-lg" />
+                          <Icon className="w-8 h-8 text-white" />
                         )}
                       </div>
 
-
-                      {/* Category Name */}
-                      <span className="relative text-xs sm:text-sm md:text-base font-semibold text-gray-800 dark:text-white text-center leading-tight line-clamp-2 px-1">
+                      <span className="text-sm font-semibold text-gray-800 dark:text-white text-center">
                         {categoryName}
                       </span>
                     </button>
@@ -414,14 +559,13 @@ export function HomePage({ categories }: { categories: any[] }) {
                 })}
               </div>
 
-
               {/* Premium View All Button */}
               <div className="text-center mt-8 sm:mt-10 md:mt-12">
                 <Button
-                  onClick={() => handleNavigate('categories')}
+                  onClick={() => handleNavigate("categories")}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-2xl px-6 sm:px-8 md:px-10 py-5 sm:py-6 text-sm sm:text-base font-semibold shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-purple-500/40 transition-all hover:scale-105 active:scale-95"
                 >
-                  {t('viewAll')}
+                  {t("viewAll")}
                   <ChevronRight className="w-5 h-5 ml-2" />
                 </Button>
               </div>
@@ -434,19 +578,19 @@ export function HomePage({ categories }: { categories: any[] }) {
               <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <div>
                   <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-                    {t('topRatedShops')}
+                    {t("topRatedShops")}
                   </h2>
                   <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <Star className="w-4 h-4 text-yellow-500 fill-yellow-500" />
-                    {t('bestInArea')}
+                    {t("bestInArea")}
                   </p>
                 </div>
                 <Button
                   variant="ghost"
-                  onClick={() => handleNavigate('categories')}
+                  onClick={() => handleNavigate("categories")}
                   className="hidden md:flex items-center gap-2 text-blue-600 dark:text-blue-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 rounded-xl px-4 py-2"
                 >
-                  {t('viewAll')}
+                  {t("viewAll")}
                   <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
@@ -456,7 +600,11 @@ export function HomePage({ categories }: { categories: any[] }) {
                 {popularShops.map((shop) => (
                   <div
                     key={shop.id}
-                    onClick={() => handleNavigate('detail', { listing: { id: shop.id, ...shop } })}
+                    onClick={() =>
+                      handleNavigate("detail", {
+                        listing: { id: shop.id, ...shop },
+                      })
+                    }
                     className="group relative bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-gray-300/50 dark:hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-2 cursor-pointer"
                   >
                     {/* Image with Gradient Overlay */}
@@ -529,10 +677,10 @@ export function HomePage({ categories }: { categories: any[] }) {
               {/* Mobile View All Button */}
               <div className="text-center mt-6 md:hidden">
                 <Button
-                  onClick={() => handleNavigate('categories')}
+                  onClick={() => handleNavigate("categories")}
                   className="bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white rounded-xl px-6 py-5 text-sm font-semibold shadow-lg shadow-blue-500/30"
                 >
-                  {t('viewAll')}
+                  {t("viewAll")}
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -545,19 +693,19 @@ export function HomePage({ categories }: { categories: any[] }) {
               <div className="flex items-center justify-between mb-6 sm:mb-8">
                 <div>
                   <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-1 sm:mb-2">
-                    {t('latestAds')}
+                    {t("latestAds")}
                   </h2>
                   <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 flex items-center gap-2">
                     <Zap className="w-4 h-4 text-purple-500 fill-purple-500" />
-                    {t('freshDeals')}
+                    {t("freshDeals")}
                   </p>
                 </div>
                 <Button
                   variant="ghost"
-                  onClick={() => handleNavigate('advertisements')}
+                  onClick={() => handleNavigate("advertisements")}
                   className="hidden md:flex items-center gap-2 text-purple-600 dark:text-purple-400 hover:bg-purple-50 dark:hover:bg-purple-900/20 rounded-xl px-4 py-2"
                 >
-                  {t('viewAll')}
+                  {t("viewAll")}
                   <ChevronRight className="w-5 h-5" />
                 </Button>
               </div>
@@ -567,7 +715,7 @@ export function HomePage({ categories }: { categories: any[] }) {
                 {featuredAds.map((ad) => (
                   <div
                     key={ad.id}
-                    onClick={() => handleNavigate('ad-detail', { ad })}
+                    onClick={() => handleNavigate("ad-detail", { ad })}
                     className="group relative bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-gray-300/50 dark:hover:shadow-purple-500/10 transition-all duration-300 hover:-translate-y-2 cursor-pointer"
                   >
                     {/* Image with Gradient Overlay */}
@@ -625,10 +773,10 @@ export function HomePage({ categories }: { categories: any[] }) {
               {/* Mobile View All Button */}
               <div className="text-center mt-6 md:hidden">
                 <Button
-                  onClick={() => handleNavigate('advertisements')}
+                  onClick={() => handleNavigate("advertisements")}
                   className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-white rounded-xl px-6 py-5 text-sm font-semibold shadow-lg shadow-purple-500/30"
                 >
-                  {t('viewAll')}
+                  {t("viewAll")}
                   <ChevronRight className="w-4 h-4 ml-1" />
                 </Button>
               </div>
@@ -640,11 +788,11 @@ export function HomePage({ categories }: { categories: any[] }) {
             <div className="max-w-7xl mx-auto px-3 sm:px-4 md:px-6 lg:px-8">
               <div className="text-center mb-6 sm:mb-8">
                 <h2 className="text-xl sm:text-2xl md:text-3xl lg:text-4xl font-bold text-gray-900 dark:text-white mb-2 sm:mb-3">
-                  {t('emergencyNumbers')}
+                  {t("emergencyNumbers")}
                 </h2>
                 <p className="text-sm sm:text-base md:text-lg text-gray-600 dark:text-gray-400 flex items-center justify-center gap-2">
                   <Phone className="w-4 h-4" />
-                  {t('tapToCall')}
+                  {t("tapToCall")}
                 </p>
               </div>
 
@@ -656,10 +804,14 @@ export function HomePage({ categories }: { categories: any[] }) {
                     className="group relative flex items-center gap-4 sm:gap-5 p-5 sm:p-6 md:p-7 bg-white dark:bg-gray-800 rounded-3xl shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-gray-300/50 transition-all hover:-translate-y-2 active:scale-95 overflow-hidden"
                   >
                     {/* Gradient Background */}
-                    <div className={`absolute inset-0 bg-gradient-to-br ${contact.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+                    <div
+                      className={`absolute inset-0 bg-gradient-to-br ${contact.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`}
+                    />
 
                     {/* Icon with Gradient */}
-                    <div className={`relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${contact.color} rounded-2xl sm:rounded-3xl flex items-center justify-center text-3xl sm:text-4xl shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}>
+                    <div
+                      className={`relative flex-shrink-0 w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-br ${contact.color} rounded-2xl sm:rounded-3xl flex items-center justify-center text-3xl sm:text-4xl shadow-lg group-hover:shadow-xl group-hover:scale-110 transition-all duration-300`}
+                    >
                       {contact.icon}
                     </div>
 
@@ -696,7 +848,7 @@ export function HomePage({ categories }: { categories: any[] }) {
                 {nearbyPlaces.map((place) => (
                   <div
                     key={place.id}
-                    onClick={() => handleNavigate('detail', { listing: place })}
+                    onClick={() => handleNavigate("detail", { listing: place })}
                     className="group relative bg-white dark:bg-gray-800 rounded-3xl overflow-hidden shadow-xl shadow-gray-200/50 dark:shadow-none hover:shadow-2xl hover:shadow-gray-300/50 dark:hover:shadow-blue-500/10 transition-all duration-300 hover:-translate-y-2 cursor-pointer"
                   >
                     {/* Large Image with Gradient Overlay */}
@@ -741,7 +893,12 @@ export function HomePage({ categories }: { categories: any[] }) {
 
               <div className="text-center mt-8 sm:mt-10">
                 <Button
-                  onClick={() => handleNavigate('subcategory', { categoryId: 'tourism', categoryName: 'Tourism' })}
+                  onClick={() =>
+                    handleNavigate("subcategory", {
+                      categoryId: "tourism",
+                      categoryName: "Tourism",
+                    })
+                  }
                   className="bg-gradient-to-r from-blue-600 to-cyan-600 hover:from-blue-700 hover:to-cyan-700 text-white rounded-2xl px-6 sm:px-8 md:px-10 py-5 sm:py-6 text-sm sm:text-base font-semibold shadow-xl shadow-blue-500/30 hover:shadow-2xl hover:shadow-cyan-500/40 transition-all hover:scale-105"
                 >
                   Explore More Places
@@ -750,7 +907,6 @@ export function HomePage({ categories }: { categories: any[] }) {
               </div>
             </div>
           </section>
-
         </div>
       </ScrollArea>
 
@@ -758,10 +914,7 @@ export function HomePage({ categories }: { categories: any[] }) {
       <FloatingAddButton />
 
       {/* Quick Add Dialog */}
-      <QuickAddDialog
-        open={showAddDialog}
-        onOpenChange={setShowAddDialog}
-      />
+      <QuickAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
     </div>
   );
 }

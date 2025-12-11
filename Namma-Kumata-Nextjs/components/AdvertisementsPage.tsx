@@ -17,17 +17,19 @@ import {
 } from "./ui/carousel";
 import { useLanguage } from "../contexts/LanguageContext";
 import { useAuth } from "../contexts/AuthContext";
-import { mockAdvertisements } from "../lib/advertisementData";
 import { BrandingBanners } from "./BrandingBanners";
 import { ImageWithFallback } from "./figma/ImageWithFallback";
 import { MapPin, Calendar, Heart, Phone } from "lucide-react";
 import { useFavorites } from "../contexts/FavoritesContext";
 import { toast } from "sonner";
+import { favouriteApi } from "@/lib/api/favouriteApi";
 
 export function AdvertisementsPage({
   initialCategories,
+  initialAdvertisment,
 }: {
   initialCategories: any[];
+  initialAdvertisment: any[];
 }) {
   const router = useRouter();
   const { t } = useLanguage();
@@ -37,58 +39,81 @@ export function AdvertisementsPage({
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [searchQuery, setSearchQuery] = useState("");
 
-  /* --------------------------------------------------------
-     FIX: Use _id from API
-  -------------------------------------------------------- */
+  /* --------------------------
+     CATEGORY LIST
+  --------------------------- */
   const categories = [
     { id: "all", label: t("all") },
-    ...initialCategories.map((cat) => ({ id: cat._id, label: cat.name })),
+    ...initialCategories.map((cat) => ({
+      id: cat._id,
+      label: cat.name,
+    })),
   ];
 
-  /* --------------------------------------------------------
-     Filtering Advertisements (mock for now)
-  -------------------------------------------------------- */
-  const filteredAds = mockAdvertisements.filter((ad) => {
+  /* --------------------------
+     FILTERING REAL API DATA
+  --------------------------- */
+  const filteredAds = initialAdvertisment.filter((ad) => {
     const matchesCategory =
-      selectedCategory === "all" || ad.category === selectedCategory;
+      selectedCategory === "all" || ad.category?._id === selectedCategory;
 
     const matchesSearch =
       searchQuery === "" ||
-      ad.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      ad.description.toLowerCase().includes(searchQuery.toLowerCase());
+      ad.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      ad.description?.toLowerCase().includes(searchQuery.toLowerCase());
 
-    return matchesCategory && matchesSearch && ad.approved;
+    return matchesCategory && matchesSearch;
   });
 
-  const featuredAds = mockAdvertisements.filter(
-    (ad) => ad.featured && ad.approved
+  /* --------------------------
+     FEATURED ADS
+  --------------------------- */
+  const featuredAds = initialAdvertisment.filter(
+    (ad) => ad.badges === "featured"
   );
 
-  /* --------------------------------------------------------
-     FIX: Lookup category using _id properly
-  -------------------------------------------------------- */
-  const getCategoryInfo = (categoryId: string) => {
-    return initialCategories.find((cat) => cat._id === categoryId);
-  };
+  /* --------------------------
+     CATEGORY META INFO
+  --------------------------- */
+  const getCategoryInfo = (categoryId: string) =>
+    initialCategories.find((cat) => cat._id === categoryId);
 
-  /* --------------------------------------------------------
-     Favorite toggle
-  -------------------------------------------------------- */
-  const handleFavoriteToggle = (ad: any) => {
+  /* --------------------------
+     FAVORITE HANDLER
+  --------------------------- */
+
+  const handleFavoriteToggle = async (ad: any) => {
     if (!isAuthenticated && !isGuest) {
       toast.info("Please login to add favorites");
       router.push("/auth/login");
       return;
     }
-    toggleFavorite({ id: ad.id, type: "ad", data: ad });
+
+    const isLiked = isFavorite(ad._id); // from context to update UI instantly
+
+    try {
+      if (!isLiked) {
+        // ADD TO FAVORITES
+        await favouriteApi.add(ad._id);
+        toggleFavorite({ id: ad._id, type: "ad", data: ad });
+        toast.success("Added to favourites");
+      } else {
+        // REMOVE FROM FAVORITES
+        await favouriteApi.remove(ad._id);
+        toggleFavorite({ id: ad._id, type: "ad", data: ad });
+        toast.success("Removed from favourites");
+      }
+    } catch (error: any) {
+      toast.error(error?.response?.data?.message || "Something went wrong");
+    }
   };
 
-  /* --------------------------------------------------------
-     Ad Card Component
-  -------------------------------------------------------- */
+  /* --------------------------
+     AD CARD COMPONENT
+  --------------------------- */
   const AdCard = ({ ad }: { ad: any }) => {
-    const categoryInfo = getCategoryInfo(ad.category);
-    const isLiked = isFavorite(ad.id);
+    const categoryInfo = getCategoryInfo(ad.category?._id);
+    const isLiked = isFavorite(ad._id);
 
     return (
       <Card
@@ -97,18 +122,16 @@ export function AdvertisementsPage({
         }`}
         onClick={() => {
           sessionStorage.setItem("currentAd", JSON.stringify(ad));
-          router.push("/ad-detail");
+          router.push(`/ads/${ad._id}`);
         }}
       >
-        {/* Sponsored Badge */}
         {ad.sponsored && (
           <div className="bg-gradient-to-r from-yellow-400 to-yellow-600 px-3 py-1 flex items-center gap-1">
             <span className="text-xs text-white">⭐ {t("sponsored")}</span>
           </div>
         )}
 
-        {/* Image */}
-        {ad.images && ad.images.length > 0 && (
+        {ad.images?.length > 0 && (
           <div className="relative h-40 bg-gray-100 dark:bg-gray-800">
             <ImageWithFallback
               src={ad.images[0]}
@@ -124,7 +147,6 @@ export function AdvertisementsPage({
         )}
 
         <div className="p-3">
-          {/* Category Badge */}
           <div className="flex items-center gap-2 mb-2">
             <Badge
               variant="secondary"
@@ -134,33 +156,28 @@ export function AdvertisementsPage({
             </Badge>
           </div>
 
-          {/* Title */}
           <h3 className="mb-1 line-clamp-1 dark:text-white">{ad.title}</h3>
 
-          {/* Description */}
           <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2 mb-2">
             {ad.description}
           </p>
 
-          {/* Price */}
           <div className="text-blue-600 dark:text-blue-400 mb-2">
-            {ad.price || ad.salary || "Contact for details"}
+            {ad.price || "Contact for details"}
           </div>
 
-          {/* Location & Time */}
           <div className="flex items-center gap-3 text-xs text-gray-500 dark:text-gray-400 mb-3">
             <div className="flex items-center gap-1">
               <MapPin className="w-3 h-3" />
-              <span className="line-clamp-1">{ad.location}</span>
+              <span>{ad.location}</span>
             </div>
             <span>•</span>
             <div className="flex items-center gap-1">
               <Calendar className="w-3 h-3" />
-              <span>{new Date(ad.postedOn).toLocaleDateString()}</span>
+              <span>{new Date(ad.createdAt).toLocaleDateString()}</span>
             </div>
           </div>
 
-          {/* Action Buttons */}
           <div className="flex items-center gap-2">
             <Button
               size="sm"
@@ -168,11 +185,12 @@ export function AdvertisementsPage({
               onClick={(e) => {
                 e.stopPropagation();
                 sessionStorage.setItem("currentAd", JSON.stringify(ad));
-                router.push("/ad-detail");
+                router.push(`/ads/${ad._id}`);
               }}
             >
               {t("viewDetails")}
             </Button>
+
             <Button
               size="sm"
               variant="outline"
@@ -187,6 +205,7 @@ export function AdvertisementsPage({
                 }`}
               />
             </Button>
+
             <Button
               size="sm"
               variant="outline"
@@ -203,12 +222,12 @@ export function AdvertisementsPage({
     );
   };
 
-  /* --------------------------------------------------------
+  /* --------------------------
      MAIN UI
-  -------------------------------------------------------- */
+  --------------------------- */
   return (
     <div className="min-h-screen flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-950">
-      {/* Header */}
+      {/* HEADER */}
       <div className="p-4 md:p-6 lg:p-8 border-b dark:border-gray-800 bg-white dark:bg-gray-950 sticky top-0 z-10">
         <div className="flex items-center gap-3 md:gap-4 mb-4">
           <Button
@@ -240,7 +259,7 @@ export function AdvertisementsPage({
           </Button>
         </div>
 
-        {/* Search Bar */}
+        {/* SEARCH */}
         <div className="relative">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
@@ -258,7 +277,7 @@ export function AdvertisementsPage({
           </Button>
         </div>
 
-        {/* Category Tabs */}
+        {/* CATEGORIES */}
         <div className="mt-3 -mx-4 md:-mx-6 lg:-mx-8 px-4 md:px-6 lg:px-8 overflow-x-auto scrollbar-hide">
           <div className="flex gap-2 pb-2">
             {categories.map((category) => (
@@ -281,15 +300,15 @@ export function AdvertisementsPage({
         </div>
       </div>
 
-      {/* Scrollable Content */}
+      {/* CONTENT */}
       <ScrollArea className="flex-1">
         <div className="pb-24 md:pb-28 lg:pb-32">
-          {/* Branding Banners */}
+          {/* BANNERS */}
           <div className="mb-4 md:mb-6">
             <BrandingBanners />
           </div>
 
-          {/* Featured Carousel */}
+          {/* FEATURED */}
           {featuredAds.length > 0 && (
             <div className="px-4 md:px-6 lg:px-8 mb-4 md:mb-6">
               <div className="flex items-center gap-2 mb-3">
@@ -299,64 +318,25 @@ export function AdvertisementsPage({
 
               <Carousel className="w-full">
                 <CarouselContent>
-                  {featuredAds.map((ad) => {
-                    const categoryInfo = getCategoryInfo(ad.category);
-
-                    return (
-                      <CarouselItem key={ad.id}>
-                        <Card
-                          className="overflow-hidden cursor-pointer dark:bg-gray-900 dark:border-gray-800"
-                          onClick={() => {
-                            sessionStorage.setItem(
-                              "currentAd",
-                              JSON.stringify(ad)
-                            );
-                            router.push("/ad-detail");
-                          }}
-                        >
-                          {ad.images && ad.images.length > 0 && (
-                            <div className="relative h-48 bg-gray-100 dark:bg-gray-800">
-                              <ImageWithFallback
-                                src={ad.images[0]}
-                                alt={ad.title}
-                                className="w-full h-full object-cover"
-                              />
-                              <div className="absolute top-2 right-2">
-                                <Badge className="bg-yellow-500 text-white">
-                                  {t("featured")}
-                                </Badge>
-                              </div>
-                              <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                                <Badge
-                                  className={`${categoryInfo?.color} text-white border-0 mb-2`}
-                                >
-                                  {categoryInfo?.emoji} {categoryInfo?.name}
-                                </Badge>
-                                <h3 className="text-white mb-1">{ad.title}</h3>
-                                <p className="text-sm text-white/90 line-clamp-2">
-                                  {ad.description}
-                                </p>
-                              </div>
-                            </div>
-                          )}
-                        </Card>
-                      </CarouselItem>
-                    );
-                  })}
+                  {featuredAds.map((ad) => (
+                    <CarouselItem key={ad._id}>
+                      <AdCard ad={ad} />
+                    </CarouselItem>
+                  ))}
                 </CarouselContent>
+
                 <CarouselPrevious className="left-2" />
                 <CarouselNext className="right-2" />
               </Carousel>
             </div>
           )}
 
-          {/* Main Ads Feed */}
+          {/* MAIN GRID */}
           <div className="px-4 md:px-6 lg:px-8">
             <h2 className="mb-3 md:mb-4 dark:text-white text-lg md:text-xl">
               {t("allAdvertisements")}
             </h2>
 
-            {/* Empty State - No Ads */}
             {filteredAds.length === 0 &&
               selectedCategory === "all" &&
               searchQuery === "" && (
@@ -376,14 +356,12 @@ export function AdvertisementsPage({
                 </Card>
               )}
 
-            {/* Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4 lg:gap-6">
               {filteredAds.map((ad) => (
-                <AdCard key={ad.id} ad={ad} />
+                <AdCard key={ad._id} ad={ad} />
               ))}
             </div>
 
-            {/* No Results */}
             {filteredAds.length === 0 &&
               (searchQuery !== "" || selectedCategory !== "all") && (
                 <div className="text-center py-12 text-gray-500 dark:text-gray-400">
