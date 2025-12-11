@@ -28,8 +28,12 @@ export const addToFavourite = async (userId, body) => {
 /* -----------------------------
  ⭐ Remove Favourite
 ----------------------------- */
-export const removeFavourite = async (userId, productId) => {
-  const fav = await Favourite.findOneAndDelete({ userId, productId });
+export const removeFavourite = async (favouriteId, userId) => {
+  const fav = await Favourite.findOneAndDelete({
+    _id: favouriteId,
+    userId,
+  });
+
   if (!fav) throw new ApiError(404, "Favourite not found");
 
   return fav;

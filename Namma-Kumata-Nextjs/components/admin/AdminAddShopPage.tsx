@@ -43,7 +43,7 @@ export function AdminAddShopPage() {
     { id: string; name: string; type?: string }[]
   >([]);
   const [subCategories, setSubCategories] = useState<
-    { id: string; name: string; categoryId: string }[]
+    { id: string; name: string; categoryId?: string }[]
   >([]);
   const [loadingCategories, setLoadingCategories] = useState(false);
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
@@ -57,7 +57,7 @@ export function AdminAddShopPage() {
     address: "",
     description: "",
     openingHours: "",
-    status: "approved",
+    status: "approved" as "pending" | "approved" | "rejected",
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -74,7 +74,7 @@ export function AdminAddShopPage() {
       toast.error("Please login as admin to continue");
       router.push("/admin-login");
     }
-  }, [adminUser]);
+  }, [adminUser, router]);
 
   // --------------------
   // LOAD CATEGORIES
@@ -196,7 +196,13 @@ export function AdminAddShopPage() {
         return;
       }
 
-      form.append("subCategoryId", formData.subCategory); // ✅ ONLY SEND THIS
+      const derivedCategory = selectedSub?.categoryId;
+      if (!derivedCategory) {
+        toast.error("Selected subcategory is missing category mapping");
+        return;
+      }
+      form.append("categoryId", derivedCategory);
+      form.append("subCategoryId", formData.subCategory);
 
       const statusPayload =
         formData.status === "approved" ? "active" : "inactive";
@@ -218,19 +224,19 @@ export function AdminAddShopPage() {
   // --------------------
   // IMAGE UPLOAD
   // --------------------
-  const handleImageUpload = (e: any) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const newFiles = Array.from(files);
-    const previews: string[] = [];
+    const newPreviews: string[] = [];
 
     newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        previews.push(reader.result as string);
-        if (previews.length === newFiles.length) {
-          setImagePreviews((prev) => [...prev, ...previews]);
+        newPreviews.push(reader.result as string);
+        if (newPreviews.length === newFiles.length) {
+          setImagePreviews((prev) => [...prev, ...newPreviews]);
         }
       };
       reader.readAsDataURL(file);
@@ -445,6 +451,7 @@ export function AdminAddShopPage() {
                       >
                         <img
                           src={preview}
+                          alt={`Shop preview ${index + 1}`}
                           className="object-cover w-full h-full"
                         />
                         <button

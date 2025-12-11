@@ -43,51 +43,6 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
   /* -------------------------
        FAVORITE HANDLER
   ---------------------------- */
-  // const handleFavoriteClick = async () => {
-  //   if (!isAuthenticated && !isGuest) {
-  //     toast.info("Please login to add favourites");
-  //     router.push("/auth/login");
-  //     return;
-  //   }
-
-  //   const refId = ad._id;
-
-  //   try {
-  //     if (!isFavorite(refId)) {
-  //       // ⭐ ADD Favourite (Advertisement)
-  //       const res = await favouriteApi.addAdvertisement(refId);
-
-  //       const favouriteId = res.data?._id; // backend favourite _id
-
-  //       toggleFavorite({
-  //         favouriteId,
-  //         refId,
-  //         type: "ad",
-  //         data: ad,
-  //       });
-
-  //       toast.success("Added to favourites");
-  //     } else {
-  //       // ⭐ REMOVE Favourite
-  //       const favouriteId = getFavouriteId(refId);
-  //       if (!favouriteId) return toast.error("Favourite not found");
-
-  //       await favouriteApi.remove(favouriteId);
-
-  //       toggleFavorite({
-  //         favouriteId,
-  //         refId,
-  //         type: "ad",
-  //         data: ad,
-  //       });
-
-  //       toast.success("Removed from favourites");
-  //     }
-  //   } catch (error: any) {
-  //     toast.error(error?.response?.data?.message || "Something went wrong");
-  //   }
-  // };
-
   const handleFavoriteClick = async () => {
     if (!isAuthenticated && !isGuest) {
       toast.info("Please login to add favourites");
@@ -103,12 +58,8 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
         const res = await favouriteApi.addAdvertisement(refId);
 
         const favouriteId = res.data?.data?._id || res.data?._id;
+        if (!favouriteId) return toast.error("Failed to add favourite");
 
-        if (!favouriteId) {
-          return toast.error("Failed to add favourite");
-        }
-
-        // UI update
         toggleFavorite({
           favouriteId,
           refId,
@@ -124,21 +75,18 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
 
         await favouriteApi.remove(favouriteId);
 
-        // ⭐ IMPORTANT: use removeFavorite, NOT toggleFavorite
         removeFavorite(favouriteId);
 
         toast.success("Removed from favourites");
       }
-    } catch (error: any) {
-      console.log(error);
-      toast.error(error?.response?.data?.message || "Something went wrong");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message || "Something went wrong");
     }
   };
 
   /* -------------------------
-       SHARE & CONTACT HANDLERS
+       SHARE HANDLERS
   ---------------------------- */
-
   const shareUrl = typeof window !== "undefined" ? window.location.href : "";
   const shareText = `${ad.title} - Found on Namma Kumta`;
 
@@ -148,6 +96,9 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
     setShowShareMenu(false);
   };
 
+  /* -------------------------
+       CONTACT
+  ---------------------------- */
   const handleCall = () => {
     if (ad.phone) window.open(`tel:${ad.phone}`);
   };
@@ -170,7 +121,7 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-950">
       {/* HEADER */}
-      <div className="flex justify-between items-center px-4 py-4 border-b dark:border-gray-800 bg-white dark:bg-gray-900">
+      <div className="flex justify-between items-center px-4 py-4 border-b dark:border-gray-800 bg-white dark:bg-gray-900 relative">
         <button onClick={() => router.back()}>
           <ArrowLeft className="w-6 h-6" />
         </button>
@@ -190,19 +141,19 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
             />
           </button>
 
-          <button onClick={() => setShowShareMenu(!showShareMenu)}>
+          <button onClick={() => setShowShareMenu((prev) => !prev)}>
             <Share2 className="w-6 h-6" />
           </button>
         </div>
 
         {showShareMenu && (
-          <div className="absolute right-4 top-16 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border dark:border-gray-700 space-y-3 z-50 w-44">
+          <div className="absolute right-4 top-16 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border dark:border-gray-700 w-44 space-y-3 z-50">
             <button
               className="flex items-center gap-2"
               onClick={() =>
                 window.open(
                   `https://wa.me/?text=${encodeURIComponent(
-                    shareText + " " + shareUrl
+                    `${shareText} ${shareUrl}`
                   )}`
                 )
               }
@@ -250,9 +201,9 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
         )}
       </div>
 
-      {/* CONTENT (UNCHANGED) */}
+      {/* BODY */}
       <ScrollArea className="flex-1">
-        <div className="pb-32">
+        <div className="pb-24">
           {/* MEDIA */}
           <div className="relative h-64 bg-gray-200 dark:bg-gray-900">
             {video ? (
@@ -296,7 +247,7 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
                 )}
               </>
             ) : (
-              <div className="flex items-center justify-center w-full h-full text-gray-500">
+              <div className="flex items-center justify-center h-full text-gray-500">
                 No Media
               </div>
             )}
@@ -311,8 +262,8 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
             </Badge>
 
             {ad.badges === "featured" && (
-              <Badge className="bg-yellow-500 text-white">
-                <Star className="w-3 h-3 mr-1" /> Featured
+              <Badge className="bg-yellow-500 text-white flex items-center gap-1">
+                <Star className="w-3 h-3" /> Featured
               </Badge>
             )}
 
@@ -323,8 +274,7 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
             <p className="text-gray-700 dark:text-gray-300">{ad.description}</p>
 
             <p className="flex items-center gap-2 text-gray-500">
-              <MapPin className="w-4 h-4" />
-              {ad.location}
+              <MapPin className="w-4 h-4" /> {ad.location}
             </p>
 
             <p className="text-sm text-gray-400">
@@ -341,14 +291,15 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
                 {relatedAds.map((item: any) => (
                   <div
                     key={item._id}
-                    onClick={() => router.push(`/ad-detail/${item._id}`)}
-                    className="border dark:border-gray-800 rounded-lg overflow-hidden shadow-sm"
+                    onClick={() => router.push(`/ads/${item._id}`)}
+                    className="border dark:border-gray-800 rounded-lg overflow-hidden shadow-sm cursor-pointer"
                   >
                     <ImageWithFallback
                       src={item.images?.[0]}
                       alt={item.title}
                       className="h-24 w-full object-cover"
                     />
+
                     <div className="p-2">
                       <p className="text-sm font-medium line-clamp-1">
                         {item.title}

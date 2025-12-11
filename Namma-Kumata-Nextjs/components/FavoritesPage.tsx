@@ -27,21 +27,35 @@ export function FavoritesPage({
   useEffect(() => {
     const formatted = initialFavourites
       .map((fav) => {
-        // Product Favourite
+        // ⭐ Product Favourite
         if (fav.productId) {
+          const p = fav.productId;
+
           return {
-            id: fav._id,
+            id: fav._id, // favourite id
             type: "listing",
-            data: fav.productId, // populated product object
+
+            // ⭐ transform product for ListingCard
+            data: {
+              id: p._id,
+              shopName: p.shopName,
+              description: p.description,
+              image: p.images?.[0] || "",
+              images: p.images || [],
+              rating: p.rating || 0,
+              reviewCount: p.reviewCount || 0,
+              phone: p.contact?.phone || "",
+              address: p.address || "",
+            },
           };
         }
 
-        // Advertisement Favourite
+        // ⭐ Advertisement Favourite
         if (fav.advertisementId) {
           return {
             id: fav._id,
             type: "ad",
-            data: fav.advertisementId, // populated advertisement object
+            data: fav.advertisementId,
           };
         }
 
@@ -134,7 +148,7 @@ export function FavoritesPage({
                           "currentListing",
                           JSON.stringify(fav.data)
                         );
-                        router.push("/detail");
+                        router.push(`/listing/${fav.data.id}`);
                       }}
                     />
                   ))}

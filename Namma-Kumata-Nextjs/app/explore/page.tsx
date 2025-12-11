@@ -1,42 +1,38 @@
-// app/explore/page.tsx
-import type { Metadata } from 'next';
-import { ExplorePage } from '@/components/ExplorePage';
-import { categoryServerApi } from '@/lib/api-ssr/categoryServerApi';
-import { cookies } from 'next/headers';
-import { BottomNav } from '@/components/BottomNav';
+import type { Metadata } from "next";
+import { cookies } from "next/headers";
+import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
+import ExplorePage from "@/components/ExplorePage"; // <-- MUST BE DEFAULT EXPORT
+import { BottomNav } from "@/components/BottomNav";
 
 export const metadata: Metadata = {
-  title: 'Explore - Namma Kumta',
-  description: 'Explore local places, shops, temples, and services in Kumta.',
+  title: "Explore - Namma Kumta",
+  description: "Explore local places, shops, temples, and services in Kumta.",
 };
 
 async function getSSRData() {
   try {
-    const cookieStore = cookies();
-    const token = cookieStore.get('token')?.value || null;
+    const token = cookies().get("token")?.value;
 
-    const categoriesRes = await categoryServerApi.getAll(token);
-    const categoriesData = categoriesRes?.data || [];
+    const res = await categoryServerApi.getAll(token);
+    const categories = Array.isArray(res?.data) ? res.data : [];
 
-    // Filter only business categories (as you requested)
-    const businessCats = Array.isArray(categoriesData)
-      ? categoriesData.filter((cat: any) => cat.type === 'business')
-      : [];
+    // only business categories
+    const business = categories.filter((c: any) => c.type === "business");
 
-    return { categories: businessCats };
+    return business;
   } catch (error) {
-    console.error('❌ SSR load failed (Explore):', error);
-    return { categories: [] };
+    console.error("❌ Explore SSR error:", error);
+    return [];
   }
 }
 
 export default async function ExploreSSRPage() {
-  const { categories } = await getSSRData();
+  const categories = await getSSRData();
 
   return (
     <>
       <ExplorePage initialCategories={categories} />
-      <BottomNav/>
+      <BottomNav />
     </>
   );
 }
