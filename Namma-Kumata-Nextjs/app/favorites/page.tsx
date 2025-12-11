@@ -32,6 +32,7 @@ export default async function Favorites() {
   return (
     <>
       <FavoritesPage initialFavourites={favourites} />
+      <BottomNav />
     </>
   );
 }

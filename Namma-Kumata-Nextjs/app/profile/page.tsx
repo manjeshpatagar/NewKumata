@@ -31,6 +31,7 @@ export default async function Profile() {
   return (
     <>
       <ProfilePage initialUser={user} />
+      <BottomNav />
     </>
   );
 }

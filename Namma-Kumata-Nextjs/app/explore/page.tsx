@@ -3,6 +3,7 @@ import type { Metadata } from 'next';
 import { ExplorePage } from '@/components/ExplorePage';
 import { categoryServerApi } from '@/lib/api-ssr/categoryServerApi';
 import { cookies } from 'next/headers';
+import { BottomNav } from '@/components/BottomNav';
 
 export const metadata: Metadata = {
   title: 'Explore - Namma Kumta',
@@ -35,6 +36,7 @@ export default async function ExploreSSRPage() {
   return (
     <>
       <ExplorePage initialCategories={categories} />
+      <BottomNav/>
     </>
   );
 }

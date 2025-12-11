@@ -1,6 +1,7 @@
 // app/Advertisements/page.tsx
 import type { Metadata } from "next";
 import { AdvertisementsPage } from "@/components/AdvertisementsPage";
+import { BottomNav } from "@/components/BottomNav";
 import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 import { advertisementServerApi } from "@/lib/api-ssr/advertisementServerApi";
 import { cookies } from "next/headers";
@@ -18,7 +19,7 @@ async function getSSRData() {
 
     const categoriesRes = await categoryServerApi.getAll(token);
     const advertisementsRes = await advertisementServerApi.getAll(token);
-    console.log("✅ SSR load successful", advertisementsRes.data);
+    // console.log("✅ SSR load successful", advertisementsRes.data);
 
     const advertisementCategories = (categoriesRes.data || []).filter(
       (cat: any) => cat.type === "advertisement"
@@ -43,7 +44,7 @@ export default async function Advertisements() {
         initialCategories={categories}
         initialAdvertisment={advertisments}
       />
-      {/* <BottomNav /> */}
+      <BottomNav />
     </>
   );
 }
