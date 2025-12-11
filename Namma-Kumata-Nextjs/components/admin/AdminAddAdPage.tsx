@@ -1016,10 +1016,10 @@ export function AdminAddAdPage({ categories }: AdminAddAdPageProps) {
                 <h3 className="text-sm font-medium">Contact Information <span className="text-red-500">*</span></h3>
 
                 <div className="space-y-2">
-                  <Label>Owner Name</Label>
+                  <Label>What'sApp Number</Label>
                   <Input
                     id="whatsapp"
-                    placeholder="Enter owner name"
+                    placeholder="What'sApp Number"
                     value={contactInfo.whatsapp}
                     onChange={(e) => handleContactInfoChange('whatsapp', e.target.value)}
                     className={errors.owner ? 'border-red-500' : ''}
@@ -1060,19 +1060,11 @@ export function AdminAddAdPage({ categories }: AdminAddAdPageProps) {
                 />
               </div>
 
-              {/* Additional Details */}
-              <div className="space-y-2">
-                <Label>Additional Details</Label>
-                <Textarea
-                  rows={3}
-                  value={formData.addetails}
-                  onChange={(e) => handleChange('addetails', e.target.value)}
-                />
-              </div>
+
 
               {/* Badges */}
               <div className="space-y-2">
-                <Label>Badges (Optional)</Label>
+                <Label>Badges</Label>
                 <Select
                   value={formData.badges}
                   onValueChange={(value) => handleChange('badges', value)}
