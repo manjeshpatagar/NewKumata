@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ArrowLeft,
   Edit,
@@ -112,7 +112,7 @@ export function AdminShopsPage({ ssrShops = [] }) {
   };
 
   // Delete shop
-=======
+
   // ✔ Data comes only from SSR
   const [shops, setShops] = useState<Shop[]>(ssrShops);
   console.log("Initial Shops:", shops);
@@ -120,7 +120,7 @@ export function AdminShopsPage({ ssrShops = [] }) {
   const [searchQuery, setSearchQuery] = useState('');
 
   // ⭐ DELETE via API (same UI)
->>>>>>> 05babf6 (add shop)
+
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
 
@@ -153,7 +153,6 @@ export function AdminShopsPage({ ssrShops = [] }) {
 
   // ----------- SHOP CARD -----------
   const ShopCard = ({ shop }: { shop: Shop }) => {
-    const gradient = categoryColors[shop.category] || "from-gray-500 to-gray-600";
     const gradient = categoryColors[shop.category] || "from-gray-500 to-gray-600";
 
     return (

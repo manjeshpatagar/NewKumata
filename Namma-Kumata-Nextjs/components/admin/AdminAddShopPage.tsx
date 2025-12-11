@@ -75,7 +75,7 @@ export function AdminAddShopPage() {
       router.push("/admin-login");
     }
   }, [adminUser, router]);
-  }, [adminUser, router]);
+
 
   // --------------------
   // LOAD CATEGORIES
@@ -232,21 +232,17 @@ export function AdminAddShopPage() {
 
     const newFiles = Array.from(files);
     const newPreviews: string[] = [];
-    const newPreviews: string[] = [];
+
 
     newFiles.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        newPreviews.push(reader.result as string);
         if (newPreviews.length === newFiles.length) {
           setImagePreviews((prev) => [...prev, ...newPreviews]);
-        previews.push(reader.result as string);
-        if (newPreviews.length === newFiles.length) {
-          setImagePreviews((prev) => [...prev, ...newPreviews]);
-        }
+          newPreviews.push(reader.result as string);
       };
       reader.readAsDataURL(file);
-    });
+    }});
 
     setImages((prev) => [...prev, ...newFiles]);
   };
