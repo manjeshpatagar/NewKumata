@@ -1,21 +1,10 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect, useMemo } from "react";
 import {
-  ArrowLeft,
-  Edit,
-  Trash2,
-  Plus,
-  Search,
-  Store,
-  MapPin,
-  Phone,
-  User,
-  Calendar,
-  Eye,
-  MoreVertical,
+  ArrowLeft, Edit, Trash2, Plus, Search, Store,
+  MapPin, Phone, User, Calendar, Eye, MoreVertical
 } from "lucide-react";
-
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
 import { Badge } from "../ui/badge";
@@ -31,9 +20,9 @@ import {
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { productApi } from "@/lib/api/productApi";
-import { useAdmin } from "@/contexts/AdminContext"; // ✅ You forgot this import
+import { useAdmin } from "@/contexts/AdminContext";
 
-// ----------- INTERFACE -----------
+// Local Shop Type
 export interface Shop {
   id: string;
   name: string;
@@ -47,15 +36,14 @@ export interface Shop {
   location?: string;
   openingHours?: string;
   status?: string;
-  thumbnail?: string; // only once!
-  raw?: any;
 }
 
-// ----------- MAIN PAGE -----------
-export function AdminShopsPage({ ssrShops = [] }) {
+export function AdminShopsPage() {
   const router = useRouter();
+  const { adminUser } = useAdmin();
 
-  const [shops, setShops] = useState<Shop[]>(ssrShops);
+  const [shops, setShops] = useState<Shop[]>([]);
+  const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
 
   // Redirect if no admin
@@ -108,20 +96,10 @@ export function AdminShopsPage({ ssrShops = [] }) {
       console.error(err);
     } finally {
       setLoading(false);
-      
     }
   };
 
   // Delete shop
-
-  // ✔ Data comes only from SSR
-  const [shops, setShops] = useState<Shop[]>(ssrShops);
-  console.log("Initial Shops:", shops);
-  const [loading] = useState(false);
-  const [searchQuery, setSearchQuery] = useState('');
-
-  // ⭐ DELETE via API (same UI)
-
   const handleDelete = async (id: string, name: string) => {
     if (!confirm(`Delete "${name}"?`)) return;
 
@@ -130,17 +108,21 @@ export function AdminShopsPage({ ssrShops = [] }) {
       toast.success("Shop deleted");
       setShops((prev) => prev.filter((s) => s.id !== id));
     } catch (err) {
+      toast.error("Failed to delete");
       console.error(err);
-      toast.error("Failed to delete shop");
     }
   };
 
-  const filteredShops = shops.filter(
-    (shop) =>
-      shop.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shop.category.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      shop.owner.toLowerCase().includes(searchQuery.toLowerCase())
-  );
+  // Optimized search
+  const filteredShops = useMemo(() => {
+    const q = searchQuery.toLowerCase();
+    return shops.filter(
+      (s) =>
+        s.name.toLowerCase().includes(q) ||
+        s.category.toLowerCase().includes(q) ||
+        s.owner.toLowerCase().includes(q)
+    );
+  }, [searchQuery, shops]);
 
   // Category Colors
   const categoryColors: Record<string, string> = {
@@ -152,109 +134,103 @@ export function AdminShopsPage({ ssrShops = [] }) {
     Services: "from-indigo-500 to-blue-600",
   };
 
-  // ----------- SHOP CARD -----------
+  // Single Shop Card
   const ShopCard = ({ shop }: { shop: Shop }) => {
     const gradient = categoryColors[shop.category] || "from-gray-500 to-gray-600";
 
     return (
-      <Card className="group relative overflow-hidden border border-gray-200 dark:border-gray-800 shadow-lg hover:shadow-2xl transition-all duration-500 hover:scale-[1.02]">
+      <Card className="relative group overflow-hidden border shadow hover:shadow-xl transition">
         <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
 
         <div className="p-5 space-y-4">
           <div className="flex justify-between gap-3">
 
             <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2 mb-2">
-                <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient} shadow-lg`}>
-                  <img src={shop.thumbnail} alt={shop.name} className="w-5 h-5" />
+              <div className="flex items-center gap-3">
+                <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient}`}>
+                  <Store className="w-5 h-5 text-white" />
                 </div>
 
-                <div className="flex-1 min-w-0">
-                  <h3 className="font-bold text-base md:text-lg text-gray-900 dark:text-white truncate">
-                    {shop.name}
-                  </h3>
-                  <div className="flex flex-wrap items-center gap-2 mt-1">
-                    <Badge className={`bg-gradient-to-r ${gradient} text-white border-0 text-xs`}>
-                      {shop.category}
-                    </Badge>
-
-                    {shop.subCategory && (
-                      <Badge variant="secondary" className="text-xs">
-                        {shop.subCategory}
-                      </Badge>
-                    )}
-                  </div>
+                <div>
+                  <h3 className="font-bold text-lg truncate">{shop.name}</h3>
+                  <Badge className={`bg-gradient-to-r ${gradient} text-white text-xs`}>
+                    {shop.category}
+                  </Badge>
                 </div>
               </div>
             </div>
 
-            {/* MENU */}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-8 w-8">
+                <Button size="icon" variant="ghost">
                   <MoreVertical className="w-4 h-4" />
                 </Button>
               </DropdownMenuTrigger>
 
-              <DropdownMenuContent align="end" className="min-w-[180px]">
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => router.push(`/AdminEditShopPage/${shop.id}`)}>
-                  <Edit className="w-4 h-4 mr-2" /> Edit Shop
+                  <Edit className="w-4 h-4 mr-2" /> Edit
                 </DropdownMenuItem>
 
                 <DropdownMenuItem onClick={() => router.push(`/shop/${shop.id}`)}>
-                  <Eye className="w-4 h-4 mr-2" /> View Details
+                  <Eye className="w-4 h-4 mr-2" /> View
                 </DropdownMenuItem>
 
                 <DropdownMenuSeparator />
 
-                <DropdownMenuItem className="text-red-600" onClick={() => handleDelete(shop.id, shop.name)}>
-                  <Trash2 className="w-4 h-4 mr-2" /> Delete Shop
+                <DropdownMenuItem
+                  className="text-red-600"
+                  onClick={() => handleDelete(shop.id, shop.name)}
+                >
+                  <Trash2 className="w-4 h-4 mr-2" /> Delete
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
           </div>
 
-          {/* DETAILS */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            {/* OWNER */}
-            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+          {/* Details Grid */}
+          <div className="grid grid-cols-2 gap-3 text-sm">
+
+            {/* Owner */}
+            <div className="flex gap-2">
               <User className="w-4 h-4 text-blue-500" />
               <div>
                 <p className="text-xs text-gray-500">Owner</p>
-                <p className="font-medium dark:text-white truncate">{shop.owner}</p>
+                <p className="truncate">{shop.owner}</p>
               </div>
             </div>
 
-            {/* PHONE */}
+            {/* Phone */}
             {shop.phone && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+              <div className="flex gap-2">
                 <Phone className="w-4 h-4 text-emerald-500" />
                 <div>
                   <p className="text-xs text-gray-500">Phone</p>
-                  <p className="font-medium dark:text-white truncate">{shop.phone}</p>
+                  <p>{shop.phone}</p>
                 </div>
               </div>
             )}
 
-            {/* DATE */}
-            <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+            {/* Date */}
+            <div className="flex gap-2">
               <Calendar className="w-4 h-4 text-purple-500" />
               <div>
-                <p className="text-xs text-gray-500">Added Date</p>
-                <p className="font-medium dark:text-white">{shop.submittedDate}</p>
+                <p className="text-xs text-gray-500">Added</p>
+                <p>{shop.submittedDate}</p>
               </div>
             </div>
 
-            {/* LOCATION */}
+            {/* Location */}
             {shop.location && (
-              <div className="flex items-center gap-2 text-gray-600 dark:text-gray-400">
+              <div className="flex gap-2">
                 <MapPin className="w-4 h-4 text-orange-500" />
                 <div>
                   <p className="text-xs text-gray-500">Location</p>
-                  <p className="font-medium dark:text-white truncate">{shop.location}</p>
+                  <p className="truncate">{shop.location}</p>
                 </div>
               </div>
             )}
+
           </div>
         </div>
       </Card>
@@ -273,46 +249,48 @@ export function AdminShopsPage({ ssrShops = [] }) {
               <ArrowLeft className="w-5 h-5" />
             </Button>
 
-            <h1 className="text-2xl dark:text-white flex items-center gap-2">
-              <Store className="w-6 h-6 text-blue-500" /> Manage Shops
+            <h1 className="text-xl flex items-center gap-2">
+              <Store className="w-6 h-6 text-blue-500" />
+              Manage Shops
             </h1>
-
-            <Button
-              size="sm"
-              className="bg-gradient-to-r from-blue-600 to-cyan-600 text-white"
-              onClick={() => router.push("/AdminAddShopPage")}
-            >
-              <Plus className="w-4 h-4 mr-2" /> Add Shop
-            </Button>
 
             <Badge>{shops.length} Total</Badge>
           </div>
 
-          <div className="relative mt-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-            <Input
-              placeholder="Search shops..."
-              className="pl-11 h-11 rounded-xl"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+          <Button onClick={() => router.push("/AdminAddShopPage")}>
+            <Plus className="w-4 h-4 mr-2" />
+            Add Shop
+          </Button>
+        </div>
+
+        <div className="max-w-7xl mx-auto px-4 pb-3 relative">
+          <Search className="absolute left-6 top-1/2 -translate-y-1/2 w-4 text-gray-400" />
+          <Input
+            className="pl-10"
+            placeholder="Search shops..."
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+          />
         </div>
       </div>
 
-      {/* LIST */}
+      {/* Content */}
       <ScrollArea className="flex-1">
-        <div className="max-w-7xl mx-auto px-4 py-6 pb-24">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            {filteredShops.length > 0 ? (
-              filteredShops.map((shop) => <ShopCard key={shop.id} shop={shop} />)
-            ) : (
-              <div className="text-center py-16 col-span-full">
-                <Store className="w-16 h-16 mx-auto text-gray-300" />
-                <p className="text-gray-500 text-lg">No shops found</p>
-              </div>
-            )}
-          </div>
+        <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+
+          {loading ? (
+            <div className="text-center col-span-full py-10">
+              <div className="animate-spin h-10 w-10 border-b-2 rounded-full border-blue-500"></div>
+            </div>
+          ) : filteredShops.length > 0 ? (
+            filteredShops.map((s) => <ShopCard key={s.id} shop={s} />)
+          ) : (
+            <div className="text-center col-span-full py-10">
+              <Store className="w-14 h-14 mx-auto text-gray-400" />
+              <p>No shops found</p>
+            </div>
+          )}
+
         </div>
       </ScrollArea>
     </div>
