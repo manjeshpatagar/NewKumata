@@ -29,15 +29,16 @@ import { categoryApi } from "@/lib/api/categoryApi";
 import { subCategoryApi } from "@/lib/api/subCategoryApi";
 import { useAdmin } from "@/contexts/AdminContext";
 
-
 export function AdminAddShopPage() {
-
   // --------------------
   // HOOKS
   // --------------------
   const router = useRouter();
   const { adminUser } = useAdmin();
 
+  // --------------------
+  // STATE FIXED WITH TYPES
+  // --------------------
   const [categories, setCategories] = useState<
     { id: string; name: string; type?: string }[]
   >([]);
@@ -63,7 +64,6 @@ export function AdminAddShopPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [errors, setErrors] = useState<Record<string, string>>({});
 
-
   // --------------------
   // AUTH CHECK (FIXED)
   // --------------------
@@ -74,8 +74,7 @@ export function AdminAddShopPage() {
       toast.error("Please login as admin to continue");
       router.push("/admin-login");
     }
-  }, [adminUser]);
-
+  }, [adminUser, router]);
 
   // --------------------
   // LOAD CATEGORIES
@@ -93,7 +92,7 @@ export function AdminAddShopPage() {
         const normalized = list.map((cat) => ({
           id: cat._id || cat.id,
           name: cat.name,
-          type: cat.type
+          type: cat.type,
         }));
 
         setCategories(normalized);
@@ -106,7 +105,6 @@ export function AdminAddShopPage() {
 
     fetchCategories();
   }, [adminUser]);
-
 
   // --------------------
   // LOAD SUBCATEGORIES
@@ -138,7 +136,6 @@ export function AdminAddShopPage() {
     fetchSubCategories();
   }, [adminUser]);
 
-
   // --------------------
   // HANDLE INPUT CHANGE
   // --------------------
@@ -146,7 +143,6 @@ export function AdminAddShopPage() {
     setFormData((prev) => ({ ...prev, [field]: value }));
     if (errors[field]) setErrors((prev) => ({ ...prev, [field]: "" }));
   };
-
 
   // --------------------
   // VALIDATE FORM
@@ -167,7 +163,6 @@ export function AdminAddShopPage() {
     return Object.keys(newErrors).length === 0;
   };
 
-
   // --------------------
   // SUBMIT FORM TO API
   // --------------------
@@ -181,6 +176,7 @@ export function AdminAddShopPage() {
       const form = new FormData();
       form.append("shopName", formData.name);
       form.append("address", formData.address);
+
       if (formData.description)
         form.append("description", formData.description);
       if (formData.owner) form.append("contact[ownerName]", formData.owner);
@@ -194,6 +190,12 @@ export function AdminAddShopPage() {
       const selectedSub = subCategories.find(
         (s) => s.id === formData.subCategory
       );
+
+      if (!selectedSub) {
+        toast.error("Invalid subcategory");
+        return;
+      }
+
       const derivedCategory = selectedSub?.categoryId;
       if (!derivedCategory) {
         toast.error("Selected subcategory is missing category mapping");
@@ -213,23 +215,21 @@ export function AdminAddShopPage() {
 
       toast.success("Shop added successfully!");
       router.push("/AdminAddShop");
-
     } catch (error) {
       toast.error("Failed to add shop");
       console.error(error);
     }
   };
 
-
   // --------------------
   // IMAGE UPLOAD
   // --------------------
-  const handleImageUpload = (e: any) => {
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
     const newFiles = Array.from(files);
-    const previews: string[] = [];
+    const newPreviews: string[] = [];
 
     newFiles.forEach((file) => {
       const reader = new FileReader();
@@ -245,12 +245,10 @@ export function AdminAddShopPage() {
     setImages((prev) => [...prev, ...newFiles]);
   };
 
-
   const removeImage = (index: number) => {
     setImages((prev) => prev.filter((_, i) => i !== index));
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
-
 
   const handleReset = () => {
     setFormData({
@@ -268,7 +266,6 @@ export function AdminAddShopPage() {
     setImagePreviews([]);
     setErrors({});
   };
-
 
   // --------------------
   // UI RETURN
@@ -295,11 +292,10 @@ export function AdminAddShopPage() {
         </div>
       </div>
 
-
       {/* FORM */}
       <ScrollArea className="flex-1">
         <div className="p-4 pb-6 max-w-4xl mx-auto w-full">
-         <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
+          <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
             <div className="space-y-6">
               {/* NAME */}
               <div className="space-y-2">
@@ -455,6 +451,7 @@ export function AdminAddShopPage() {
                       >
                         <img
                           src={preview}
+                          alt={`Shop preview ${index + 1}`}
                           className="object-cover w-full h-full"
                         />
                         <button
@@ -510,10 +507,8 @@ export function AdminAddShopPage() {
               Add Shop
             </Button>
           </div>
-
         </div>
       </ScrollArea>
-
     </div>
   );
 }
