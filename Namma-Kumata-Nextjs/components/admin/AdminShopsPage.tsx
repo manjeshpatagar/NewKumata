@@ -230,7 +230,6 @@ export function AdminShopsPage() {
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </Card>
