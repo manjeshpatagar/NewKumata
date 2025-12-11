@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import {
-  ArrowLeft, Search, Filter, Eye, Trash2, Sparkles, Zap,
+  ArrowLeft, Search, Eye, Trash2, Sparkles, Zap,
   DollarSign, MoreVertical, RefreshCw, Plus, Edit,
   ShoppingBag, Calendar, MapPin, User, Award
 } from 'lucide-react';
@@ -36,6 +36,8 @@ import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
 import { advertisementApi } from '@/lib/api/advertisementApi';
 
+/* ================= TYPES ================= */
+
 interface Advertisement {
   _id: string;
   title: string;
@@ -44,9 +46,7 @@ interface Advertisement {
   price?: number;
   description?: string;
   location?: string;
-  contactinfo?: {
-    phone?: string;
-  };
+  contactinfo?: { phone?: string };
   badges?: 'upcoming' | 'popular' | 'featured' | 'new' | 'trending' | 'exclusive';
   featured?: boolean;
   sponsored?: boolean;
@@ -57,14 +57,19 @@ interface AdminAdsPageProps {
   initialAds?: Advertisement[];
 }
 
+/* ================= CONSTANTS ================= */
+
 const categoryGradients: Record<string, string> = {
   Hospital: 'from-blue-500 to-cyan-600',
   Bikes: 'from-indigo-500 to-blue-600',
   Cars: 'from-amber-500 to-orange-600',
 };
 
+/* ================= PAGE ================= */
+
 export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
   const router = useRouter();
+
   const [ads, setAds] = useState<Advertisement[]>(initialAds);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTab, setSelectedTab] = useState<'approved' | 'all'>('approved');
@@ -121,6 +126,8 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     sponsored: ads.filter(a => a.sponsored).length,
   };
 
+  /* ================= CARD ================= */
+
   const AdCard = ({ ad }: { ad: Advertisement }) => {
     const [showDelete, setShowDelete] = useState(false);
     const gradient = categoryGradients[ad.category?.name] || 'from-gray-500 to-gray-600';
@@ -128,44 +135,31 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     const getImageUrl = (imagePath: string) => {
       if (imagePath.startsWith('http')) return imagePath;
       return `${process.env.NEXT_PUBLIC_API_BASE_URL}/${imagePath}`;
-    }
+    };
+
     return (
-      <Card className="group overflow-hidden border shadow-lg">
+      <Card className="group overflow-hidden rounded-xl border bg-white shadow-sm hover:shadow-lg transition">
         <div className={`h-1.5 bg-gradient-to-r ${gradient}`} />
-        <div className="p-5 space-y-4">
+
+        <div className="p-4 sm:p-5 space-y-4">
 
           {/* Header */}
-          <div className="flex justify-between">
-            <div className="space-y-1">
-              <div className="flex gap-2 flex-wrap">
+          <div className="flex justify-between gap-3">
+            <div className="space-y-2 min-w-0">
+              <div className="flex flex-wrap gap-2">
                 <Badge className={`bg-gradient-to-r ${gradient} text-white`}>
                   {ad.category?.name || 'General'}
                 </Badge>
                 {ad.badges && (
-                  <Badge className="bg-gray-700 text-white">
-                    {ad.badges}
-                  </Badge>
-                )}
-                {ad.featured && (
                   <Badge className="bg-pink-600 text-white">
-                    <Sparkles className="w-3 h-3 mr-1" /> Featured
-                  </Badge>
-                )}
-                {ad.sponsored && (
-                  <Badge className="bg-yellow-600 text-white">
-                    <Zap className="w-3 h-3 mr-1" /> Sponsored
+                    <Sparkles className="w-3 h-3 mr-1" /> {ad.badges.charAt(0).toUpperCase() + ad.badges.slice(1)}
                   </Badge>
                 )}
               </div>
-              <h3 className="font-bold text-lg">{ad.title}</h3>
-              {Array.isArray(ad.images) && ad.images.length > 0 && (
-                <img
-                  src={getImageUrl(ad.images[0])}
-                  alt={ad.title}
-                  className="rounded-lg object-cover"
-                />
-              )}
 
+              <h3 className="font-semibold text-base sm:text-lg truncate">
+                {ad.title}
+              </h3>
             </div>
 
             <DropdownMenu>
@@ -174,12 +168,9 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
                   <MoreVertical />
                 </Button>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem onClick={() => router.push(`/AdminEditAdPage/${ad._id}`)}>
                   <Edit className="w-4 h-4 mr-2" /> Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => router.push(`/advertisements/${ad._id}`)}>
-                  <Eye className="w-4 h-4 mr-2" /> View
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem className="text-red-600" onClick={() => setShowDelete(true)}>
@@ -189,41 +180,45 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
             </DropdownMenu>
           </div>
 
+          {/* Image */}
+          {Array.isArray(ad.images) && ad.images.length > 0 && (
+            <div className="aspect-video rounded-lg overflow-hidden">
+              <img
+                src={getImageUrl(ad.images[0])}
+                alt={ad.title}
+                className="h-full w-full object-cover group-hover:scale-105 transition"
+              />
+            </div>
+          )}
+
           {/* Description */}
-          <p className="text-sm text-gray-600 line-clamp-2">{ad.description}</p>
+          <p className="text-sm text-gray-600 line-clamp-2">
+            {ad.description}
+          </p>
 
           {/* Info */}
-          <div className="grid grid-cols-2 gap-3 text-sm">
-            <div className="flex gap-2 items-center">
-              <DollarSign className="text-emerald-500" /> ₹{ad.price || 'N/A'}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+            <div className="flex items-center gap-2">
+              <DollarSign className="w-4 text-emerald-500" /> ₹{ad.price || 'N/A'}
             </div>
-            <div className="flex gap-2 items-center">
-              <User className="text-blue-500" /> {ad.contactinfo?.phone || 'N/A'}
+            <div className="flex items-center gap-2">
+              <User className="w-4 text-blue-500" /> {ad.contactinfo?.phone || 'N/A'}
             </div>
-            <div className="flex gap-2 items-center">
-              <Calendar className="text-purple-500" /> {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : 'N/A'}
+            <div className="flex items-center gap-2">
+              <Calendar className="w-4 text-purple-500" /> {ad.createdAt ? new Date(ad.createdAt).toLocaleDateString() : 'N/A'}
             </div>
-            <div className="flex gap-2 items-center">
-              <MapPin className="text-orange-500" /> {ad.location || 'N/A'}
+            <div className="flex items-center gap-2">
+              <MapPin className="w-4 text-orange-500" /> {ad.location || 'N/A'}
             </div>
           </div>
 
-          {/* Toggles */}
-          <div className="flex gap-4 pt-3 border-t">
-            <label className="flex gap-2 items-center text-sm">
-              <Checkbox checked={!!ad.featured} onCheckedChange={() => toggleFeatured(ad._id, !!ad.featured)} />
-              <Sparkles className="w-3 h-3" /> Featured
-            </label>
-            <label className="flex gap-2 items-center text-sm">
-              <Checkbox checked={!!ad.sponsored} onCheckedChange={() => toggleSponsored(ad._id, !!ad.sponsored)} />
-              <Zap className="w-3 h-3" /> Sponsored
-            </label>
-          </div>
+          
 
-          {/* Live badge */}
-          <div className="flex items-center gap-2 p-3 bg-emerald-50 rounded-lg">
-            <Award className="text-emerald-600" />
-            <span className="text-sm font-medium text-emerald-700">Live Advertisement</span>
+          <div className="flex items-center gap-2 p-2 bg-emerald-50 rounded-lg">
+            <Award className="w-4 text-emerald-600" />
+            <span className="text-sm font-medium text-emerald-700">
+              Live Advertisement
+            </span>
           </div>
         </div>
 
@@ -232,7 +227,9 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
           <AlertDialogContent>
             <AlertDialogHeader>
               <AlertDialogTitle>Delete Advertisement?</AlertDialogTitle>
-              <AlertDialogDescription>This action cannot be undone.</AlertDialogDescription>
+              <AlertDialogDescription>
+                This action cannot be undone.
+              </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
               <AlertDialogCancel>Cancel</AlertDialogCancel>
@@ -246,18 +243,19 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
     );
   };
 
+  /* ================= JSX ================= */
+
   return (
     <div className="min-h-screen bg-gray-50">
-
-      {/* HEADER (UNCHANGED) */}
-      <div className="sticky top-0 bg-white shadow z-20">
-        <div className="max-w-7xl mx-auto p-4 flex justify-between items-center">
-          <div className="flex gap-3 items-center">
+      {/* Header */}
+      <div className="sticky top-0 z-20 bg-white border-b">
+        <div className="max-w-7xl mx-auto p-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft />
             </Button>
-            <h1 className="text-2xl font-bold flex gap-2">
-              <ShoppingBag /> Manage Advertisements
+            <h1 className="text-xl sm:text-2xl font-bold flex items-center gap-2">
+              <ShoppingBag /> Advertisements
               <Badge>{stats.total}</Badge>
             </h1>
           </div>
@@ -267,16 +265,16 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
               <RefreshCw className={isLoading ? 'animate-spin' : ''} />
             </Button>
             <Button onClick={() => router.push('/AdminAddAdPage')}>
-              <Plus /> Add Advertisement
+              <Plus /> Add
             </Button>
           </div>
         </div>
 
         <div className="max-w-7xl mx-auto px-4 pb-4">
           <div className="relative">
-            <Search className="absolute left-3 top-3 text-gray-400" />
+            <Search className="absolute left-3 top-2.5 text-gray-400 w-4" />
             <Input
-              className="pl-10"
+              className="pl-9"
               placeholder="Search advertisements..."
               value={searchQuery}
               onChange={e => setSearchQuery(e.target.value)}
@@ -285,7 +283,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
         </div>
       </div>
 
-      {/* CONTENT */}
+      {/* Content */}
       <ScrollArea>
         <div className="max-w-7xl mx-auto p-6">
           <Tabs value={selectedTab} onValueChange={v => setSelectedTab(v as any)}>
@@ -295,7 +293,7 @@ export function AdminAdsPage({ initialAds = [] }: AdminAdsPageProps) {
             </TabsList>
 
             <TabsContent value={selectedTab}>
-              <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-4 mt-6">
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5 mt-6">
                 {filteredAds.map(ad => (
                   <AdCard key={ad._id} ad={ad} />
                 ))}

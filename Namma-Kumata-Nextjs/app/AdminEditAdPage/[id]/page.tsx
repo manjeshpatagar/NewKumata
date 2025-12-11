@@ -50,7 +50,7 @@ export default function EditAdPage({ params }: { params: { id: string } }) {
           title: adData.title || '',
           category: typeof adData.category === 'string' ? adData.category : (adData.category?._id || adData.category?.id || ''),
           status: adData.status || 'pending',
-          owner: adData.contactinfo?.owner || adData.owner || '',
+          owner: adData.contactinfo?.whatsapp || adData.owner || '',
           submittedDate: adData.createdAt || adData.submittedDate || new Date().toISOString(),
           description: adData.description || '',
           price: adData.price?.toString() || '',
