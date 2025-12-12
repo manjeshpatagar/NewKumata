@@ -22,6 +22,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "../ui/select";
+
 import { toast } from "sonner";
 import { useRouter } from "next/navigation";
 import { productApi } from "@/lib/api/productApi";
@@ -30,22 +31,20 @@ import { subCategoryApi } from "@/lib/api/subCategoryApi";
 import { useAdmin } from "@/contexts/AdminContext";
 
 export function AdminAddShopPage() {
-  // --------------------
-  // HOOKS
-  // --------------------
   const router = useRouter();
   const { adminUser } = useAdmin();
 
   // --------------------
-  // STATE FIXED WITH TYPES
+  // STATE
   // --------------------
   const [categories, setCategories] = useState<
     { id: string; name: string; type?: string }[]
   >([]);
+
   const [subCategories, setSubCategories] = useState<
     { id: string; name: string; categoryId?: string }[]
   >([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
+
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -58,6 +57,7 @@ export function AdminAddShopPage() {
     description: "",
     openingHours: "",
     status: "approved" as "pending" | "approved" | "rejected",
+    badges: "", // ⭐ NEW FIELD
   });
 
   const [images, setImages] = useState<File[]>([]);
@@ -65,13 +65,13 @@ export function AdminAddShopPage() {
   const [errors, setErrors] = useState<Record<string, string>>({});
 
   // --------------------
-  // AUTH CHECK (FIXED)
+  // AUTH CHECK
   // --------------------
   useEffect(() => {
-    if (adminUser === null) return; // context loading
+    if (adminUser === null) return;
 
     if (!adminUser) {
-      toast.error("Please login as admin to continue");
+      toast.error("Please login as admin");
       router.push("/admin-login");
     }
   }, [adminUser, router]);
@@ -84,22 +84,19 @@ export function AdminAddShopPage() {
 
     const fetchCategories = async () => {
       try {
-        setLoadingCategories(true);
         const res = await categoryApi.getAll();
         const payload = res.data || res;
-        const list = (payload.data || payload) as any[];
+        const list = payload.data || payload;
 
-        const normalized = list.map((cat) => ({
-          id: cat._id || cat.id,
+        const normalized = list.map((cat: any) => ({
+          id: cat._id,
           name: cat.name,
           type: cat.type,
         }));
 
         setCategories(normalized);
-      } catch (error) {
+      } catch {
         toast.error("Could not load categories");
-      } finally {
-        setLoadingCategories(false);
       }
     };
 
@@ -117,16 +114,16 @@ export function AdminAddShopPage() {
         setLoadingSubCategories(true);
         const res = await subCategoryApi.getAll();
         const payload = res.data || res;
-        const list = (payload.data || payload) as any[];
+        const list = payload.data || payload;
 
-        const normalized = list.map((sub) => ({
-          id: sub._id || sub.id,
+        const normalized = list.map((sub: any) => ({
+          id: sub._id,
           name: sub.name,
           categoryId: sub.categoryId?._id || sub.categoryId,
         }));
 
         setSubCategories(normalized);
-      } catch (error) {
+      } catch {
         toast.error("Could not load subcategories");
       } finally {
         setLoadingSubCategories(false);
@@ -137,7 +134,7 @@ export function AdminAddShopPage() {
   }, [adminUser]);
 
   // --------------------
-  // HANDLE INPUT CHANGE
+  // INPUT HANDLER
   // --------------------
   const handleChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -145,7 +142,7 @@ export function AdminAddShopPage() {
   };
 
   // --------------------
-  // VALIDATE FORM
+  // VALIDATION
   // --------------------
   const validateForm = () => {
     const newErrors: Record<string, string> = {};
@@ -154,9 +151,11 @@ export function AdminAddShopPage() {
     if (!formData.subCategory)
       newErrors.subCategory = "Subcategory is required";
     if (!formData.owner.trim()) newErrors.owner = "Owner name is required";
+
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
     if (!/^\+?[\d\s-]{10,}$/.test(formData.phone))
       newErrors.phone = "Invalid phone number";
+
     if (!formData.address.trim()) newErrors.address = "Address is required";
 
     setErrors(newErrors);
@@ -164,21 +163,20 @@ export function AdminAddShopPage() {
   };
 
   // --------------------
-  // SUBMIT FORM TO API
+  // SUBMIT FORM
   // --------------------
   const handleSubmit = async () => {
     if (!validateForm()) {
-      toast.error("Please fill in required fields");
+      toast.error("Please fill required fields");
       return;
     }
 
     try {
       const form = new FormData();
+
       form.append("shopName", formData.name);
       form.append("address", formData.address);
-
-      if (formData.description)
-        form.append("description", formData.description);
+      if (formData.description) form.append("description", formData.description);
       if (formData.owner) form.append("contact[ownerName]", formData.owner);
       if (formData.phone) form.append("contact[phone]", formData.phone);
 
@@ -187,6 +185,7 @@ export function AdminAddShopPage() {
         form.append("openingHours[close]", "");
       }
 
+      // Subcategory → category auto mapping
       const selectedSub = subCategories.find(
         (s) => s.id === formData.subCategory
       );
@@ -196,19 +195,21 @@ export function AdminAddShopPage() {
         return;
       }
 
-      const derivedCategory = selectedSub?.categoryId;
-      if (!derivedCategory) {
-        toast.error("Selected subcategory is missing category mapping");
-        return;
+      form.append("subCategoryId", selectedSub.id);
+      form.append("categoryId", selectedSub.categoryId || "");
+
+      // Status mapping for DB
+      form.append(
+        "status",
+        formData.status === "approved" ? "active" : "inactive"
+      );
+
+      // ⭐ ADD BADGE
+      if (formData.badges) {
+        form.append("badges", formData.badges);
       }
-      form.append("categoryId", derivedCategory);
-      form.append("subCategoryId", formData.subCategory);
 
-      const statusPayload =
-        formData.status === "approved" ? "active" : "inactive";
-
-      form.append("status", statusPayload);
-
+      // Images
       images.forEach((file) => form.append("images", file));
 
       await productApi.create(form);
@@ -217,32 +218,31 @@ export function AdminAddShopPage() {
       router.push("/AdminAddShop");
     } catch (error) {
       toast.error("Failed to add shop");
-      console.error(error);
+      console.log(error);
     }
   };
 
   // --------------------
-  // IMAGE UPLOAD
+  // IMAGES
   // --------------------
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files) return;
 
-    const newFiles = Array.from(files);
-    const newPreviews: string[] = [];
+    const arr = Array.from(files);
+    const previewList: string[] = [];
 
-    newFiles.forEach((file) => {
+    arr.forEach((file) => {
       const reader = new FileReader();
       reader.onloadend = () => {
-        newPreviews.push(reader.result as string);
-        if (newPreviews.length === newFiles.length) {
-          setImagePreviews((prev) => [...prev, ...newPreviews]);
-        }
+        previewList.push(reader.result as string);
+        if (previewList.length === arr.length)
+          setImagePreviews((prev) => [...prev, ...previewList]);
       };
       reader.readAsDataURL(file);
     });
 
-    setImages((prev) => [...prev, ...newFiles]);
+    setImages((prev) => [...prev, ...arr]);
   };
 
   const removeImage = (index: number) => {
@@ -250,6 +250,9 @@ export function AdminAddShopPage() {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
+  // --------------------
+  // RESET
+  // --------------------
   const handleReset = () => {
     setFormData({
       name: "",
@@ -261,6 +264,7 @@ export function AdminAddShopPage() {
       description: "",
       openingHours: "",
       status: "approved",
+      badges: "",
     });
     setImages([]);
     setImagePreviews([]);
@@ -268,7 +272,7 @@ export function AdminAddShopPage() {
   };
 
   // --------------------
-  // UI RETURN
+  // UI
   // --------------------
   return (
     <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
@@ -299,9 +303,8 @@ export function AdminAddShopPage() {
             <div className="space-y-6">
               {/* NAME */}
               <div className="space-y-2">
-                <Label htmlFor="name">Shop Name *</Label>
+                <Label>Shop Name *</Label>
                 <Input
-                  id="name"
                   placeholder="Enter shop name"
                   value={formData.name}
                   onChange={(e) => handleChange("name", e.target.value)}
@@ -318,7 +321,6 @@ export function AdminAddShopPage() {
                 <Select
                   value={formData.subCategory}
                   onValueChange={(value) => {
-                    // derive and store category based on selected subcategory
                     const matched = subCategories.find((s) => s.id === value);
                     setFormData((prev) => ({
                       ...prev,
@@ -340,6 +342,7 @@ export function AdminAddShopPage() {
                       }
                     />
                   </SelectTrigger>
+
                   <SelectContent>
                     {subCategories.map((sub) => (
                       <SelectItem key={sub.id} value={sub.id}>
@@ -348,16 +351,40 @@ export function AdminAddShopPage() {
                     ))}
                   </SelectContent>
                 </Select>
+
                 {errors.subCategory && (
                   <p className="text-red-500 text-xs">{errors.subCategory}</p>
                 )}
               </div>
+              {/* BADGES */}
+              <div className="space-y-2">
+                <Label>Badge (optional)</Label>
+
+                <Select
+                  value={formData.badges}
+                  onValueChange={(value) => handleChange("badges", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select badge" />
+                  </SelectTrigger>
+
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="popular">Popular</SelectItem>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                    <SelectItem value="trending">Trending</SelectItem>
+                    <SelectItem value="exclusive">Exclusive</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
 
               {/* OWNER */}
               <div className="space-y-2">
                 <Label>Owner *</Label>
                 <Input
-                  placeholder="Enter owner name"
+                  placeholder="Owner name"
                   value={formData.owner}
                   onChange={(e) => handleChange("owner", e.target.value)}
                   className={errors.owner ? "border-red-500" : ""}
@@ -371,7 +398,6 @@ export function AdminAddShopPage() {
               <div className="space-y-2">
                 <Label>Phone *</Label>
                 <Input
-                  type="tel"
                   placeholder="+91 9876543210"
                   value={formData.phone}
                   onChange={(e) => handleChange("phone", e.target.value)}
@@ -386,7 +412,7 @@ export function AdminAddShopPage() {
               <div className="space-y-2">
                 <Label>Address *</Label>
                 <Textarea
-                  placeholder="Enter shop address"
+                  placeholder="Shop address"
                   value={formData.address}
                   onChange={(e) => handleChange("address", e.target.value)}
                   rows={3}
@@ -401,7 +427,7 @@ export function AdminAddShopPage() {
               <div className="space-y-2">
                 <Label>Description</Label>
                 <Textarea
-                  placeholder="Brief description"
+                  placeholder="Short description"
                   value={formData.description}
                   onChange={(e) => handleChange("description", e.target.value)}
                   rows={4}
@@ -442,34 +468,23 @@ export function AdminAddShopPage() {
                   className="hidden"
                 />
 
-                {imagePreviews.length > 0 ? (
+                {imagePreviews.length > 0 && (
                   <div className="grid grid-cols-3 gap-3">
-                    {imagePreviews.map((preview, index) => (
+                    {imagePreviews.map((src, i) => (
                       <div
-                        key={index}
-                        className="relative group aspect-square rounded-lg overflow-hidden border"
+                        key={i}
+                        className="relative border rounded-lg overflow-hidden group"
                       >
-                        <img
-                          src={preview}
-                          alt={`Shop preview ${index + 1}`}
-                          className="object-cover w-full h-full"
-                        />
+                        <img src={src} className="object-cover w-full h-full" />
+
                         <button
-                          type="button"
-                          onClick={() => removeImage(index)}
-                          className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100"
+                          onClick={() => removeImage(i)}
+                          className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100"
                         >
                           <X className="w-4 h-4" />
                         </button>
                       </div>
                     ))}
-                  </div>
-                ) : (
-                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
-                    <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                    <p className="text-sm text-gray-500">
-                      No images uploaded yet
-                    </p>
                   </div>
                 )}
               </div>
@@ -477,7 +492,6 @@ export function AdminAddShopPage() {
               {/* STATUS */}
               <div className="space-y-2">
                 <Label>Status</Label>
-
                 <Select
                   value={formData.status}
                   onValueChange={(value) => handleChange("status", value)}
@@ -495,7 +509,7 @@ export function AdminAddShopPage() {
             </div>
           </Card>
 
-          {/* ACTION BUTTONS */}
+          {/* BUTTONS */}
           <div className="flex gap-3 mt-6">
             <Button variant="outline" className="flex-1" onClick={handleReset}>
               <X className="w-4 h-4 mr-2" />
