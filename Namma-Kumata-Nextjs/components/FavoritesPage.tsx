@@ -21,23 +21,47 @@ export function FavoritesPage({
 
   const [favorites, setFavorites] = useState<any[]>([]);
 
-  // Convert backend favourites → frontend format
+  /* --------------------------------------
+     FORMAT FAVOURITES (Product + Ads)
+  ----------------------------------------- */
   useEffect(() => {
-    const formatted = initialFavourites.map((fav) => {
-      if (fav.productId) {
-        return {
-          id: fav._id,
-          type: "listing",
-          data: fav.productId,
-        };
-      } else {
-        return {
-          id: fav._id,
-          type: "ad",
-          data: fav.advertisementId,
-        };
-      }
-    });
+    const formatted = initialFavourites
+      .map((fav) => {
+        // ⭐ Product Favourite
+        if (fav.productId) {
+          const p = fav.productId;
+
+          return {
+            id: fav._id, // favourite id
+            type: "listing",
+
+            // ⭐ transform product for ListingCard
+            data: {
+              id: p._id,
+              shopName: p.shopName,
+              description: p.description,
+              image: p.images?.[0] || "",
+              images: p.images || [],
+              rating: p.rating || 0,
+              reviewCount: p.reviewCount || 0,
+              phone: p.contact?.phone || "",
+              address: p.address || "",
+            },
+          };
+        }
+
+        // ⭐ Advertisement Favourite
+        if (fav.advertisementId) {
+          return {
+            id: fav._id,
+            type: "ad",
+            data: fav.advertisementId,
+          };
+        }
+
+        return null;
+      })
+      .filter(Boolean);
 
     setFavorites(formatted);
   }, [initialFavourites]);
@@ -105,9 +129,10 @@ export function FavoritesPage({
         </div>
       </div>
 
+      {/* CONTENT */}
       <ScrollArea className="flex-1 bg-gray-50 dark:bg-gray-950">
         <div className="px-4 py-4 pb-24">
-          {/* Listings */}
+          {/* -------- LISTINGS TAB -------- */}
           {activeTab === "listings" && (
             <div>
               {listingFavorites.length === 0 ? (
@@ -123,7 +148,7 @@ export function FavoritesPage({
                           "currentListing",
                           JSON.stringify(fav.data)
                         );
-                        router.push("/detail");
+                        router.push(`/listing/${fav.data.id}`);
                       }}
                     />
                   ))}
@@ -132,7 +157,7 @@ export function FavoritesPage({
             </div>
           )}
 
-          {/* Ads */}
+          {/* -------- ADS TAB -------- */}
           {activeTab === "ads" && (
             <div>
               {adFavorites.length === 0 ? (
@@ -148,7 +173,7 @@ export function FavoritesPage({
                           "currentAd",
                           JSON.stringify(fav.data)
                         );
-                        router.push("/ad-detail");
+                        router.push(`/ads/${fav.data._id}`);
                       }}
                     />
                   ))}
@@ -164,7 +189,10 @@ export function FavoritesPage({
   );
 }
 
-// Empty states (unchanged code)
+/* --------------------------------------
+   EMPTY STATES (UNCHANGED)
+----------------------------------------- */
+
 function EmptyStateListings() {
   const router = useRouter();
   const { t } = useLanguage();

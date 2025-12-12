@@ -19,6 +19,7 @@ async function getFavouritesSSR() {
     if (!token) return [];
 
     const res = await favouriteServerApi.getMyFavourites(token);
+    console.log("✅ SSR Favourites Response:", res);
     return res.data || [];
   } catch (error) {
     console.error("❌ SSR Favourites Error:", error);

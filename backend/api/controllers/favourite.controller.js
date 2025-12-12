@@ -22,7 +22,7 @@ export const addFavourite = asyncHandler(async (req, res) => {
  ⭐ Remove Favourite
 ----------------------------- */
 export const deleteFavourite = asyncHandler(async (req, res) => {
-  await removeFavourite(req.user._id, req.params.productId);
+  await removeFavourite(req.params.id, req.user._id); // ❤️ correct usage
 
   res.status(200).json({
     success: true,

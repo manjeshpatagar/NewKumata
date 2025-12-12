@@ -10,7 +10,6 @@ import { protect, adminOnly } from "../middleware/auth.middleware.js";
 import { useUpload } from "../middleware/upload.middleware.js";
 
 const uploadProducts = useUpload({
-  folder: "products",
   fields: [
     { name: "images", maxCount: 10, type: "image" },
     { name: "thumbnail", maxCount: 1, type: "image" },

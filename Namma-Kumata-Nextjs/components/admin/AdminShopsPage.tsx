@@ -2,8 +2,18 @@
 
 import { useState, useEffect, useMemo } from "react";
 import {
-  ArrowLeft, Edit, Trash2, Plus, Search, Store,
-  MapPin, Phone, User, Calendar, Eye, MoreVertical
+  ArrowLeft,
+  Edit,
+  Trash2,
+  Plus,
+  Search,
+  Store,
+  MapPin,
+  Phone,
+  User,
+  Calendar,
+  Eye,
+  MoreVertical,
 } from "lucide-react";
 import { Button } from "../ui/button";
 import { Card } from "../ui/card";
@@ -36,9 +46,12 @@ export interface Shop {
   location?: string;
   openingHours?: string;
   status?: string;
+  thumbnail?: string;
+
+  raw?: any;
 }
 
-export function AdminShopsPage() {
+export function AdminShopsPage({ ssrShops = [] }) {
   const router = useRouter();
   const { adminUser } = useAdmin();
 
@@ -71,10 +84,7 @@ export function AdminShopsPage() {
           item.category?.name ||
           item.category ||
           "Uncategorized",
-        subCategory:
-          item.subCategoryId?.name ||
-          item.subCategory ||
-          undefined,
+        subCategory: item.subCategoryId?.name || item.subCategory || undefined,
         owner: item.contact?.ownerName || item.owner || "Unknown owner",
         phone: item.contact?.phone || item.phone,
         address: item.address,
@@ -136,7 +146,8 @@ export function AdminShopsPage() {
 
   // Single Shop Card
   const ShopCard = ({ shop }: { shop: Shop }) => {
-    const gradient = categoryColors[shop.category] || "from-gray-500 to-gray-600";
+    const gradient =
+      categoryColors[shop.category] || "from-gray-500 to-gray-600";
 
     return (
       <Card className="relative group overflow-hidden border shadow hover:shadow-xl transition">
@@ -144,7 +155,6 @@ export function AdminShopsPage() {
 
         <div className="p-5 space-y-4">
           <div className="flex justify-between gap-3">
-
             <div className="flex-1 min-w-0">
               <div className="flex items-center gap-3">
                 <div className={`p-2 rounded-xl bg-gradient-to-br ${gradient}`}>
@@ -153,7 +163,9 @@ export function AdminShopsPage() {
 
                 <div>
                   <h3 className="font-bold text-lg truncate">{shop.name}</h3>
-                  <Badge className={`bg-gradient-to-r ${gradient} text-white text-xs`}>
+                  <Badge
+                    className={`bg-gradient-to-r ${gradient} text-white text-xs`}
+                  >
                     {shop.category}
                   </Badge>
                 </div>
@@ -168,11 +180,15 @@ export function AdminShopsPage() {
               </DropdownMenuTrigger>
 
               <DropdownMenuContent align="end">
-                <DropdownMenuItem onClick={() => router.push(`/AdminEditShopPage/${shop.id}`)}>
+                <DropdownMenuItem
+                  onClick={() => router.push(`/AdminEditShopPage/${shop.id}`)}
+                >
                   <Edit className="w-4 h-4 mr-2" /> Edit
                 </DropdownMenuItem>
 
-                <DropdownMenuItem onClick={() => router.push(`/shop/${shop.id}`)}>
+                <DropdownMenuItem
+                  onClick={() => router.push(`/shop/${shop.id}`)}
+                >
                   <Eye className="w-4 h-4 mr-2" /> View
                 </DropdownMenuItem>
 
@@ -190,7 +206,6 @@ export function AdminShopsPage() {
 
           {/* Details Grid */}
           <div className="grid grid-cols-2 gap-3 text-sm">
-
             {/* Owner */}
             <div className="flex gap-2">
               <User className="w-4 h-4 text-blue-500" />
@@ -230,7 +245,6 @@ export function AdminShopsPage() {
                 </div>
               </div>
             )}
-
           </div>
         </div>
       </Card>
@@ -239,11 +253,9 @@ export function AdminShopsPage() {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-gray-50 to-blue-50 dark:from-gray-950 dark:to-blue-950">
-
       {/* Header */}
       <div className="sticky top-0 bg-white/90 backdrop-blur border-b z-20">
         <div className="max-w-7xl mx-auto p-4 flex justify-between items-center">
-
           <div className="flex items-center gap-3">
             <Button variant="ghost" size="icon" onClick={() => router.back()}>
               <ArrowLeft className="w-5 h-5" />
@@ -277,7 +289,6 @@ export function AdminShopsPage() {
       {/* Content */}
       <ScrollArea className="flex-1">
         <div className="max-w-7xl mx-auto px-4 py-6 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
           {loading ? (
             <div className="text-center col-span-full py-10">
               <div className="animate-spin h-10 w-10 border-b-2 rounded-full border-blue-500"></div>
@@ -290,7 +301,6 @@ export function AdminShopsPage() {
               <p>No shops found</p>
             </div>
           )}
-
         </div>
       </ScrollArea>
     </div>
