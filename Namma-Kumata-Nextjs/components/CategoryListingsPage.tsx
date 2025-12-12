@@ -53,6 +53,7 @@ export function CategoryListingsPage({
     distance: p.distance || "",
     phone: p.contact?.phone,
     address: p.address,
+    badge: p.badges || "",
   }));
 
   const ListingCard = ({ listing }: { listing: any }) => (
@@ -79,38 +80,26 @@ export function CategoryListingsPage({
             {listing.businessName}
           </p>
 
-          <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-600 dark:text-gray-400">
             <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
-              <span>{listing.rating}</span>
-              <span>({listing.reviewCount})</span>
+              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              {listing.rating} ({listing.reviewCount})
             </div>
+
             <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-              <span>{listing.distance}</span>
+              <MapPin className="w-3 h-3" />
+              {listing.distance}
             </div>
           </div>
+
+          <div className="flex items-center gap-2 mt-2 text-xs text-gray-600 dark:text-gray-400">
+            <MapPin className="w-3 h-3" />
+            {listing.address}
+          </div>
         </div>
-
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-8 w-8 md:h-10 md:w-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            window.open(`tel:${listing.phone}`);
-          }}
-        >
-          <Phone className="w-4 h-4 md:w-5 md:h-5" />
-        </Button>
-      </div>
-
-      <div className="mt-3 md:mt-4 flex items-center gap-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
-        <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-        <span>{listing.address}</span>
-      </div>
-    </Card>
-  );
+      </Card>
+    );
+  };
 
   return (
     <div className="h-[calc(100vh-4rem)] flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-950">
