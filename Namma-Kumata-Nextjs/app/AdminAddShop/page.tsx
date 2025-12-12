@@ -10,8 +10,9 @@ export default async function AdminDashboardPage() {
   const cookieStore = cookies();
   const token =
     cookieStore.get("adminToken")?.value ||
-    cookieStore.get("token")?.value ||
-    "";
+    cookieStore.get("token")?.value || null;
+
+    let shops:any[]=[]
 
   try {
     const res = await productServerApi.getAll(token);
