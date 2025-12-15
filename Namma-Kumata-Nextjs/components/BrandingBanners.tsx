@@ -1,62 +1,106 @@
 'use client';
 
 import { useRouter } from 'next/navigation';
-import { Carousel, CarouselContent, CarouselItem, CarouselNext, CarouselPrevious } from './ui/carousel';
+import { useEffect, useState } from 'react';
+import {
+  Carousel,
+  CarouselContent,
+  CarouselItem,
+  CarouselNext,
+  CarouselPrevious,
+} from './ui/carousel';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { ImageWithFallback } from './figma/ImageWithFallback';
 import { useLanguage } from '../contexts/LanguageContext';
+import type { CarouselApi } from './ui/carousel';
 
 export function BrandingBanners({ latestAds = [] }: { latestAds: any[] }) {
   const router = useRouter();
   const { t } = useLanguage();
+  const [api, setApi] = useState<CarouselApi | null>(null);
 
-  if (!latestAds || latestAds.length === 0) return null; // No ads → hide section
+  if (!latestAds.length) return null;
+
+  /* --------------------------
+      AUTO SCROLL (EMBLA)
+  --------------------------- */
+  useEffect(() => {
+    if (!api) return;
+
+    const interval = setInterval(() => {
+      api.scrollNext();
+    }, 5000);
+
+    return () => clearInterval(interval);
+  }, [api]);
 
   return (
-    <div className="p-4 pt-0">
+    <div className="px-3 sm:px-4">
+      {/* HEADER */}
       <div className="flex items-center justify-between mb-3">
-        <h3 className="dark:text-white text-2xl">{t("latestAds")}</h3>
+        <h3 className="text-lg sm:text-xl md:text-2xl font-semibold">
+          {t('latestAds')}
+        </h3>
         <Badge variant="secondary" className="text-xs">
-          {t("new")}
+          {t('new')}
         </Badge>
       </div>
 
-      <Carousel className="w-full">
+      {/* CAROUSEL */}
+      <Carousel
+        setApi={setApi}
+        opts={{
+          loop: true,
+        }}
+        className="w-full"
+      >
         <CarouselContent>
           {latestAds.map((ad) => (
-            <CarouselItem key={ad._id}>
+            <CarouselItem key={ad._id} className="basis-full">
               <Card
-                className="overflow-hidden cursor-pointer border-2 border-blue-400 dark:border-blue-600 hover:shadow-lg transition-shadow"
+                className="overflow-hidden rounded-xl cursor-pointer hover:shadow-xl transition-shadow"
                 onClick={() => {
-                  sessionStorage.setItem("currentAd", JSON.stringify(ad));
+                  sessionStorage.setItem('currentAd', JSON.stringify(ad));
                   router.push(`/ads/${ad._id}`);
                 }}
               >
-                {/* Image Section */}
-                <div className="relative h-40 bg-gray-200 dark:bg-gray-800">
-                  {ad.images?.[0] && (
-                    <>
-                      <ImageWithFallback
-                        src={ad.images[0]}
-                        alt={ad.title}
-                        className="w-full h-full object-cover"
-                      />
-                      <div className="absolute inset-0 bg-gradient-to-r from-black/60 to-transparent" />
-                    </>
-                  )}
+                {/* IMAGE */}
+                <div className="
+                  relative 
+                  h-[180px] 
+                  sm:h-[240px] 
+                  md:h-[300px] 
+                  lg:h-[360px]
+                  bg-gray-200
+                ">
+                  <ImageWithFallback
+                    src={ad.images?.[0]}
+                    alt={ad.title}
+                    className="w-full h-full object-cover"
+                  />
 
-                  {/* Text Overlay */}
-                  <div className="absolute inset-0 flex flex-col justify-center p-4 text-white">
-                    <Badge className="mb-2 bg-blue-600 text-white w-fit">
-                      {ad.badges}
-                    </Badge>
+                  {/* GRADIENT */}
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/75 via-black/30 to-transparent" />
 
-                    <h3 className="text-lg mb-1 line-clamp-1">{ad.title}</h3>
-                    <p className="text-sm opacity-90 line-clamp-2">{ad.description}</p>
+                  {/* TEXT */}
+                  <div className="absolute bottom-0 p-3 sm:p-5 text-white max-w-[90%]">
+                    {ad.badges && (
+                      <Badge className="mb-2 bg-blue-600 text-white">
+                        {ad.badges}
+                      </Badge>
+                    )}
 
-                    <p className="text-xs mt-2 opacity-75">
-                      {ad.category?.name || t("unknownCategory")}
+                    <h3 className="text-base sm:text-lg md:text-xl font-semibold line-clamp-1">
+                      {ad.title}
+                    </h3>
+
+                    <p className="text-xs sm:text-sm md:text-base opacity-90 line-clamp-2">
+                      {ad.description}
+                    </p>
+
+                    <p className="text-[11px] sm:text-xs mt-1 opacity-75">
+                      {ad.category?.name || t('unknownCategory')}
                     </p>
                   </div>
                 </div>
@@ -65,8 +109,9 @@ export function BrandingBanners({ latestAds = [] }: { latestAds: any[] }) {
           ))}
         </CarouselContent>
 
-        <CarouselPrevious className="left-2" />
-        <CarouselNext className="right-2" />
+        {/* NAV (hidden on mobile, visible desktop) */}
+        <CarouselPrevious className="hidden sm:flex left-2" />
+        <CarouselNext className="hidden sm:flex right-2" />
       </Carousel>
     </div>
   );

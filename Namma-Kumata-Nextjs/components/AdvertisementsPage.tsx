@@ -170,8 +170,11 @@ export function AdvertisementsPage({
         )}
 
         <div className="p-3">
-          <Badge variant="secondary" className="mb-2 text-xs">
-            {categoryInfo?.emoji} {categoryInfo?.name}
+          <Badge variant="secondary" className="absolute top-2 right-2 bg-yellow-500 text-white">
+            {categoryInfo?.name}
+          </Badge>
+          <Badge variant="secondary" className="mb-2 text-xs bg-blue-500 text-white">
+            {ad.badges}
           </Badge>
 
           <h3 className="line-clamp-1 font-medium">{ad.title}</h3>
@@ -314,7 +317,7 @@ export function AdvertisementsPage({
           </div>
 
           {/* FEATURED */}
-          {featuredAds.length > 0 && (
+          {/* {featuredAds.length > 0 && (
             <div className="px-4 mb-6">
               <h2 className="text-lg mb-3">🔥 {t("featuredAds")}</h2>
 
@@ -330,7 +333,7 @@ export function AdvertisementsPage({
                 <CarouselNext />
               </Carousel>
             </div>
-          )}
+          )} */}
 
           {/* ALL ADS */}
           <div className="px-4">
