@@ -172,11 +172,7 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                 {categories.map((cat) => (
                   <button
                     key={cat._id}
-                    onClick={() =>
-                      go(
-                        `/subcategory?categoryId=${cat._id}&categoryName=${cat.name}`
-                      )
-                    }
+                    onClick={() => router.push(`/explore/${cat._id}`)}
                     className="flex flex-col items-center gap-2"
                   >
                     {cat.image ? (
@@ -192,6 +188,7 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                     )}
                     <span className="text-sm font-medium">{cat.name}</span>
                   </button>
+
                 ))}
               </div>
             </section>
@@ -211,7 +208,8 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                   return (
                     <div
                       key={shop._id}
-                      onClick={() => go("/detail", shop)}
+                      onClick={() => router.push(`/listing/${shop._id}`)}
+
                       className="bg-white rounded-3xl shadow-lg overflow-hidden cursor-pointer"
                     >
                       {img ? (
@@ -257,7 +255,10 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                   return (
                     <div
                       key={ad._id}
-                      onClick={() => go("/ad-detail", ad)}
+                     onClick={(e) => {
+  e.stopPropagation();
+  router.push(`/ads/${ad._id}`);
+}}
                       className="bg-white rounded-3xl shadow-lg overflow-hidden cursor-pointer"
                     >
                       {img ? (
@@ -297,59 +298,59 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
             </section>
           )}
 
-         {/* ===================== EMERGENCY (INLINE UI) ===================== */}
-<section className="py-10 bg-gradient-to-br from-red-50 to-orange-50">
-  <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900">
-    {t("emergencyNumbers") || "Emergency Contacts"}
-  </h2>
+          {/* ===================== EMERGENCY (INLINE UI) ===================== */}
+          <section className="py-10 bg-gradient-to-br from-red-50 to-orange-50">
+            <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900">
+              {t("emergencyNumbers") || "Emergency Contacts"}
+            </h2>
 
-  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
-    {/* POLICE */}
-    <a
-      href="tel:100"
-      className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
-    >
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
-        🚓
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-600">Police</p>
-        <p className="text-2xl font-bold text-gray-900">100</p>
-      </div>
-      <Badge className="bg-green-600 text-white">Call</Badge>
-    </a>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
+              {/* POLICE */}
+              <a
+                href="tel:100"
+                className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
+                  🚓
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600">Police</p>
+                  <p className="text-2xl font-bold text-gray-900">100</p>
+                </div>
+                <Badge className="bg-green-600 text-white">Call</Badge>
+              </a>
 
-    {/* AMBULANCE */}
-    <a
-      href="tel:108"
-      className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
-    >
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
-        🚑
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-600">Ambulance</p>
-        <p className="text-2xl font-bold text-gray-900">108</p>
-      </div>
-      <Badge className="bg-green-600 text-white">Call</Badge>
-    </a>
+              {/* AMBULANCE */}
+              <a
+                href="tel:108"
+                className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
+                  🚑
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600">Ambulance</p>
+                  <p className="text-2xl font-bold text-gray-900">108</p>
+                </div>
+                <Badge className="bg-green-600 text-white">Call</Badge>
+              </a>
 
-    {/* FIRE */}
-    <a
-      href="tel:101"
-      className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
-    >
-      <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg">
-        🚒
-      </div>
-      <div className="flex-1">
-        <p className="text-sm font-medium text-gray-600">Fire Service</p>
-        <p className="text-2xl font-bold text-gray-900">101</p>
-      </div>
-      <Badge className="bg-green-600 text-white">Call</Badge>
-    </a>
-  </div>
-</section>
+              {/* FIRE */}
+              <a
+                href="tel:101"
+                className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
+              >
+                <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg">
+                  🚒
+                </div>
+                <div className="flex-1">
+                  <p className="text-sm font-medium text-gray-600">Fire Service</p>
+                  <p className="text-2xl font-bold text-gray-900">101</p>
+                </div>
+                <Badge className="bg-green-600 text-white">Call</Badge>
+              </a>
+            </div>
+          </section>
 
         </div>
       </ScrollArea>
