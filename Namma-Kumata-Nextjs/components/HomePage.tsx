@@ -255,10 +255,10 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                   return (
                     <div
                       key={ad._id}
-                     onClick={(e) => {
-  e.stopPropagation();
-  router.push(`/ads/${ad._id}`);
-}}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        router.push(`/ads/${ad._id}`);
+                      }}
                       className="bg-white rounded-3xl shadow-lg overflow-hidden cursor-pointer"
                     >
                       {img ? (
