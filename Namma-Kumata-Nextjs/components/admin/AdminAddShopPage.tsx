@@ -46,19 +46,25 @@ export function AdminAddShopPage() {
   >([]);
 
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
-
-  const [formData, setFormData] = useState({
-    name: "",
-    category: "",
-    subCategory: "",
-    owner: "",
-    phone: "",
-    address: "",
-    description: "",
-    openingHours: "",
-    status: "approved" as "pending" | "approved" | "rejected",
-    badges: "", // ⭐ NEW FIELD
-  });
+const [formData, setFormData] = useState({
+  name: "",
+  category: "",
+  subCategory: "",
+  owner: "",
+  phone: "",
+  address: "",
+  description: "",
+  openingHours: "",
+  status: "approved" as "pending" | "approved" | "rejected",
+  badges: "" as
+    | ""
+    | "upcoming"
+    | "popular"
+    | "featured"
+    | "new"
+    | "trending"
+    | "exclusive",
+});
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -250,26 +256,24 @@ export function AdminAddShopPage() {
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-  // --------------------
-  // RESET
-  // --------------------
-  const handleReset = () => {
-    setFormData({
-      name: "",
-      category: "",
-      subCategory: "",
-      owner: "",
-      phone: "",
-      address: "",
-      description: "",
-      openingHours: "",
-      status: "approved",
-      badges: "",
-    });
-    setImages([]);
-    setImagePreviews([]);
-    setErrors({});
-  };
+const handleReset = () => {
+  setFormData({
+    name: "",
+    category: "",
+    subCategory: "",
+    owner: "",
+    phone: "",
+    address: "",
+    description: "",
+    openingHours: "",
+    status: "approved",
+    badges: "",
+  });
+  setImages([]);
+  setImagePreviews([]);
+  setErrors({});
+};
+
 
   // --------------------
   // UI
@@ -486,8 +490,37 @@ export function AdminAddShopPage() {
                       </div>
                     ))}
                   </div>
+                ) : (
+                  <div className="border-2 border-dashed rounded-lg p-6 text-center">
+                    <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
+                    <p className="text-sm text-gray-500">
+                      No images uploaded yet
+                    </p>
+                  </div>
                 )}
               </div>
+              {/* BADGES */}
+<div className="space-y-2">
+  <Label>Badge</Label>
+
+  <Select
+    value={formData.badges}
+    onValueChange={(value) => handleChange("badges", value)}
+  >
+    <SelectTrigger>
+      <SelectValue placeholder="Select badge (optional)" />
+    </SelectTrigger>
+
+    <SelectContent>
+      <SelectItem value="new">New</SelectItem>
+      <SelectItem value="popular">Popular</SelectItem>
+      <SelectItem value="featured">Featured</SelectItem>
+      <SelectItem value="trending">Trending</SelectItem>
+      <SelectItem value="exclusive">Exclusive</SelectItem>
+      <SelectItem value="upcoming">Upcoming</SelectItem>
+    </SelectContent>
+  </Select>
+</div>
 
               {/* STATUS */}
               <div className="space-y-2">
