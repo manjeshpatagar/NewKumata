@@ -26,9 +26,10 @@ import { favouriteApi } from "@/lib/api/favouriteApi";
 
 interface AdDetailPageProps {
   ad: any;
+  moreAds: any[];
 }
 
-export function AdDetailPage({ ad }: AdDetailPageProps) {
+export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
   const router = useRouter();
   const { isFavorite, toggleFavorite, getFavouriteId, removeFavorite } =
     useFavorites();
@@ -202,61 +203,66 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
       </div>
 
       {/* BODY */}
-      <ScrollArea className="flex-1">
-        <div className="pb-24">
-          {/* MEDIA */}
-          <div className="relative h-64 bg-gray-200 dark:bg-gray-900">
-            {video ? (
-              <video
-                src={video}
-                controls
+<ScrollArea className="flex-1">
+  <div className="max-w-7xl mx-auto px-4 pb-24">
+    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+
+      {/* ================= LEFT : MAIN AD ================= */}
+      <div className="lg:col-span-2">
+        {/* MEDIA */}
+        <div className="relative h-64 sm:h-80 md:h-96 bg-gray-200 dark:bg-gray-900 rounded-xl overflow-hidden">
+          {video ? (
+            <video src={video} controls className="w-full h-full object-cover" />
+          ) : images.length > 0 ? (
+            <>
+              <ImageWithFallback
+                src={images[currentImageIndex]}
+                alt={ad.title}
                 className="w-full h-full object-cover"
               />
-            ) : images.length > 0 ? (
-              <>
-                <ImageWithFallback
-                  src={images[currentImageIndex]}
-                  alt={ad.title}
-                  className="w-full h-full object-cover"
-                />
 
-                {images.length > 1 && (
-                  <>
-                    <button
-                      onClick={() =>
-                        setCurrentImageIndex((prev) =>
-                          prev === 0 ? images.length - 1 : prev - 1
-                        )
-                      }
-                      className="absolute left-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 p-2 rounded-full shadow"
-                    >
-                      <ChevronLeft />
-                    </button>
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setCurrentImageIndex(
+                        currentImageIndex === 0
+                          ? images.length - 1
+                          : currentImageIndex - 1
+                      )
+                    }
+                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                  >
+                    <ChevronLeft />
+                  </button>
 
-                    <button
-                      onClick={() =>
-                        setCurrentImageIndex((prev) =>
-                          prev === images.length - 1 ? 0 : prev + 1
-                        )
-                      }
-                      className="absolute right-3 top-1/2 -translate-y-1/2 bg-white dark:bg-gray-800 p-2 rounded-full shadow"
-                    >
-                      <ChevronRight />
-                    </button>
-                  </>
-                )}
-              </>
-            ) : (
-              <div className="flex items-center justify-center h-full text-gray-500">
-                No Media
-              </div>
-            )}
-          </div>
+                  <button
+                    onClick={() =>
+                      setCurrentImageIndex(
+                        currentImageIndex === images.length - 1
+                          ? 0
+                          : currentImageIndex + 1
+                      )
+                    }
+                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                  >
+                    <ChevronRight />
+                  </button>
+                </>
+              )}
+            </>
+          ) : (
+            <div className="flex items-center justify-center h-full text-gray-500">
+              No Media
+            </div>
+          )}
+        </div>
 
-          {/* MAIN INFO */}
-          <div className="px-4 py-4 space-y-2">
-            <h2 className="text-xl font-semibold">{ad.title}</h2>
+        {/* DETAILS */}
+        <div className="mt-4 space-y-3">
+          <h2 className="text-2xl font-semibold">{ad.title}</h2>
 
+          <div className="flex gap-2 flex-wrap">
             <Badge className="bg-blue-600 text-white">
               {ad.category?.name}
             </Badge>
@@ -266,70 +272,116 @@ export function AdDetailPage({ ad }: AdDetailPageProps) {
                 <Star className="w-3 h-3" /> Featured
               </Badge>
             )}
-
-            {ad.price && (
-              <p className="text-3xl font-bold text-blue-600">{ad.price}</p>
-            )}
-
-            <p className="text-gray-700 dark:text-gray-300">{ad.description}</p>
-
-            <p className="flex items-center gap-2 text-gray-500">
-              <MapPin className="w-4 h-4" /> {ad.location}
-            </p>
-
-            <p className="text-sm text-gray-400">
-              Posted on {new Date(ad.createdAt).toLocaleDateString()}
-            </p>
           </div>
 
-          {/* RELATED ADS */}
-          {relatedAds.length > 0 && (
-            <div className="px-4 py-4">
-              <h3 className="text-lg font-semibold mb-4">Similar Ads</h3>
-
-              <div className="grid grid-cols-2 gap-3">
-                {relatedAds.map((item: any) => (
-                  <div
-                    key={item._id}
-                    onClick={() => router.push(`/ads/${item._id}`)}
-                    className="border dark:border-gray-800 rounded-lg overflow-hidden shadow-sm cursor-pointer"
-                  >
-                    <ImageWithFallback
-                      src={item.images?.[0]}
-                      alt={item.title}
-                      className="h-24 w-full object-cover"
-                    />
-
-                    <div className="p-2">
-                      <p className="text-sm font-medium line-clamp-1">
-                        {item.title}
-                      </p>
-                      <p className="text-blue-600 text-sm">{item.price}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
+          {ad.price && (
+            <p className="text-3xl font-bold text-blue-600">{ad.price}</p>
           )}
 
-          {/* CONTACT BUTTONS */}
-          <div className="px-4 py-4 space-y-3">
-            <button
-              onClick={handleCall}
-              className="w-full bg-blue-600 text-white py-3 rounded-lg"
-            >
-              Call Now
-            </button>
+          <p className="text-gray-700 dark:text-gray-300">
+            {ad.description}
+          </p>
 
-            <button
-              onClick={handleWhatsApp}
-              className="w-full bg-green-600 text-white py-3 rounded-lg"
-            >
-              WhatsApp
-            </button>
+          <p className="flex items-center gap-2 text-gray-500">
+            <MapPin className="w-4 h-4" /> {ad.location}
+          </p>
+
+          <p className="text-sm text-gray-400">
+            Posted on {new Date(ad.createdAt).toLocaleDateString()}
+          </p>
+        </div>
+
+        {/* CONTACT */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+          <button
+            onClick={handleCall}
+            className="bg-blue-600 text-white py-3 rounded-lg"
+          >
+            Call Now
+          </button>
+
+          <button
+            onClick={handleWhatsApp}
+            className="bg-green-600 text-white py-3 rounded-lg"
+          >
+            WhatsApp
+          </button>
+        </div>
+
+        {/* ================= MOBILE : MORE ADS ================= */}
+        {moreAds.length > 0 && (
+          <div className="mt-8 lg:hidden">
+            <h3 className="text-lg font-semibold mb-3">More Ads</h3>
+
+            <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+              {moreAds.map((item) => (
+                <div
+                  key={item._id}
+                  onClick={() => router.push(`/ads/${item._id}`)}
+                  className="min-w-[220px] border rounded-xl overflow-hidden cursor-pointer"
+                >
+                  <ImageWithFallback
+                    src={item.images?.[0]}
+                    alt={item.title}
+                    className="h-32 w-full object-cover"
+                  />
+                  <div className="p-2">
+                    <p className="font-medium text-sm line-clamp-1">
+                      {item.title}
+                    </p>
+                    <p className="text-blue-600 text-sm">
+                      {item.price || "Contact"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Read more →
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </div>
+
+      {/* ================= DESKTOP : MORE ADS ================= */}
+      {moreAds.length > 0 && (
+        <div className="hidden lg:block">
+          <div className="sticky top-24">
+            <h3 className="text-lg font-semibold mb-4">More Ads</h3>
+
+            <div className="space-y-4">
+              {moreAds.map((item) => (
+                <div
+                  key={item._id}
+                  onClick={() => router.push(`/ads/${item._id}`)}
+                  className="border rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition"
+                >
+                  <ImageWithFallback
+                    src={item.images?.[0]}
+                    alt={item.title}
+                    className="h-36 w-full object-cover"
+                  />
+                  <div className="p-3">
+                    <p className="font-medium line-clamp-1">
+                      {item.title}
+                    </p>
+                    <p className="text-blue-600 text-sm">
+                      {item.price || "Contact"}
+                    </p>
+                    <p className="text-xs text-gray-500 mt-1">
+                      Read more →
+                    </p>
+                  </div>
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-      </ScrollArea>
+      )}
+    </div>
+  </div>
+</ScrollArea>
+
     </div>
   );
 }
