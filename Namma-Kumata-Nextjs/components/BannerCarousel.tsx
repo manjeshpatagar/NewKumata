@@ -134,7 +134,8 @@ export function BannerCarousel() {
               >
                 <div
                   className="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 hover:scale-[1.02]"
-                  onClick={() => router.push('/detail')}
+                 onClick={() => router.push(`/listing/${banner._id}`)}
+
                 >
                   {/* IMAGE */}
                   <div className="relative h-56 md:h-64 lg:h-72 overflow-hidden">
