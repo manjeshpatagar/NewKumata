@@ -46,25 +46,25 @@ export function AdminAddShopPage() {
   >([]);
 
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
-const [formData, setFormData] = useState({
-  name: "",
-  category: "",
-  subCategory: "",
-  owner: "",
-  phone: "",
-  address: "",
-  description: "",
-  openingHours: "",
-  status: "approved" as "pending" | "approved" | "rejected",
-  badges: "" as
-    | ""
-    | "upcoming"
-    | "popular"
-    | "featured"
-    | "new"
-    | "trending"
-    | "exclusive",
-});
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    subCategory: "",
+    owner: "",
+    phone: "",
+    address: "",
+    description: "",
+    openingHours: "",
+    status: "approved" as "pending" | "approved" | "rejected",
+    badges: "" as
+      | ""
+      | "upcoming"
+      | "popular"
+      | "featured"
+      | "new"
+      | "trending"
+      | "exclusive",
+  });
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -256,23 +256,23 @@ const [formData, setFormData] = useState({
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-const handleReset = () => {
-  setFormData({
-    name: "",
-    category: "",
-    subCategory: "",
-    owner: "",
-    phone: "",
-    address: "",
-    description: "",
-    openingHours: "",
-    status: "approved",
-    badges: "",
-  });
-  setImages([]);
-  setImagePreviews([]);
-  setErrors({});
-};
+  const handleReset = () => {
+    setFormData({
+      name: "",
+      category: "",
+      subCategory: "",
+      owner: "",
+      phone: "",
+      address: "",
+      description: "",
+      openingHours: "",
+      status: "approved",
+      badges: "",
+    });
+    setImages([]);
+    setImagePreviews([]);
+    setErrors({});
+  };
 
 
   // --------------------
@@ -448,16 +448,18 @@ const handleReset = () => {
                 />
               </div>
 
+
               {/* IMAGES */}
               <div className="space-y-2">
                 <Label>Shop Images</Label>
 
                 <Button
+                  type="button"
                   variant="outline"
                   className="w-full"
-                  onClick={() =>
-                    document.getElementById("shop-image-upload")?.click()
-                  }
+                  onClick={() => {
+                    document.getElementById("shop-image-upload")?.click();
+                  }}
                 >
                   <Upload className="w-4 h-4 mr-2" />
                   Upload Images
@@ -472,18 +474,23 @@ const handleReset = () => {
                   className="hidden"
                 />
 
-                {imagePreviews.length > 0 && (
+                {imagePreviews.length > 0 ? (
                   <div className="grid grid-cols-3 gap-3">
                     {imagePreviews.map((src, i) => (
                       <div
                         key={i}
                         className="relative border rounded-lg overflow-hidden group"
                       >
-                        <img src={src} className="object-cover w-full h-full" />
+                        <img
+                          src={src}
+                          alt={`Shop image ${i + 1}`}
+                          className="object-cover w-full h-full"
+                        />
 
                         <button
+                          type="button"
                           onClick={() => removeImage(i)}
-                          className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100"
+                          className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition"
                         >
                           <X className="w-4 h-4" />
                         </button>
@@ -499,28 +506,29 @@ const handleReset = () => {
                   </div>
                 )}
               </div>
+
               {/* BADGES */}
-<div className="space-y-2">
-  <Label>Badge</Label>
+              <div className="space-y-2">
+                <Label>Badge</Label>
 
-  <Select
-    value={formData.badges}
-    onValueChange={(value) => handleChange("badges", value)}
-  >
-    <SelectTrigger>
-      <SelectValue placeholder="Select badge (optional)" />
-    </SelectTrigger>
+                <Select
+                  value={formData.badges}
+                  onValueChange={(value) => handleChange("badges", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select badge (optional)" />
+                  </SelectTrigger>
 
-    <SelectContent>
-      <SelectItem value="new">New</SelectItem>
-      <SelectItem value="popular">Popular</SelectItem>
-      <SelectItem value="featured">Featured</SelectItem>
-      <SelectItem value="trending">Trending</SelectItem>
-      <SelectItem value="exclusive">Exclusive</SelectItem>
-      <SelectItem value="upcoming">Upcoming</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="popular">Popular</SelectItem>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="trending">Trending</SelectItem>
+                    <SelectItem value="exclusive">Exclusive</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* STATUS */}
               <div className="space-y-2">
