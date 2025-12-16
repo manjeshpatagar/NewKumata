@@ -665,7 +665,7 @@ type Category = {
 };
 
 type AdminCategoriesPageProps = {
-  initialCategories: Category[];
+  initialCategories: { data: Category[] };
 };
 
 export function AdminCategoriesPage({
@@ -675,10 +675,10 @@ export function AdminCategoriesPage({
 
   // Split backend categories into 2 tabs
   const [shopCategories, setShopCategories] = useState<Category[]>(
-    (initialCategories || []).filter((c) => c.type === "business")
+    (initialCategories?.data || []).filter((c) => c.type === "business")
   );
   const [adCategories, setAdCategories] = useState<Category[]>(
-    (initialCategories || []).filter((c) => c.type === "advertisement")
+    (initialCategories?.data || []).filter((c) => c.type === "advertisement")
   );
 
   const [searchQuery, setSearchQuery] = useState("");

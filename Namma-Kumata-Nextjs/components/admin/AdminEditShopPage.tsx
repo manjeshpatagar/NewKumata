@@ -1,14 +1,28 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { ArrowLeft, Store, Save, Trash2, Upload, Image as ImageIcon, X } from 'lucide-react';
+import {
+  ArrowLeft,
+  Store,
+  Save,
+  Trash2,
+  Upload,
+  Image as ImageIcon,
+  X,
+} from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { Label } from '../ui/label';
 import { Textarea } from '../ui/textarea';
 import { Card } from '../ui/card';
 import { ScrollArea } from '../ui/scroll-area';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../ui/select';
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from '../ui/select';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,206 +46,89 @@ interface AdminEditShopPageProps {
 
 export function AdminEditShopPage({ shopId, onBack }: AdminEditShopPageProps) {
   const [loading, setLoading] = useState(true);
-  const [categories, setCategories] = useState<{ id: string; name: string; type?: string }[]>([]);
-  const [subCategories, setSubCategories] = useState<{ id: string; name: string; categoryId?: string }[]>([]);
-  const [loadingCategories, setLoadingCategories] = useState(false);
-  const [loadingSubCategories, setLoadingSubCategories] = useState(false);
-  const [authorized, setAuthorized] = useState(false);
+
+  const [categories, setCategories] = useState<
+    { id: string; name: string }[]
+  >([]);
+
+  const [subCategories, setSubCategories] = useState<
+    { id: string; name: string; categoryId?: string }[]
+  >([]);
 
   const [formData, setFormData] = useState({
     name: '',
     category: '',
+    subCategory: '',
     owner: '',
     phone: '',
     address: '',
     description: '',
     openingHours: '',
     status: 'approved' as 'pending' | 'approved' | 'rejected',
+    badges: '' as
+      | ''
+      | 'new'
+      | 'popular'
+      | 'featured'
+      | 'upcoming'
+      | 'trending'
+      | 'exclusive',
   });
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [errors, setErrors] = useState<Record<string, string>>({});
 
   const handleChange = (field: string, value: string) => {
     setFormData(prev => ({ ...prev, [field]: value }));
-    if (errors[field]) {
-      setErrors(prev => ({ ...prev, [field]: '' }));
-    }
   };
 
-  const validateForm = () => {
-    const newErrors: Record<string, string> = {};
-
-    if (!formData.name.trim()) {
-      newErrors.name = 'Shop name is required';
-    }
-    if (!formData.category) {
-      newErrors.category = 'Category is required';
-    }
-    if (!formData.owner.trim()) {
-      newErrors.owner = 'Owner name is required';
-    }
-    if (!formData.phone.trim()) {
-      newErrors.phone = 'Phone number is required';
-    } else if (!/^\+?[\d\s-]{10,}$/.test(formData.phone)) {
-      newErrors.phone = 'Invalid phone number';
-    }
-    if (!formData.address.trim()) {
-      newErrors.address = 'Address is required';
-    }
-
-    setErrors(newErrors);
-    return Object.keys(newErrors).length === 0;
-  };
-
-  const handleSubmit = async () => {
-    if (!validateForm()) {
-      toast.error('Please fill in all required fields');
-      return;
-    }
-
-    try {
-      const form = new FormData();
-
-      form.append("shopName", formData.name);
-      form.append("address", formData.address);
-      if (formData.description) form.append("description", formData.description);
-      if (formData.owner) form.append("contact[ownerName]", formData.owner);
-      if (formData.phone) form.append("contact[phone]", formData.phone);
-      if (formData.openingHours) {
-        form.append("openingHours[open]", formData.openingHours);
-        form.append("openingHours[close]", "");
-      }
-      if (formData.category) form.append("categoryId", formData.category);
-      if (formData.category) form.append("subCategoryId", formData.category);
-
-      const statusPayload =
-        formData.status === "approved" ? "active" : "inactive";
-      form.append("status", statusPayload);
-
-      images.forEach((file) => form.append("images", file));
-
-      await productApi.update(shopId, form);
-
-      toast.success('Shop updated successfully!');
-      onBack();
-    } catch (error) {
-      toast.error('Failed to update shop');
-      console.error(error);
-    }
-  };
-
-  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = e.target.files;
-    if (!files) return;
-
-    const newFiles = Array.from(files);
-    const newPreviews: string[] = [];
-
-    newFiles.forEach(file => {
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        newPreviews.push(reader.result as string);
-        if (newPreviews.length === newFiles.length) {
-          setImagePreviews(prev => [...prev, ...newPreviews]);
-        }
-      };
-      reader.readAsDataURL(file);
+  /* -------------------- LOAD CATEGORIES -------------------- */
+  useEffect(() => {
+    categoryApi.getAll().then(res => {
+      const list = res.data?.data || res.data || [];
+      setCategories(
+        list.map((c: any) => ({ id: c._id, name: c.name }))
+      );
     });
-
-    setImages(prev => [...prev, ...newFiles]);
-  };
-
-  const removeImage = (index: number) => {
-    setImages(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const handleDelete = async () => {
-    try {
-      await productApi.delete(shopId);
-      toast.success('Shop deleted successfully!');
-      onBack();
-    } catch (error) {
-      toast.error('Failed to delete shop');
-      console.error(error);
-    }
-  };
-
-  // Load categories
-  useEffect(() => {
-    const fetchCategories = async () => {
-      try {
-        setLoadingCategories(true);
-        const res = await categoryApi.getAll();
-        const payload = res.data || res;
-        const list = (payload.data || payload) as any[];
-        const normalized = list.map((cat) => ({
-          id: cat._id || cat.id,
-          name: cat.name,
-          type: cat.type,
-        }));
-        setCategories(normalized);
-      } catch (error) {
-        console.error("Failed to load categories", error);
-        toast.error("Could not load categories");
-      } finally {
-        setLoadingCategories(false);
-      }
-    };
-
-    fetchCategories();
   }, []);
 
-  // Load subcategories once
+  /* -------------------- LOAD SUBCATEGORIES -------------------- */
   useEffect(() => {
-    const fetchSubCategories = async () => {
-      try {
-        setLoadingSubCategories(true);
-        const res = await subCategoryApi.getAll();
-        const payload = res.data || res;
-        const list = (payload.data || payload) as any[];
-        const normalized = list.map((sub) => ({
-          id: sub._id || sub.id,
-          name: sub.name,
-          categoryId: sub.categoryId?._id || sub.categoryId,
-        }));
-        setSubCategories(normalized);
-      } catch (error) {
-        console.error("Failed to load subcategories", error);
-        toast.error("Could not load subcategories");
-      } finally {
-        setLoadingSubCategories(false);
-      }
-    };
-    fetchSubCategories();
+    subCategoryApi.getAll().then(res => {
+      const list = res.data?.data || res.data || [];
+      setSubCategories(
+        list.map((s: any) => ({
+          id: s._id,
+          name: s.name,
+          categoryId: s.categoryId?._id || s.categoryId,
+        }))
+      );
+    });
   }, []);
 
+  /* -------------------- LOAD SHOP -------------------- */
   useEffect(() => {
     const fetchShop = async () => {
       try {
-        setLoading(true);
         const res = await productApi.getById(shopId);
-        const payload = res.data || res;
-        const item = payload.data || payload;
+        const item = res.data?.data || res.data;
 
         setFormData({
-          name: item.shopName || item.name || '',
+          name: item.shopName || '',
           category: item.categoryId?._id || item.categoryId || '',
-          owner: item.contact?.ownerName || item.owner || '',
-          phone: item.contact?.phone || item.phone || '',
+          subCategory: item.subCategoryId?._id || item.subCategoryId || '',
+          owner: item.contact?.ownerName || '',
+          phone: item.contact?.phone || '',
           address: item.address || '',
-          description: item.description || item.about || '',
-          openingHours:
-            item.openingHours?.open && item.openingHours?.close
-              ? `${item.openingHours.open} - ${item.openingHours.close}`
-              : item.openingHours?.open || item.openingHours || '',
+          description: item.description || '',
+          openingHours: item.openingHours?.open || '',
           status: item.status === 'inactive' ? 'pending' : 'approved',
+          badges: item.badges || '',
         });
-      } catch (error) {
-        console.error("Failed to load shop", error);
-        toast.error("Could not load shop details");
+
+        setImagePreviews(item.images || []);
+      } catch {
+        toast.error('Failed to load shop');
       } finally {
         setLoading(false);
       }
@@ -240,289 +137,153 @@ export function AdminEditShopPage({ shopId, onBack }: AdminEditShopPageProps) {
     fetchShop();
   }, [shopId]);
 
-  // Auth guard
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    const role = localStorage.getItem("role");
-    if (!token || role !== "admin") {
-      toast.error("Please login as admin to edit shops");
+  /* -------------------- SUBMIT -------------------- */
+  const handleSubmit = async () => {
+    try {
+      const form = new FormData();
+
+      form.append('shopName', formData.name);
+      form.append('address', formData.address);
+      form.append('description', formData.description);
+      form.append('contact[ownerName]', formData.owner);
+      form.append('contact[phone]', formData.phone);
+      form.append('openingHours[open]', formData.openingHours);
+
+      form.append('subCategoryId', formData.subCategory);
+      form.append('categoryId', formData.category);
+
+      if (formData.badges) {
+        form.append('badges', formData.badges);
+      }
+
+      form.append(
+        'status',
+        formData.status === 'approved' ? 'active' : 'inactive'
+      );
+
+      images.forEach(file => form.append('images', file));
+
+      await productApi.update(shopId, form);
+      toast.success('Shop updated successfully');
       onBack();
-      return;
+    } catch {
+      toast.error('Update failed');
     }
-    setAuthorized(true);
-  }, [onBack]);
+  };
+
+  /* -------------------- IMAGES -------------------- */
+  const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    files.forEach(file => {
+      const reader = new FileReader();
+      reader.onloadend = () =>
+        setImagePreviews(prev => [...prev, reader.result as string]);
+      reader.readAsDataURL(file);
+    });
+    setImages(prev => [...prev, ...files]);
+  };
+
+  const removeImage = (index: number) => {
+    setImages(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+  };
 
   if (loading) {
-    return (
-      <div className="p-6 text-center text-gray-600 dark:text-gray-300">
-        Loading shop details...
-      </div>
-    );
+    return <div className="p-6 text-center">Loading...</div>;
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-white dark:bg-gray-950">
-      {/* Header */}
-      <div className="sticky top-0 z-10 bg-white dark:bg-gray-950 border-b dark:border-gray-800">
-        <div className="flex items-center justify-between p-4 max-w-4xl mx-auto w-full">
-          <div className="flex items-center gap-3">
-            <Button variant="ghost" size="icon" onClick={onBack}>
-              <ArrowLeft className="w-5 h-5" />
-            </Button>
+    <div className="min-h-screen bg-white dark:bg-gray-950">
+      <ScrollArea className="h-screen">
+        <div className="max-w-4xl mx-auto p-4">
+          <Card className="p-6 space-y-6">
+
+            {/* SHOP NAME */}
             <div>
-              <h1 className="dark:text-white">Edit Shop</h1>
-              <p className="text-xs text-gray-500 dark:text-gray-400">
-                Update shop information
-              </p>
+              <Label>Shop Name</Label>
+              <Input value={formData.name} onChange={e => handleChange('name', e.target.value)} />
             </div>
-          </div>
-          <Store className="w-6 h-6 text-blue-600 dark:text-blue-400" />
-        </div>
-      </div>
 
-      {/* Form */}
-      <ScrollArea className="flex-1">
-        <div className="p-4 pb-6 max-w-4xl mx-auto w-full">
-          <Card className="p-6 dark:bg-gray-900 dark:border-gray-800">
-            <div className="space-y-6">
-              {/* Shop Name */}
-              <div className="space-y-2">
-                <Label htmlFor="name" className="text-sm">
-                  Shop Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  placeholder="Enter shop name"
-                  value={formData.name}
-                  onChange={(e) => handleChange('name', e.target.value)}
-                  className={errors.name ? 'border-red-500' : ''}
-                />
-                {errors.name && (
-                  <p className="text-xs text-red-500">{errors.name}</p>
-                )}
-              </div>
-
-              {/* Category */}
-              <div className="space-y-2">
-                <Label htmlFor="category" className="text-sm">
-                  Category <span className="text-red-500">*</span>
-                </Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => handleChange('category', value)}
-                >
-                  <SelectTrigger className={errors.category ? 'border-red-500' : ''}>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {categories.map((cat) => (
-                      <SelectItem key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-                {errors.category && (
-                  <p className="text-xs text-red-500">{errors.category}</p>
-                )}
-              </div>
-
-              {/* Owner Name */}
-              <div className="space-y-2">
-                <Label htmlFor="owner" className="text-sm">
-                  Owner Name <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="owner"
-                  placeholder="Enter owner name"
-                  value={formData.owner}
-                  onChange={(e) => handleChange('owner', e.target.value)}
-                  className={errors.owner ? 'border-red-500' : ''}
-                />
-                {errors.owner && (
-                  <p className="text-xs text-red-500">{errors.owner}</p>
-                )}
-              </div>
-
-              {/* Phone */}
-              <div className="space-y-2">
-                <Label htmlFor="phone" className="text-sm">
-                  Phone Number <span className="text-red-500">*</span>
-                </Label>
-                <Input
-                  id="phone"
-                  type="tel"
-                  placeholder="+91 9876543210"
-                  value={formData.phone}
-                  onChange={(e) => handleChange('phone', e.target.value)}
-                  className={errors.phone ? 'border-red-500' : ''}
-                />
-                {errors.phone && (
-                  <p className="text-xs text-red-500">{errors.phone}</p>
-                )}
-              </div>
-
-              {/* Address */}
-              <div className="space-y-2">
-                <Label htmlFor="address" className="text-sm">
-                  Address <span className="text-red-500">*</span>
-                </Label>
-                <Textarea
-                  id="address"
-                  placeholder="Enter shop address"
-                  value={formData.address}
-                  onChange={(e) => handleChange('address', e.target.value)}
-                  rows={3}
-                  className={errors.address ? 'border-red-500' : ''}
-                />
-                {errors.address && (
-                  <p className="text-xs text-red-500">{errors.address}</p>
-                )}
-              </div>
-
-              {/* Description */}
-              <div className="space-y-2">
-                <Label htmlFor="description" className="text-sm">
-                  Description
-                </Label>
-                <Textarea
-                  id="description"
-                  placeholder="Brief description of the shop"
-                  value={formData.description}
-                  onChange={(e) => handleChange('description', e.target.value)}
-                  rows={4}
-                />
-              </div>
-
-              {/* Opening Hours */}
-              <div className="space-y-2">
-                <Label htmlFor="openingHours" className="text-sm">
-                  Opening Hours
-                </Label>
-                <Input
-                  id="openingHours"
-                  placeholder="e.g., 9:00 AM - 8:00 PM"
-                  value={formData.openingHours}
-                  onChange={(e) => handleChange('openingHours', e.target.value)}
-                />
-              </div>
-
-              {/* Image Upload */}
-              <div className="space-y-2">
-                <Label className="text-sm">Shop Images</Label>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-2">
-                    <Button
-                      type="button"
-                      variant="outline"
-                      onClick={() => document.getElementById('shop-image-upload')?.click()}
-                      className="w-full"
-                    >
-                      <Upload className="w-4 h-4 mr-2" />
-                      Upload Images
-                    </Button>
-                    <input
-                      id="shop-image-upload"
-                      type="file"
-                      accept="image/*"
-                      multiple
-                      className="hidden"
-                      onChange={handleImageUpload}
-                    />
-                  </div>
-                  
-                  {imagePreviews.length > 0 && (
-                    <div className="grid grid-cols-3 gap-3">
-                      {imagePreviews.map((preview, index) => (
-                        <div key={index} className="relative group aspect-square rounded-lg overflow-hidden border-2 border-gray-200 dark:border-gray-700">
-                          <img
-                            src={preview}
-                            alt={`Preview ${index + 1}`}
-                            className="w-full h-full object-cover"
-                          />
-                          <button
-                            type="button"
-                            onClick={() => removeImage(index)}
-                            className="absolute top-1 right-1 bg-red-500 text-white rounded-full p-1 opacity-0 group-hover:opacity-100 transition-opacity"
-                          >
-                            <X className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ))}
-                    </div>
-                  )}
-                  
-                  {imagePreviews.length === 0 && (
-                    <div className="border-2 border-dashed border-gray-300 dark:border-gray-700 rounded-lg p-6 text-center">
-                      <ImageIcon className="w-12 h-12 mx-auto text-gray-400 mb-2" />
-                      <p className="text-sm text-gray-500 dark:text-gray-400">
-                        No images uploaded yet
-                      </p>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Status */}
-              <div className="space-y-2">
-                <Label htmlFor="status" className="text-sm">
-                  Status
-                </Label>
-                <Select
-                  value={formData.status}
-                  onValueChange={(value: 'pending' | 'approved' | 'rejected') => 
-                    handleChange('status', value)
-                  }
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="pending">Pending</SelectItem>
-                    <SelectItem value="approved">Approved</SelectItem>
-                    <SelectItem value="rejected">Rejected</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* SUBCATEGORY */}
+            <div>
+              <Label>Subcategory</Label>
+              <Select
+                value={formData.subCategory}
+                onValueChange={(value) => {
+                  const matched = subCategories.find(s => s.id === value);
+                  setFormData(prev => ({
+                    ...prev,
+                    subCategory: value,
+                    category: matched?.categoryId || '',
+                  }));
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select subcategory" />
+                </SelectTrigger>
+                <SelectContent>
+                  {subCategories.map(sub => (
+                    <SelectItem key={sub.id} value={sub.id}>
+                      {sub.name}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </Card>
 
-          {/* Action Buttons */}
-          <div className="flex gap-3 mt-6">
-            <AlertDialog>
-              <AlertDialogTrigger asChild>
-                <Button
-                  variant="outline"
-                  className="flex-1 text-red-600 border-red-600 hover:bg-red-50 dark:hover:bg-red-950"
-                >
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Delete Shop
-                </Button>
-              </AlertDialogTrigger>
-              <AlertDialogContent>
-                <AlertDialogHeader>
-                  <AlertDialogTitle>Delete Shop</AlertDialogTitle>
-                  <AlertDialogDescription>
-                    Are you sure you want to delete this shop? This action cannot be undone.
-                  </AlertDialogDescription>
-                </AlertDialogHeader>
-                <AlertDialogFooter>
-                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                  <AlertDialogAction onClick={handleDelete} className="bg-red-600 hover:bg-red-700">
-                    Delete
-                  </AlertDialogAction>
-                </AlertDialogFooter>
-              </AlertDialogContent>
-            </AlertDialog>
+            {/* BADGE */}
+            <div>
+              <Label>Badge (optional)</Label>
+              <Select value={formData.badges} onValueChange={v => handleChange('badges', v)}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Select badge" />
+                </SelectTrigger>
+                <SelectContent>
+                  {['new','popular','featured','upcoming','trending','exclusive'].map(b => (
+                    <SelectItem key={b} value={b}>{b}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Button
-              className="flex-1 bg-blue-600 hover:bg-blue-700"
-              onClick={handleSubmit}
-            >
-              <Save className="w-4 h-4 mr-2" />
-              Save Changes
+            {/* OWNER / PHONE / ADDRESS / DESC / HOURS */}
+            <Input placeholder="Owner" value={formData.owner} onChange={e => handleChange('owner', e.target.value)} />
+            <Input placeholder="Phone" value={formData.phone} onChange={e => handleChange('phone', e.target.value)} />
+            <Textarea placeholder="Address" value={formData.address} onChange={e => handleChange('address', e.target.value)} />
+            <Textarea placeholder="Description" value={formData.description} onChange={e => handleChange('description', e.target.value)} />
+            <Input placeholder="Opening Hours" value={formData.openingHours} onChange={e => handleChange('openingHours', e.target.value)} />
+
+            {/* IMAGES */}
+            <Button variant="outline" onClick={() => document.getElementById('img')?.click()}>
+              <Upload className="w-4 h-4 mr-2" /> Upload Images
             </Button>
-          </div>
+            <input id="img" type="file" hidden multiple onChange={handleImageUpload} />
+
+            <div className="grid grid-cols-3 gap-3">
+              {imagePreviews.map((src, i) => (
+                <div key={i} className="relative">
+                  <img src={src} className="h-24 w-full object-cover rounded" />
+                  <button onClick={() => removeImage(i)} className="absolute top-1 right-1 bg-red-600 text-white p-1 rounded-full">
+                    <X size={14} />
+                  </button>
+                </div>
+              ))}
+            </div>
+
+            {/* STATUS */}
+            <Select value={formData.status} onValueChange={v => handleChange('status', v)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="pending">Pending</SelectItem>
+                <SelectItem value="approved">Approved</SelectItem>
+                <SelectItem value="rejected">Rejected</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Button className="bg-blue-600" onClick={handleSubmit}>
+              <Save className="w-4 h-4 mr-2" /> Save Changes
+            </Button>
+          </Card>
         </div>
       </ScrollArea>
     </div>

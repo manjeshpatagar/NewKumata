@@ -46,25 +46,25 @@ export function AdminAddShopPage() {
   >([]);
 
   const [loadingSubCategories, setLoadingSubCategories] = useState(false);
-const [formData, setFormData] = useState({
-  name: "",
-  category: "",
-  subCategory: "",
-  owner: "",
-  phone: "",
-  address: "",
-  description: "",
-  openingHours: "",
-  status: "approved" as "pending" | "approved" | "rejected",
-  badges: "" as
-    | ""
-    | "upcoming"
-    | "popular"
-    | "featured"
-    | "new"
-    | "trending"
-    | "exclusive",
-});
+  const [formData, setFormData] = useState({
+    name: "",
+    category: "",
+    subCategory: "",
+    owner: "",
+    phone: "",
+    address: "",
+    description: "",
+    openingHours: "",
+    status: "approved" as "pending" | "approved" | "rejected",
+    badges: "" as
+      | ""
+      | "upcoming"
+      | "popular"
+      | "featured"
+      | "new"
+      | "trending"
+      | "exclusive",
+  });
 
   const [images, setImages] = useState<File[]>([]);
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
@@ -156,8 +156,6 @@ const [formData, setFormData] = useState({
     if (!formData.name.trim()) newErrors.name = "Shop name is required";
     if (!formData.subCategory)
       newErrors.subCategory = "Subcategory is required";
-    if (!formData.owner.trim()) newErrors.owner = "Owner name is required";
-
     if (!formData.phone.trim()) newErrors.phone = "Phone number is required";
     if (!/^\+?[\d\s-]{10,}$/.test(formData.phone))
       newErrors.phone = "Invalid phone number";
@@ -256,23 +254,23 @@ const [formData, setFormData] = useState({
     setImagePreviews((prev) => prev.filter((_, i) => i !== index));
   };
 
-const handleReset = () => {
-  setFormData({
-    name: "",
-    category: "",
-    subCategory: "",
-    owner: "",
-    phone: "",
-    address: "",
-    description: "",
-    openingHours: "",
-    status: "approved",
-    badges: "",
-  });
-  setImages([]);
-  setImagePreviews([]);
-  setErrors({});
-};
+  const handleReset = () => {
+    setFormData({
+      name: "",
+      category: "",
+      subCategory: "",
+      owner: "",
+      phone: "",
+      address: "",
+      description: "",
+      openingHours: "",
+      status: "approved",
+      badges: "",
+    });
+    setImages([]);
+    setImagePreviews([]);
+    setErrors({});
+  };
 
 
   // --------------------
@@ -472,16 +470,21 @@ const handleReset = () => {
                   className="hidden"
                 />
 
-                {imagePreviews.length > 0 && (
+                {imagePreviews.length > 0 ? (
                   <div className="grid grid-cols-3 gap-3">
                     {imagePreviews.map((src, i) => (
                       <div
                         key={i}
                         className="relative border rounded-lg overflow-hidden group"
                       >
-                        <img src={src} className="object-cover w-full h-full" />
+                        <img
+                          src={src}
+                          alt={`Preview ${i + 1}`}
+                          className="object-cover w-full h-full"
+                        />
 
                         <button
+                          type="button"
                           onClick={() => removeImage(i)}
                           className="absolute top-2 right-2 bg-red-600 text-white rounded-full p-1 opacity-0 group-hover:opacity-100"
                         >
@@ -499,28 +502,29 @@ const handleReset = () => {
                   </div>
                 )}
               </div>
+
               {/* BADGES */}
-<div className="space-y-2">
-  <Label>Badge</Label>
+              <div className="space-y-2">
+                <Label>Badge</Label>
 
-  <Select
-    value={formData.badges}
-    onValueChange={(value) => handleChange("badges", value)}
-  >
-    <SelectTrigger>
-      <SelectValue placeholder="Select badge (optional)" />
-    </SelectTrigger>
+                <Select
+                  value={formData.badges}
+                  onValueChange={(value) => handleChange("badges", value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select badge (optional)" />
+                  </SelectTrigger>
 
-    <SelectContent>
-      <SelectItem value="new">New</SelectItem>
-      <SelectItem value="popular">Popular</SelectItem>
-      <SelectItem value="featured">Featured</SelectItem>
-      <SelectItem value="trending">Trending</SelectItem>
-      <SelectItem value="exclusive">Exclusive</SelectItem>
-      <SelectItem value="upcoming">Upcoming</SelectItem>
-    </SelectContent>
-  </Select>
-</div>
+                  <SelectContent>
+                    <SelectItem value="new">New</SelectItem>
+                    <SelectItem value="popular">Popular</SelectItem>
+                    <SelectItem value="featured">Featured</SelectItem>
+                    <SelectItem value="trending">Trending</SelectItem>
+                    <SelectItem value="exclusive">Exclusive</SelectItem>
+                    <SelectItem value="upcoming">Upcoming</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
               {/* STATUS */}
               <div className="space-y-2">
