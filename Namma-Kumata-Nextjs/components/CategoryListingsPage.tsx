@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -25,12 +25,14 @@ import { useLanguage } from "../contexts/LanguageContext";
 interface Listing {
   id: string;
   name: string;
-  description: string;
+  businessName: string;
   image: string;
   rating: number;
   reviewCount: number;
-  distance?: string;
+  distance: string;
   address?: string;
+  phone?: string;
+  badge?: string;
 }
 
 interface CategoryListingsPageProps {
@@ -53,48 +55,30 @@ export function CategoryListingsPage({
 
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
-  /* ================= DEDUPLICATE + NORMALIZE (NO MAP) ================= */
+  /* ================= NORMALIZE DATA ================= */
 
-  const listings: Listing[] = useMemo(() => {
-    const seen: Record<string, boolean> = {};
-    const result: Listing[] = [];
-
-    for (const p of initialProducts || []) {
-      const id = String(p._id);
-      if (seen[id]) continue;
-
-      seen[id] = true;
-
-      result.push({
-        id,
-        name: p.shopName || p.name || "Unnamed",
-        description: p.description || p.about || "",
-        image: p.images?.[0] || "",
-        rating: p.rating || 0,
-        reviewCount: p.reviewCount || 0,
-        distance: p.distance,
-        address: p.address,
-      });
-    }
-
-    return result;
-  }, [initialProducts]);
+  const listings: Listing[] = (initialProducts || []).map((p: any) => ({
+    id: p._id,
+    name: p.shopName || p.name || "Unnamed",
+    businessName: p.description || p.about || "",
+    image: p.images?.[0] || "",
+    rating: p.rating || 0,
+    reviewCount: p.reviewCount || 0,
+    distance: p.distance || "",
+    phone: p.contact?.phone,
+    address: p.address,
+    badge: p.badges,
+  }));
 
   /* ================= CARD ================= */
 
   const ListingCard = ({ listing }: { listing: Listing }) => (
     <Card
       onClick={() => router.push(`/listing/${listing.id}`)}
-      className="
-        cursor-pointer
-        hover:shadow-lg transition-shadow
-        flex flex-col justify-between
-        p-4 min-h-[150px]
-        dark:bg-gray-900 dark:border-gray-800
-      "
+      className="p-4 cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-900 dark:border-gray-800"
     >
       <div className="flex gap-4">
-        <Avatar className="w-16 h-16 shrink-0">
+        <Avatar className="w-16 h-16">
           <AvatarImage src={listing.image} />
           <AvatarFallback className="bg-blue-600 text-white text-lg">
             {listing.name
@@ -104,13 +88,13 @@ export function CategoryListingsPage({
           </AvatarFallback>
         </Avatar>
 
-        <div className="flex-1 min-w-0">
-          <h3 className="font-semibold dark:text-white line-clamp-1">
+        <div className="flex-1">
+          <h3 className="font-semibold dark:text-white">
             {listing.name}
           </h3>
 
-          <p className="text-sm text-gray-600 dark:text-gray-400 line-clamp-2">
-            {listing.description}
+          <p className="text-sm text-gray-600 dark:text-gray-400">
+            {listing.businessName}
           </p>
 
           <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
@@ -128,10 +112,10 @@ export function CategoryListingsPage({
           </div>
 
           {listing.address && (
-            <p className="text-xs text-gray-500 mt-1 line-clamp-1">
-              <MapPin className="w-3 h-3 inline mr-1" />
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+              <MapPin className="w-3 h-3" />
               {listing.address}
-            </p>
+            </div>
           )}
         </div>
       </div>
@@ -192,13 +176,13 @@ export function CategoryListingsPage({
 
             {listings.length === 0 && (
               <div className="col-span-full text-center text-gray-500 py-12">
-                {t("results")}
+                {t("noResultsFound")}
               </div>
             )}
           </div>
         ) : (
           <div className="flex items-center justify-center h-full text-gray-500">
-            {t("view")}
+            {t("mapViewNotAvailable")}
           </div>
         )}
       </ScrollArea>

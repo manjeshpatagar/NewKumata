@@ -49,6 +49,7 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   /* ======================================================
      ADS — BADGE BASED
   ====================================================== */
+<<<<<<< HEAD
 const badgeAds = advertisements.filter((ad: any) => {
   return (
     !!ad.badges ||            // string badge
@@ -56,14 +57,33 @@ const badgeAds = advertisements.filter((ad: any) => {
     ad.sponsored === true     // sponsored ad
   );
 });
+=======
+  const badgeAds = advertisements.filter(
+    (ad: any) =>
+      ad.featured === true ||
+      ad.isFeatured === true ||
+      ad.sponsored === true ||
+      ad.badge === true ||
+      Array.isArray(ad.images) // fallback so ads show
+  );
+
+>>>>>>> 775fa15ea6a9ed8db8de7305fe71fdc1af61432e
   console.log("⭐ BADGE ADS:", badgeAds);
 
   /* ======================================================
      SHOPS — BADGE BASED (IMAGE PRESENT)
   ====================================================== */
+<<<<<<< HEAD
 const badgeShops = shops.filter((shop: any) => {
   return !!shop.badges;
 });
+=======
+  const badgeShops = shops.filter(
+    (shop: any) =>
+      !!shop.thumbnail ||
+      (Array.isArray(shop.images) && shop.images.length > 0)
+  );
+>>>>>>> 775fa15ea6a9ed8db8de7305fe71fdc1af61432e
 
   console.log("⭐ BADGE SHOPS:", badgeShops);
 
@@ -111,7 +131,26 @@ const badgeShops = shops.filter((shop: any) => {
             <div className="flex items-center gap-2">
               <LanguageSelector />
 
+<<<<<<< HEAD
           
+=======
+              <button
+                onClick={() =>
+                  requireAuth(
+                    () => go("/notifications"),
+                    () => go("/auth/login")
+                  )
+                }
+                className="relative w-10 h-10 rounded-xl hover:bg-gray-100 flex items-center justify-center"
+              >
+                <Bell />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs px-2 rounded-full">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+>>>>>>> 775fa15ea6a9ed8db8de7305fe71fdc1af61432e
 
               <button
                 onClick={() =>
