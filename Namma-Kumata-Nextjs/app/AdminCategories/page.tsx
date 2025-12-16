@@ -13,10 +13,13 @@ export const metadata = {
 async function getCategoriesSSR() {
   try {
     const cookieStore = cookies();
-    const token = cookieStore.get("adminToken")?.value;
+    const token =
+      cookieStore.get("adminToken")?.value ||
+      cookieStore.get("token")?.value ||
+      "";
 
     const res = await categoryServerApi.getAll(token);
-    return res.data || [];
+    return res || [];
   } catch (error) {
     console.error("❌ Failed to fetch categories (SSR):", error);
     return [];

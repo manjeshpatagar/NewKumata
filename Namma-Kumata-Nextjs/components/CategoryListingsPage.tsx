@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import {
   ArrowLeft,
@@ -8,7 +8,6 @@ import {
   Map,
   List as ListIcon,
   Star,
-  Phone,
   MapPin,
 } from "lucide-react";
 
@@ -20,7 +19,21 @@ import { ScrollArea } from "./ui/scroll-area";
 import { Tabs, TabsList, TabsTrigger } from "./ui/tabs";
 import { FloatingAddButton } from "./FloatingAddButton";
 import { useLanguage } from "../contexts/LanguageContext";
-import { productApi } from "@/lib/api/productApi";
+
+/* ================= TYPES ================= */
+
+interface Listing {
+  id: string;
+  name: string;
+  businessName: string;
+  image: string;
+  rating: number;
+  reviewCount: number;
+  distance: string;
+  address?: string;
+  phone?: string;
+  badge?: string;
+}
 
 interface CategoryListingsPageProps {
   categoryId: string;
@@ -28,6 +41,8 @@ interface CategoryListingsPageProps {
   subcategory: string;
   initialProducts: any[];
 }
+
+/* ================= COMPONENT ================= */
 
 export function CategoryListingsPage({
   categoryId,
@@ -38,14 +53,13 @@ export function CategoryListingsPage({
   const router = useRouter();
   const { t } = useLanguage();
 
-  const [products, setProducts] = useState<any[]>(initialProducts || []);
-  const [loading, setLoading] = useState(false);
   const [viewMode, setViewMode] = useState<"list" | "map">("list");
 
-  // Convert products into UI-friendly listing items
-  const listings = products.map((p: any) => ({
+  /* ================= NORMALIZE DATA ================= */
+
+  const listings: Listing[] = (initialProducts || []).map((p: any) => ({
     id: p._id,
-    name: p.shopName,
+    name: p.shopName || p.name || "Unnamed",
     businessName: p.description || p.about || "",
     image: p.images?.[0] || "",
     rating: p.rating || 0,
@@ -53,80 +67,78 @@ export function CategoryListingsPage({
     distance: p.distance || "",
     phone: p.contact?.phone,
     address: p.address,
+    badge: p.badges,
   }));
 
-  const ListingCard = ({ listing }: { listing: any }) => (
+  /* ================= CARD ================= */
+
+  const ListingCard = ({ listing }: { listing: Listing }) => (
     <Card
-      className="p-4 md:p-5 lg:p-6 cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-900 dark:border-gray-800"
       onClick={() => router.push(`/listing/${listing.id}`)}
+      className="p-4 cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-900 dark:border-gray-800"
     >
-      <div className="flex gap-3 md:gap-4">
-        <Avatar className="w-16 h-16 md:w-20 md:h-20 lg:w-24 lg:h-24">
+      <div className="flex gap-4">
+        <Avatar className="w-16 h-16">
           <AvatarImage src={listing.image} />
-          <AvatarFallback className="bg-blue-600 text-white text-lg md:text-xl lg:text-2xl">
+          <AvatarFallback className="bg-blue-600 text-white text-lg">
             {listing.name
               .split(" ")
-              .map((n: string) => n[0])
+              .map((n) => n[0])
               .join("")}
           </AvatarFallback>
         </Avatar>
 
         <div className="flex-1">
-          <h3 className="mb-1 dark:text-white text-base md:text-lg lg:text-xl">
+          <h3 className="font-semibold dark:text-white">
             {listing.name}
           </h3>
-          <p className="text-sm md:text-base text-gray-600 dark:text-gray-400 mb-1 md:mb-2">
+
+          <p className="text-sm text-gray-600 dark:text-gray-400">
             {listing.businessName}
           </p>
 
-          <div className="flex items-center gap-3 md:gap-4 text-xs md:text-sm text-gray-600 dark:text-gray-400">
+          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
             <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 md:w-4 md:h-4 fill-yellow-400 text-yellow-400" />
-              <span>{listing.rating}</span>
-              <span>({listing.reviewCount})</span>
+              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
+              {listing.rating} ({listing.reviewCount})
             </div>
-            <div className="flex items-center gap-1">
-              <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-              <span>{listing.distance}</span>
-            </div>
+
+            {listing.distance && (
+              <div className="flex items-center gap-1">
+                <MapPin className="w-3 h-3" />
+                {listing.distance}
+              </div>
+            )}
           </div>
+
+          {listing.address && (
+            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
+              <MapPin className="w-3 h-3" />
+              {listing.address}
+            </div>
+          )}
         </div>
-
-        <Button
-          size="icon"
-          variant="outline"
-          className="h-8 w-8 md:h-10 md:w-10"
-          onClick={(e) => {
-            e.stopPropagation();
-            window.open(`tel:${listing.phone}`);
-          }}
-        >
-          <Phone className="w-4 h-4 md:w-5 md:h-5" />
-        </Button>
-      </div>
-
-      <div className="mt-3 md:mt-4 flex items-center gap-2 text-xs md:text-sm text-gray-600 dark:text-gray-400">
-        <MapPin className="w-3 h-3 md:w-4 md:h-4" />
-        <span>{listing.address}</span>
       </div>
     </Card>
   );
 
+  /* ================= RENDER ================= */
+
   return (
-    <div className="h-[calc(100vh-4rem)] flex flex-col w-full max-w-7xl mx-auto bg-white dark:bg-gray-950">
-      {/* Header */}
-      <div className="p-4 md:p-6 lg:p-8 border-b dark:border-gray-800 sticky top-0 z-10 bg-white dark:bg-gray-950">
-        <div className="flex items-center gap-3 md:gap-4 mb-4 md:mb-6">
+    <div className="h-screen flex flex-col max-w-7xl mx-auto bg-white dark:bg-gray-950">
+      {/* HEADER */}
+      <div className="p-4 border-b sticky top-0 z-10 bg-white dark:bg-gray-950">
+        <div className="flex items-center gap-3 mb-4">
           <Button variant="ghost" size="icon" onClick={() => router.back()}>
-            <ArrowLeft className="w-5 h-5 md:w-6 md:h-6" />
+            <ArrowLeft className="w-5 h-5" />
           </Button>
 
           <div className="flex-1">
-            <h1 className="dark:text-white text-lg md:text-xl lg:text-2xl">
+            <h1 className="text-lg font-semibold dark:text-white">
               {subcategory}
             </h1>
-            <p className="text-xs md:text-sm text-gray-500 dark:text-gray-400">
-              {products.length} {t("results")} in {categoryName}
+            <p className="text-xs text-gray-500">
+              {listings.length} {t("results")} in {categoryName}
             </p>
           </div>
 
@@ -134,12 +146,12 @@ export function CategoryListingsPage({
             value={viewMode}
             onValueChange={(v) => setViewMode(v as "list" | "map")}
           >
-            <TabsList className="grid w-24 md:w-28 grid-cols-2 md:h-10">
+            <TabsList className="grid w-24 grid-cols-2">
               <TabsTrigger value="list">
-                <ListIcon className="w-4 h-4 md:w-5 md:h-5" />
+                <ListIcon className="w-4 h-4" />
               </TabsTrigger>
               <TabsTrigger value="map">
-                <Map className="w-4 h-4 md:w-5 md:h-5" />
+                <Map className="w-4 h-4" />
               </TabsTrigger>
             </TabsList>
           </Tabs>
@@ -149,32 +161,28 @@ export function CategoryListingsPage({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder={`${t("search")} ${subcategory}...`}
-            className="pl-10 md:pl-12 md:h-12 md:text-base"
+            className="pl-10"
           />
         </div>
       </div>
 
-      {/* LIST / MAP VIEW */}
+      {/* CONTENT */}
       <ScrollArea className="flex-1">
-        {loading ? (
-          <div className="py-10 text-center">{t("loading")}...</div>
-        ) : viewMode === "list" ? (
-          <div className="p-4 md:p-6 lg:p-8 pb-24 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {viewMode === "list" ? (
+          <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 pb-24">
             {listings.map((listing) => (
               <ListingCard key={listing.id} listing={listing} />
             ))}
 
             {listings.length === 0 && (
-              <div className="col-span-full text-center py-12 text-gray-500">
+              <div className="col-span-full text-center text-gray-500 py-12">
                 {t("noResultsFound")}
               </div>
             )}
           </div>
         ) : (
-          <div className="h-full flex items-center justify-center bg-gray-100 dark:bg-gray-900">
-            <p className="text-gray-500 dark:text-gray-400">
-              {t("mapViewNotAvailable")}
-            </p>
+          <div className="flex items-center justify-center h-full text-gray-500">
+            {t("mapViewNotAvailable")}
           </div>
         )}
       </ScrollArea>

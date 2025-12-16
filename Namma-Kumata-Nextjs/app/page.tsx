@@ -1,38 +1,32 @@
-// import { cookies } from "next/headers";
-// import { HomePage } from "@/components/HomePage";
-// import { BottomNav } from "@/components/BottomNav";
-// import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
-
-// async function getDataSSR() {
-//   const cookieStore = cookies();
-//   const token = cookieStore.get("token")?.value || "";
-
-//   const result = await categoryServerApi.getAll(token);
-
-//   const businessCategories = (result.data || []).filter(
-//     (cat: any) => cat.type === "business"
-//   );
-//   return {
-//     categories: businessCategories,
-//   };
-// }
-// export default async function Home() {
-//   const { categories } = await getDataSSR();
-//   return (
-//     <>
-//       <HomePage categories={categories} />
-//       <BottomNav />
-//     </>
-//   );
-// }
-
+// app/page.tsx
 import { HomePage } from "@/components/HomePage";
 import { BottomNav } from "@/components/BottomNav";
+import { advertisementApi } from "@/lib/api/advertisementApi";
+import { productApi } from "@/lib/api/productApi";
 
 export default async function Home() {
+  let ads: any[] = [];
+  let shops: any[] = [];
+
+  try {
+    const adsRes = await advertisementApi.getAll();
+    const shopsRes = await productApi.getAll();
+
+    console.log("SERVER ADS RESPONSE 👉", adsRes);
+    console.log("SERVER SHOPS RESPONSE 👉", shopsRes);
+
+    ads = adsRes?.data || [];
+    shops = shopsRes?.data || [];
+  } catch (err) {
+    console.error("❌ Home fetch failed", err);
+  }
+
+  console.log("SERVER FINAL ADS 👉", ads.length);
+  console.log("SERVER FINAL SHOPS 👉", shops.length);
+
   return (
     <>
-      <HomePage />
+      <HomePage advertisements={ads} shops={shops} />
       <BottomNav />
     </>
   );
