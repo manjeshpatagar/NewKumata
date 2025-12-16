@@ -161,7 +161,7 @@ export function CategoryListingsPage({
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
           <Input
             placeholder={`${t("search")} ${subcategory}...`}
-            className="pl-10"
+            className="pl-10  dark:bg-gray-900"
           />
         </div>
       </div>

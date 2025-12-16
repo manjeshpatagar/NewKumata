@@ -52,36 +52,43 @@ export function RegisterScreen() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 dark:bg-[#0B0F1A] flex items-center justify-center p-4">
       <div className="w-full max-w-md">
 
         {/* Back Button */}
         <button
           onClick={() => router.push('/auth/login')}
-          className="flex items-center gap-2 text-gray-700 mb-4"
+          className="flex items-center gap-2 text-gray-700 dark:text-gray-400 mb-4"
         >
           <ArrowLeft size={20} />
           Back to Login
         </button>
 
         {/* Card */}
-        <div className="bg-white rounded-2xl shadow-xl p-8">
+        <div className="bg-white dark:bg-[#111827] rounded-2xl shadow-xl p-8">
 
           {/* Logo */}
           <div className="text-center mb-8">
             <NammaKumtaLogo size="lg" />
-            <h1 className="text-2xl font-bold mt-3">Create Account</h1>
+            <h1 className="text-2xl font-bold mt-3 text-gray-900 dark:text-gray-100">
+              Create Account
+            </h1>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-5">
 
             {/* Full Name */}
             <div>
-              <label className="text-sm font-medium">Full Name</label>
+              <label className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                Full Name
+              </label>
               <div className="relative mt-1">
-                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <User
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <Input
-                  className="pl-10"
+                  className="pl-10 text-gray-900 dark:text-gray-100 dark:bg-[#0F172A] dark:border-gray-700"
                   type="text"
                   placeholder="Enter your name"
                   value={formData.name}
@@ -95,11 +102,16 @@ export function RegisterScreen() {
 
             {/* Email */}
             <div>
-              <label className="text-sm font-medium">Email</label>
+              <label className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                Email
+              </label>
               <div className="relative mt-1">
-                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Mail
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
                 <Input
-                  className="pl-10"
+                  className="pl-10 text-gray-900 dark:text-gray-100 dark:bg-[#0F172A] dark:border-gray-700"
                   type="email"
                   placeholder="Enter your email"
                   value={formData.email}
@@ -113,12 +125,17 @@ export function RegisterScreen() {
 
             {/* Password */}
             <div>
-              <label className="text-sm font-medium">Password</label>
+              <label className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                Password
+              </label>
               <div className="relative mt-1">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
 
                 <Input
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 text-gray-900 dark:text-gray-100 dark:bg-[#0F172A] dark:border-gray-700"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create password"
                   value={formData.password}
@@ -132,7 +149,7 @@ export function RegisterScreen() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400"
                 >
                   {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -141,12 +158,17 @@ export function RegisterScreen() {
 
             {/* Confirm Password */}
             <div>
-              <label className="text-sm font-medium">Confirm Password</label>
+              <label className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                Confirm Password
+              </label>
               <div className="relative mt-1">
-                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Lock
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                  size={18}
+                />
 
                 <Input
-                  className="pl-10 pr-10"
+                  className="pl-10 pr-10 text-gray-900 dark:text-gray-100 dark:bg-[#0F172A] dark:border-gray-700"
                   type={showConfirm ? "text" : "password"}
                   placeholder="Confirm password"
                   value={formData.confirmPassword}
@@ -160,7 +182,7 @@ export function RegisterScreen() {
                 <button
                   type="button"
                   onClick={() => setShowConfirm(!showConfirm)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600 dark:text-gray-400"
                 >
                   {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
@@ -168,7 +190,11 @@ export function RegisterScreen() {
             </div>
 
             {/* Submit Button */}
-            <Button disabled={loading} type="submit" className="w-full h-12">
+            <Button
+              disabled={loading}
+              type="submit"
+              className="w-full h-12 text-white dark:bg-black"
+            >
               {loading ? "Creating..." : "Create Account"}
             </Button>
           </form>

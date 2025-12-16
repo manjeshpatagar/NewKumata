@@ -197,7 +197,7 @@ export function AdvertisementsPage({
           <div className="flex items-center gap-2 mt-3">
             <Button
               size="sm"
-              className="flex-1"
+              className="flex-1 dark:bg-gray-800 text-white"
               onClick={(e) => {
                 e.stopPropagation();
                 router.push(`/ads/${ad._id}`);
@@ -273,10 +273,10 @@ export function AdvertisementsPage({
 
         {/* SEARCH */}
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-300 w-5 dark:bg-gray-800" />
           <Input
             placeholder={t("searchAds")}
-            className="pl-10"
+            className="pl-10 dark:bg-gray-800"
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
           />

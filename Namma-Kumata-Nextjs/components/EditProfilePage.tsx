@@ -80,6 +80,7 @@ export function EditProfilePage() {
           <div>
             <Label>Name</Label>
             <Input
+              className="dark:bg-gray-800"
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
@@ -92,6 +93,7 @@ export function EditProfilePage() {
           <div>
             <Label>Email</Label>
             <Input
+              className="dark:bg-gray-800"
               type="email"
               value={formData.email}
               onChange={(e) =>
@@ -105,6 +107,7 @@ export function EditProfilePage() {
           <div>
             <Label>Phone Number</Label>
             <Input
+              className="dark:bg-gray-800"
               value={formData.phoneNumber}
               onChange={(e) =>
                 setFormData({ ...formData, phoneNumber: e.target.value })
@@ -116,6 +119,7 @@ export function EditProfilePage() {
           <div>
             <Label>Bio</Label>
             <Input
+              className="dark:bg-gray-800"
               value={formData.bio}
               onChange={(e) =>
                 setFormData({ ...formData, bio: e.target.value })

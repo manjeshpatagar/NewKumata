@@ -181,8 +181,8 @@ export function BannerCarousel() {
           })}
         </CarouselContent>
 
-        <CarouselPrevious className="left-2 md:left-4 bg-white/90 shadow-xl" />
-        <CarouselNext className="right-2 md:right-4 bg-white/90 shadow-xl" />
+        <CarouselPrevious className="left-2 md:left-4 bg-white/90 shadow-xl dark:bg-black" />
+        <CarouselNext className="right-2 md:right-4 bg-white/90 shadow-xl dark:bg-black" />
       </Carousel>
     </div>
   );

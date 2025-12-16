@@ -78,7 +78,7 @@ export function ListingCard({
       </div>
       <div className="p-3">
         <div className="flex items-start justify-between gap-2 mb-1">
-          <h3 className="flex-1">{name}</h3>
+          <h3 className="flex-1">{name} hhuhhu</h3>
           <Badge className={categoryColors[category] || 'bg-gray-100'} variant="secondary">
             {category}
           </Badge>

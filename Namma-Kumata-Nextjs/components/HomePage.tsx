@@ -49,22 +49,21 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   /* ======================================================
      ADS — BADGE BASED
   ====================================================== */
-const badgeAds = advertisements.filter((ad: any) => {
-  return (
-    !!ad.badges ||            // string badge
-    ad.featured === true ||   // featured ad
-    ad.sponsored === true     // sponsored ad
-  );
-});
+  const badgeAds = advertisements.filter((ad: any) => {
+    return (
+      !!ad.badges ||
+      ad.featured === true ||
+      ad.sponsored === true
+    );
+  });
   console.log("⭐ BADGE ADS:", badgeAds);
 
   /* ======================================================
      SHOPS — BADGE BASED (IMAGE PRESENT)
   ====================================================== */
-const badgeShops = shops.filter((shop: any) => {
-  return !!shop.badges;
-});
-
+  const badgeShops = shops.filter((shop: any) => {
+    return !!shop.badges;
+  });
   console.log("⭐ BADGE SHOPS:", badgeShops);
 
   /* ======================================================
@@ -100,10 +99,10 @@ const badgeShops = shops.filter((shop: any) => {
      RENDER
   ====================================================== */
   return (
-    <div className="h-screen flex flex-col bg-[#F7F9FC]">
+    <div className="h-screen flex flex-col bg-[#F7F9FC] dark:bg-[#0B0F1A]">
 
       {/* HEADER */}
-      <header className="bg-white/90 backdrop-blur border-b sticky top-0 z-50">
+      <header className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur border-b dark:border-gray-800 sticky top-0 z-50">
         <div className="max-w-7xl mx-auto px-4 py-4">
           <div className="flex justify-between items-center mb-4">
             <NammaKumtaLogo size="sm" />
@@ -135,14 +134,14 @@ const badgeShops = shops.filter((shop: any) => {
         <div className="pb-28">
 
           {/* BANNER */}
-          <section className="py-6 bg-white">
+          <section className="py-6 bg-white dark:bg-[#0F172A]">
             <BannerCarousel />
           </section>
 
           {/* CATEGORIES */}
           {categories.length > 0 && (
             <section className="py-10">
-              <h2 className="text-2xl font-bold px-4 mb-6">
+              <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900 dark:text-gray-100">
                 {t("browseServices")}
               </h2>
 
@@ -160,13 +159,14 @@ const badgeShops = shops.filter((shop: any) => {
                         className="w-16 h-16 rounded-2xl object-cover"
                       />
                     ) : (
-                      <div className="w-16 h-16 rounded-2xl bg-gray-200 flex items-center justify-center font-bold">
+                      <div className="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-900 dark:text-gray-100">
                         {cat.name?.charAt(0)}
                       </div>
                     )}
-                    <span className="text-sm font-medium">{cat.name}</span>
+                    <span className="text-sm font-medium text-gray-800 dark:text-gray-200">
+                      {cat.name}
+                    </span>
                   </button>
-
                 ))}
               </div>
             </section>
@@ -174,8 +174,8 @@ const badgeShops = shops.filter((shop: any) => {
 
           {/* SHOPS */}
           {badgeShops.length > 0 && (
-            <section className="py-10 bg-[#F7F9FC]">
-              <h2 className="text-2xl font-bold px-4 mb-6">
+            <section className="py-10 bg-[#F7F9FC] dark:bg-[#0B0F1A]">
+              <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900 dark:text-gray-100">
                 {t("topRatedShops")}
               </h2>
 
@@ -187,8 +187,7 @@ const badgeShops = shops.filter((shop: any) => {
                     <div
                       key={shop._id}
                       onClick={() => router.push(`/listing/${shop._id}`)}
-
-                      className="bg-white rounded-3xl shadow-lg overflow-hidden cursor-pointer"
+                      className="bg-white dark:bg-[#111827] rounded-3xl shadow-lg overflow-hidden cursor-pointer"
                     >
                       {img ? (
                         <img
@@ -197,7 +196,7 @@ const badgeShops = shops.filter((shop: any) => {
                           className="w-full h-52 object-cover"
                         />
                       ) : (
-                        <div className="w-full h-52 bg-gray-200 flex items-center justify-center font-bold">
+                        <div className="w-full h-52 bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-100">
                           {shop.name?.charAt(0)}
                         </div>
                       )}
@@ -207,7 +206,9 @@ const badgeShops = shops.filter((shop: any) => {
                           <Star className="w-3 h-3 mr-1" />
                           Featured
                         </Badge>
-                        <h3 className="font-bold">{shop.name}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100">
+                          {shop.name}
+                        </h3>
                       </div>
                     </div>
                   );
@@ -216,10 +217,10 @@ const badgeShops = shops.filter((shop: any) => {
             </section>
           )}
 
-          {/* ADS — FIXED */}
+          {/* ADS */}
           {badgeAds.length > 0 && (
-            <section className="py-10 bg-white">
-              <h2 className="text-2xl font-bold px-4 mb-6">
+            <section className="py-10 bg-white dark:bg-[#0F172A]">
+              <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900 dark:text-gray-100">
                 {t("latestAds")}
               </h2>
 
@@ -237,19 +238,16 @@ const badgeShops = shops.filter((shop: any) => {
                         e.stopPropagation();
                         router.push(`/ads/${ad._id}`);
                       }}
-                      className="bg-white rounded-3xl shadow-lg overflow-hidden cursor-pointer"
+                      className="bg-white dark:bg-[#111827] rounded-3xl shadow-lg overflow-hidden cursor-pointer"
                     >
                       {img ? (
                         <img
                           src={img}
                           alt={ad.title}
                           className="w-full h-52 object-cover"
-                          onError={() =>
-                            console.error("❌ IMAGE FAILED:", img)
-                          }
                         />
                       ) : (
-                        <div className="w-full h-52 bg-purple-200 flex items-center justify-center font-bold text-white">
+                        <div className="w-full h-52 bg-purple-200 dark:bg-purple-800 flex items-center justify-center font-bold text-white">
                           {ad.title?.charAt(0)}
                         </div>
                       )}
@@ -260,10 +258,12 @@ const badgeShops = shops.filter((shop: any) => {
                           Featured
                         </Badge>
 
-                        <h3 className="font-bold">{ad.title}</h3>
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100">
+                          {ad.title}
+                        </h3>
 
                         {ad.location && (
-                          <p className="text-sm text-gray-500 flex items-center gap-1">
+                          <p className="text-sm text-gray-500 dark:text-gray-400 flex items-center gap-1">
                             <MapPin className="w-4 h-4" />
                             {ad.location}
                           </p>
@@ -276,9 +276,9 @@ const badgeShops = shops.filter((shop: any) => {
             </section>
           )}
 
-          {/* ===================== EMERGENCY (INLINE UI) ===================== */}
-          <section className="py-10 bg-gradient-to-br from-red-50 to-orange-50">
-            <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900">
+          {/* EMERGENCY */}
+          <section className="py-10 bg-gradient-to-br from-red-50 to-orange-50 dark:from-red-950 dark:to-orange-950">
+            <h2 className="text-2xl font-bold px-4 mb-6 text-gray-900 dark:text-gray-100">
               {t("emergencyNumbers") || "Emergency Contacts"}
             </h2>
 
@@ -286,14 +286,14 @@ const badgeShops = shops.filter((shop: any) => {
               {/* POLICE */}
               <a
                 href="tel:100"
-                className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
+                className="group bg-white dark:bg-[#111827] rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
               >
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-blue-500 to-indigo-600 flex items-center justify-center text-white shadow-lg">
                   🚓
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Police</p>
-                  <p className="text-2xl font-bold text-gray-900">100</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Police</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">100</p>
                 </div>
                 <Badge className="bg-green-600 text-white">Call</Badge>
               </a>
@@ -301,14 +301,14 @@ const badgeShops = shops.filter((shop: any) => {
               {/* AMBULANCE */}
               <a
                 href="tel:108"
-                className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
+                className="group bg-white dark:bg-[#111827] rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
               >
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-red-500 to-rose-600 flex items-center justify-center text-white shadow-lg">
                   🚑
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Ambulance</p>
-                  <p className="text-2xl font-bold text-gray-900">108</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ambulance</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">108</p>
                 </div>
                 <Badge className="bg-green-600 text-white">Call</Badge>
               </a>
@@ -316,14 +316,14 @@ const badgeShops = shops.filter((shop: any) => {
               {/* FIRE */}
               <a
                 href="tel:101"
-                className="group bg-white rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
+                className="group bg-white dark:bg-[#111827] rounded-3xl shadow-lg p-6 flex items-center gap-4 hover:shadow-xl transition-all active:scale-95"
               >
                 <div className="w-14 h-14 rounded-2xl bg-gradient-to-r from-orange-500 to-amber-600 flex items-center justify-center text-white shadow-lg">
                   🚒
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600">Fire Service</p>
-                  <p className="text-2xl font-bold text-gray-900">101</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Fire Service</p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">101</p>
                 </div>
                 <Badge className="bg-green-600 text-white">Call</Badge>
               </a>

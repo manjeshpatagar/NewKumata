@@ -51,7 +51,7 @@ export default function SubcategoryPage({
             <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
             <Input
               placeholder={`${t("searchFor")} ${categoryName.toLowerCase()}...`}
-              className="pl-10 md:pl-12 h-11 md:h-12 rounded-xl"
+              className="pl-10 md:pl-12 h-11 md:h-12 rounded-xl  dark:bg-gray-900"
             />
           </div>
         </div>

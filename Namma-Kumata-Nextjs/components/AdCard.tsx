@@ -117,14 +117,6 @@ export function AdCard({
             {title}
           </h3>
         </div>
-        <Badge
-          className={`${
-            categoryColors[category] || "bg-gray-100 dark:bg-gray-700"
-          } mb-2 text-xs`}
-          variant="secondary"
-        >
-          {category}
-        </Badge>
         {price && (
           <p className="text-blue-600 dark:text-blue-400 mb-1">{price}</p>
         )}
