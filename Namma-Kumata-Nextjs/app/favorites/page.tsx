@@ -5,6 +5,7 @@ import { cookies } from "next/headers";
 import { favouriteServerApi } from "@/lib/api-ssr/favouriteServerApi";
 import { FavoritesPage } from "@/components/FavoritesPage";
 import { BottomNav } from "@/components/BottomNav";
+import { AppHeader } from "@/components/AppHeader";
 
 export const metadata: Metadata = {
   title: "Favorites - Namma Kumta",
@@ -32,6 +33,7 @@ export default async function Favorites() {
 
   return (
     <>
+     <AppHeader/>
       <FavoritesPage initialFavourites={favourites} />
       <BottomNav />
     </>

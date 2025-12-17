@@ -92,18 +92,7 @@ export default function ExplorePage({
             </div>
           </div>
 
-          {/* ---------------- SEARCH ---------------- */}
-          <div className="px-4 pb-4">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <Input
-                placeholder={t("searchPlaceholder")}
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10 bg-gray-100 dark:bg-gray-900"
-              />
-            </div>
-          </div>
+      
         </div>
 
         {/* ---------------- CONTENT ---------------- */}

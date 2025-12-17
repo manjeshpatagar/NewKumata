@@ -65,8 +65,8 @@ export function SmartSearchBarWithImages({ placeholder }: { placeholder?: string
   ========================= */
   const filtered = query
     ? items.filter(i =>
-        i.name.toLowerCase().includes(query.toLowerCase())
-      )
+      i.name.toLowerCase().includes(query.toLowerCase())
+    )
     : items;
 
   /* =========================
@@ -85,30 +85,26 @@ export function SmartSearchBarWithImages({ placeholder }: { placeholder?: string
   /* =========================
      NAVIGATION
   ========================= */
-  const goToSubcategory = (item: SearchItem) => {
-    setOpen(false);
-    setQuery('');
-    router.push(
-      `/subcategory?categoryId=${item.categoryId}&categoryName=${encodeURIComponent(
-        item.name
-      )}`
-    );
-  };
+const goToSubcategory = (item: SearchItem) => {
+  setOpen(false);
+  setQuery('');
+  router.push(`/explore/${item.categoryId}`);
+};
 
   return (
     <div ref={searchRef} className="relative">
-     <div className="relative">
-  <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
+      <div className="relative">
+        <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400 pointer-events-none" />
 
-  <Input
-    placeholder={placeholder || 'Search'}
-    value={query}
-    onChange={e => {
-      setQuery(e.target.value);
-      setOpen(true);
-    }}
-    onFocus={() => setOpen(true)}
-    className="
+        <Input
+          placeholder={placeholder || 'Search'}
+          value={query}
+          onChange={e => {
+            setQuery(e.target.value);
+            setOpen(true);
+          }}
+          onFocus={() => setOpen(true)}
+          className="
       h-12
       pl-12
       pr-10
@@ -131,12 +127,12 @@ export function SmartSearchBarWithImages({ placeholder }: { placeholder?: string
       dark:focus:border-blue-400
       dark:focus:ring-blue-900
     "
-  />
+        />
 
-  {query && (
-    <button
-      onClick={() => setQuery('')}
-      className="
+        {query && (
+          <button
+            onClick={() => setQuery('')}
+            className="
         absolute
         right-3
         top-1/2
@@ -147,11 +143,11 @@ export function SmartSearchBarWithImages({ placeholder }: { placeholder?: string
         dark:hover:bg-gray-800
         transition
       "
-    >
-      <X className="w-4 h-4 text-gray-500" />
-    </button>
-  )}
-</div>
+          >
+            <X className="w-4 h-4 text-gray-500" />
+          </button>
+        )}
+      </div>
 
       {open && (
         <Card className="absolute w-full mt-2 z-50 max-h-[60vh]">

@@ -4,6 +4,7 @@ import type { Metadata } from "next";
 import { ProfilePage } from "@/components/ProfilePage";
 import { BottomNav } from "@/components/BottomNav";
 import { authServerApi } from "@/lib/api-ssr/authServerApi";
+import { AppHeader } from "@/components/AppHeader";
 
 export const metadata: Metadata = {
   title: "Profile - Namma Kumta",
@@ -30,6 +31,7 @@ export default async function Profile() {
 
   return (
     <>
+     <AppHeader/>
       <ProfilePage initialUser={user} />
       <BottomNav />
     </>

@@ -47,13 +47,7 @@ export default function SubcategoryPage({
             </div>
           </div>
 
-          <div className="relative max-w-2xl">
-            <Search className="absolute left-3 md:left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-            <Input
-              placeholder={`${t("searchFor")} ${categoryName.toLowerCase()}...`}
-              className="pl-10 md:pl-12 h-11 md:h-12 rounded-xl  dark:bg-gray-900"
-            />
-          </div>
+
         </div>
       </div>
 
@@ -90,13 +84,9 @@ export default function SubcategoryPage({
                       />
                       <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/20"></div>
 
-                      <div className="absolute top-2 right-2 text-3xl text-white">
-                        {subcategory.icon || "📌"}
-                      </div>
-
                       <div className="absolute bottom-0 left-0 right-0 p-2">
-                        <div className="bg-black/50 rounded-lg px-2 py-1">
-                          <h3 className="text-white text-sm md:text-base line-clamp-2">
+                       <div className="bg-[#eff6ff] rounded-lg px-2 py-1">
+                          <h3 className="text-black text-sm md:text-base font-semibold line-clamp-2">
                             {subcategory.name}
                           </h3>
                         </div>

@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/BottomNav";
 import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 import { advertisementServerApi } from "@/lib/api-ssr/advertisementServerApi";
 import { cookies } from "next/headers";
+import { AppHeader } from "@/components/AppHeader";
 
 export const metadata: Metadata = {
   title: "Advertisements - Namma Kumta",
@@ -40,6 +41,7 @@ export default async function Advertisements() {
 
   return (
     <>
+      <AppHeader />
       <AdvertisementsPage
         initialCategories={categories}
         initialAdvertisment={advertisments}

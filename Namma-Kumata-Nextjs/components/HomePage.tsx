@@ -21,6 +21,7 @@ import { NammaKumtaLogo } from "@/components/NammaKumtaLogo";
 import { SmartSearchBarWithImages } from "@/components/SmartSearchBarWithImages";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
+import { BottomNav } from '@/components/BottomNav';
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -57,6 +58,8 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
     );
   });
   console.log("⭐ BADGE ADS:", badgeAds);
+
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   /* ======================================================
      SHOPS — BADGE BASED (IMAGE PRESENT)
@@ -100,34 +103,11 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   ====================================================== */
   return (
     <div className="h-screen flex flex-col bg-[#F7F9FC] dark:bg-[#0B0F1A]">
+      <div style={{ padding: "10px" }}> <SmartSearchBarWithImages placeholder={t('searchPlaceholder')} /></div>
 
-      {/* HEADER */}
-      <header className="bg-white/90 dark:bg-[#111827]/90 backdrop-blur border-b dark:border-gray-800 sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-4 py-4">
-          <div className="flex justify-between items-center mb-4">
-            <NammaKumtaLogo size="sm" />
 
-            <div className="flex items-center gap-2">
-              <LanguageSelector />
-              <button
-                onClick={() =>
-                  requireAuth(
-                    () => go("/profile"),
-                    () => go("/auth/login")
-                  )
-                }
-                className="w-10 h-10 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 flex items-center justify-center text-white"
-              >
-                <User />
-              </button>
-            </div>
-          </div>
+      <div> <WeatherWidget /></div>
 
-          <SmartSearchBarWithImages placeholder={t("searchPlaceholder")} />
-        </div>
-
-        <WeatherWidget />
-      </header>
 
       {/* CONTENT */}
       <ScrollArea className="flex-1">
@@ -183,6 +163,21 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                 {badgeShops.map((shop) => {
                   const img = shop.thumbnail || shop.images?.[0];
 
+                  // ✅ TITLE
+                  const title =
+                    shop.contact?.ownerName ||
+                    shop.name ||
+                    shop.title ||
+                    "Unnamed Shop";
+
+                  // ✅ PLACE / LOCATION (SAFE)
+                  const place =
+                    shop.location ||
+                    shop.address ||
+                    shop.area ||
+                    shop.city ||
+                    " ";
+
                   return (
                     <div
                       key={shop._id}
@@ -192,12 +187,12 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                       {img ? (
                         <img
                           src={img}
-                          alt={shop.name}
+                          alt={title}
                           className="w-full h-52 object-cover"
                         />
                       ) : (
                         <div className="w-full h-52 bg-gray-200 dark:bg-gray-700 flex items-center justify-center font-bold text-gray-100">
-                          {shop.name?.charAt(0)}
+                          {title.charAt(0)}
                         </div>
                       )}
 
@@ -206,9 +201,18 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                           <Star className="w-3 h-3 mr-1" />
                           Featured
                         </Badge>
-                        <h3 className="font-bold text-gray-900 dark:text-gray-100">
-                          {shop.name}
+
+                        {/* TITLE */}
+                        <h3 className="font-bold text-gray-900 dark:text-gray-100 mb-1 line-clamp-1">
+                          {title}
                         </h3>
+
+                     {place && (
+  <div className="mt-2 flex items-center gap-1.5 text-sm text-black dark:text-gray-300">
+    <MapPin className="w-4 h-4 text-black dark:text-gray-400" />
+    <span className="truncate">{place}</span>
+  </div>
+)}
                       </div>
                     </div>
                   );
@@ -335,6 +339,8 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
 
       <FloatingAddButton />
       <QuickAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
+
+
     </div>
   );
 }

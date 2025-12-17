@@ -63,7 +63,7 @@ export function ContactUsPage() {
                     {language === 'en' ? 'Phone' : 'ಫೋನ್'}
                   </h3>
                   <a href="tel:+918386255555" className="text-sm md:text-base text-blue-600 dark:text-blue-400 hover:underline block truncate">
-                    +91 83862 55555
+                    +91 9980594085
                   </a>
                 </div>
                 <Button
@@ -87,7 +87,7 @@ export function ContactUsPage() {
                 <div className="flex-1 min-w-0">
                   <h3 className="text-sm md:text-base font-semibold dark:text-white">WhatsApp</h3>
                   <a href="https://wa.me/918386255555" className="text-sm md:text-base text-blue-600 dark:text-blue-400 hover:underline block truncate">
-                    +91 83862 55555
+                    +91 7483439978
                   </a>
                 </div>
                 <Button
@@ -113,7 +113,7 @@ export function ContactUsPage() {
                     {language === 'en' ? 'Email' : 'ಇಮೇಲ್'}
                   </h3>
                   <a href="mailto:support@nammakumata.com" className="text-sm md:text-base text-blue-600 dark:text-blue-400 hover:underline block truncate">
-                    support@nammakumata.com
+                   ganesh@canaratechlabs.com
                   </a>
                 </div>
               </div>
@@ -164,95 +164,7 @@ export function ContactUsPage() {
             </Card>
           </div>
 
-          {/* Contact Form */}
-          <Card className="p-4 md:p-6 lg:p-8 dark:bg-gray-900 dark:border-gray-800">
-            <h3 className="text-base md:text-lg lg:text-xl font-semibold mb-4 md:mb-6 dark:text-white flex items-center gap-2">
-              <Send className="w-5 h-5 md:w-6 md:h-6 text-blue-600 dark:text-blue-400" />
-              {language === 'en' ? 'Send us a Message' : 'ನಮಗೆ ಸಂದೇಶ ಕಳುಹಿಸಿ'}
-            </h3>
-            
-            <form onSubmit={handleSubmit} className="space-y-4 md:space-y-5">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                <div>
-                  <Label htmlFor="name" className="dark:text-gray-200 text-sm md:text-base">
-                    {language === 'en' ? 'Your Name' : 'ನಿಮ್ಮ ಹೆಸರು'} *
-                  </Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder={language === 'en' ? 'Enter your name' : 'ನಿಮ್ಮ ಹೆಸರನ್ನು ನಮೂದಿಸಿ'}
-                    className="dark:bg-gray-800 dark:border-gray-700 md:h-12 md:text-base"
-                    required
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="email" className="dark:text-gray-200 text-sm md:text-base">
-                    {language === 'en' ? 'Email Address' : 'ಇಮೇಲ್ ವಿಳಾಸ'} *
-                  </Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder={language === 'en' ? 'your.email@example.com' : 'ನಿಮ್ಮ.ಇಮೇಲ್@example.com'}
-                    className="dark:bg-gray-800 dark:border-gray-700 md:h-12 md:text-base"
-                    required
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 md:gap-5">
-                <div>
-                  <Label htmlFor="phone" className="dark:text-gray-200 text-sm md:text-base">
-                    {language === 'en' ? 'Phone Number' : 'ಫೋನ್ ಸಂಖ್ಯೆ'}
-                  </Label>
-                  <Input
-                    id="phone"
-                    type="tel"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+91 98765 43210"
-                    className="dark:bg-gray-800 dark:border-gray-700 md:h-12 md:text-base"
-                  />
-                </div>
-
-                <div>
-                  <Label htmlFor="subject" className="dark:text-gray-200 text-sm md:text-base">
-                    {language === 'en' ? 'Subject' : 'ವಿಷಯ'}
-                  </Label>
-                  <Input
-                    id="subject"
-                    value={formData.subject}
-                    onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
-                    placeholder={language === 'en' ? 'What is this about?' : 'ಇದು ಯಾವ ಬಗ್ಗೆ?'}
-                    className="dark:bg-gray-800 dark:border-gray-700 md:h-12 md:text-base"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <Label htmlFor="message" className="dark:text-gray-200 text-sm md:text-base">
-                  {language === 'en' ? 'Message' : 'ಸಂದೇಶ'} *
-                </Label>
-                <Textarea
-                  id="message"
-                  value={formData.message}
-                  onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                  placeholder={language === 'en' ? 'Tell us more about your inquiry...' : 'ನಿಮ್ಮ ವಿಚಾರಣೆಯ ಬಗ್ಗೆ ಹೆಚ್ಚು ತಿಳಿಸಿ...'}
-                  rows={5}
-                  className="dark:bg-gray-800 dark:border-gray-700 md:text-base resize-none"
-                  required
-                />
-              </div>
-
-              <Button type="submit" className="w-full md:h-12 md:text-base bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
-                <Send className="w-4 h-4 md:w-5 md:h-5 mr-2" />
-                {language === 'en' ? 'Send Message' : 'ಸಂದೇಶ ಕಳುಹಿಸಿ'}
-              </Button>
-            </form>
-          </Card>
+      
 
           {/* Social Media (Optional) */}
           <Card className="p-6 md:p-8 lg:p-10 bg-gradient-to-r from-blue-600 to-purple-600 text-white border-0">

@@ -15,88 +15,68 @@ export function HelpPage() {
   const { t, language } = useLanguage();
   const [searchQuery, setSearchQuery] = useState('');
 
-  const faqData = [
-    {
-      id: '1',
-      question: language === 'en' ? 'How do I create a listing?' : 'ನಾನು ಪಟ್ಟಿಯನ್ನು ಹೇಗೆ ರಚಿಸುವುದು?',
-      answer: language === 'en' 
-        ? 'Tap the + button at the bottom of your screen, select "Add Listing", fill in the details about your shop/service, and submit. Your listing will be reviewed by our admin team before being published.'
-        : 'ನಿಮ್ಮ ಪರದೆಯ ಕೆಳಭಾಗದಲ್ಲಿ + ಬಟನ್ ಟ್ಯಾಪ್ ಮಾಡಿ, "ಪಟ್ಟಿ ಸೇರಿಸಿ" ಆಯ್ಕೆಮಾಡಿ, ನಿಮ್ಮ ಅಗಡಿ/ಸೇವೆಯ ವಿವರಗಳನ್ನು ಭರ್ತಿ ಮಾಡಿ ಮತ್ತು ಸಲ್ಲಿಸಿ. ನಿಮ್ಮ ಪಟ್ಟಿಯನ್ನು ಪ್ರಕಟಿಸುವ ಮೊದಲು ನಮ್ಮ ನಿರ್ವಾಹಕ ತಂಡದಿಂದ ಪರಿಶೀಲಿಸಲಾಗುತ್ತದೆ.',
-      icon: Plus,
-    },
-    {
-      id: '2',
-      question: language === 'en' ? 'How do I post an advertisement?' : 'ನಾನು ಜಾಹೀರಾತನ್ನು ಹೇಗೆ ಪೋಸ್ಟ್ ಮಾಡುವುದು?',
-      answer: language === 'en' 
-        ? 'Tap the + button, select "Post Ad", choose your category (Bikes, Cars, Jobs, etc.), fill in all required information including photos/videos, and submit for approval. You will receive a notification once your ad is reviewed.'
-        : '+ ಬಟನ್ ಟ್ಯಾಪ್ ಮಾಡಿ, "ಜಾಹೀರಾತು ಪೋಸ್ಟ್ ಮಾಡಿ" ಆಯ್ಕೆಮಾಡಿ, ನಿಮ್ಮ ವರ್ಗವನ್ನು (ಬೈಕ್‌ಗಳು, ಕಾರುಗಳು, ಉದ್ಯೋಗಗಳು ಇತ್ಯಾದಿ) ಆರಿಸಿ, ಫೋಟೋಗಳು/ವೀಡಿಯೊಗಳನ್ನು ಒಳಗೊಂಡಂತೆ ಎಲ್ಲಾ ಅಗತ್ಯ ಮಾಹಿತಿಯನ್ನು ಭರ್ತಿ ಮಾಡಿ ಮತ್ತು ಅನುಮೋದನೆಗಾಗಿ ಸಲ್ಲಿಸಿ.',
-      icon: Plus,
-    },
-    {
-      id: '3',
-      question: language === 'en' ? 'How do I edit my ad or listing?' : 'ನನ್ನ ಜಾಹೀರಾತು ಅಥವಾ ಪಟ್ಟಿಯನ್ನು ಹೇಗೆ ಸಂಪಾದಿಸುವುದು?',
-      answer: language === 'en' 
-        ? 'You can edit your advertisements from your Profile page under "My Ads". For listing changes (shops, services, etc.), please contact the admin as only administrators can modify listings to ensure quality and accuracy.'
-        : 'ನಿಮ್ಮ ಪ್ರೊಫೈಲ್ ಪುಟದಿಂದ "ನನ್ನ ಜಾಹೀರಾತುಗಳು" ಅಡಿಯಲ್ಲಿ ನಿಮ್ಮ ಜಾಹೀರಾತುಗಳನ್ನು ಸಂಪಾದಿಸಬಹುದು. ಪಟ್ಟಿ ಬದಲಾವಣೆಗಳಿಗೆ (ಅಂಗಡಿಗಳು, ಸೇವೆಗಳು, ಇತ್ಯಾದಿ), ದಯವಿಟ್ಟು ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ.',
-      icon: Edit,
-    },
-    {
-      id: '4',
-      question: language === 'en' ? 'How do I delete my ad or listing?' : 'ನನ್ನ ಜಾಹೀರಾತು ಅಥವಾ ಪಟ್ಟಿಯನ್ನು ಹೇಗೆ ಅಳಿಸುವುದು?',
-      answer: language === 'en' 
-        ? 'You can delete your advertisements from Profile > My Ads. For listing deletions (shops, services, etc.), please contact the admin. Note: Ad deletions cannot be undone.'
-        : 'ಪ್ರೊಫೈಲ್ > ನನ್ನ ಜಾಹೀರಾತುಗಳಿಂದ ನಿಮ್ಮ ಜಾಹೀರಾತುಗಳನ್ನು ಅಳಿಸಬಹುದು. ಪಟ್ಟಿ ಅಳಿಸುವಿಕೆಗಾಗಿ, ದಯವಿಟ್ಟು ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ.',
-      icon: Trash2,
-    },
-    {
-      id: '5',
-      question: language === 'en' ? 'How long does approval take?' : 'ಅನುಮೋದನೆ ಎಷ್ಟು ಸಮಯ ತೆಗೆದುಕೊಳ್ಳುತ್ತದೆ?',
-      answer: language === 'en' 
-        ? 'Most listings and ads are reviewed within 24-48 hours. You will receive a notification once your submission is approved or if changes are needed. Check the Notifications tab for updates.'
-        : 'ಹೆಚ್ಚಿನ ಪಟ್ಟಿಗಳು ಮತ್ತು ಜಾಹೀರಾತುಗಳನ್ನು 24-48 ಗಂಟೆಗಳಲ್ಲಿ ಪರಿಶೀಲಿಸಲಾಗುತ್ತದೆ. ನಿಮ್ಮ ಸಲ್ಲಿಕೆಯನ್ನು ಅನುಮೋದಿಸಿದ ನಂತರ ನಿಮಗೆ ಅಧಿಸೂಚನೆ ಬರುತ್ತದೆ.',
-      icon: Shield,
-    },
-    {
-      id: '6',
-      question: language === 'en' ? 'Can I upload videos in ads?' : 'ನಾನು ಜಾಹೀರಾತುಗಳಲ್ಲಿ ವೀಡಿಯೊಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಾಡಬಹುದೇ?',
-      answer: language === 'en' 
-        ? 'Yes! You can upload up to 5 photos and 2 videos when posting an advertisement. Videos help showcase your product/service better. Maximum video size is 50MB per file.'
-        : 'ಹೌದು! ಜಾಹೀರಾತನ್ನು ಪೋಸ್ಟ್ ಮಾಡುವಾಗ ನೀವು 5 ಫೋಟೋಗಳು ಮತ್ತು 2 ವೀಡಿಯೊಗಳನ್ನು ಅಪ್‌ಲೋಡ್ ಮಾಡಬಹುದು. ವೀಡಿಯೊಗಳು ನಿಮ್ಮ ಉತ್ಪನ್ನ/ಸೇವೆಯನ್ನು ಉತ್ತಮವಾಗಿ ಪ್ರದರ್ಶಿಸಲು ಸಹಾಯ ಮಾಡುತ್ತವೆ.',
-      icon: Plus,
-    },
-    {
-      id: '7',
-      question: language === 'en' ? 'How do notifications work?' : 'ಅಧಿಸೂಚನೆಗಳು ಹೇಗೆ ಕಾರ್ಯನಿರ್ವಹಿಸುತ್ತವೆ?',
-      answer: language === 'en' 
-        ? 'You receive notifications when: your listing/ad is approved or rejected, someone posts in your favorite categories, new featured items are added, or important community updates. Tap the bell icon to view all notifications.'
-        : 'ನೀವು ಅಧಿಸೂಚನೆಗಳನ್ನು ಸ್ವೀಕರಿಸುತ್ತೀರಿ: ನಿಮ್ಮ ಪಟ್ಟಿ/ಜಾಹೀರಾತನ್ನು ಅನುಮೋದಿಸಿದಾಗ ಅಥವಾ ತಿರಸ್ರಿಸಿದಾಗ, ಹೊಸ ವೈಶಿಷ್ಟ್ಯಗೊಳಿಸಿದ ಐಟಂಗಳನ್ನು ಸೇರಿಸಿದಾಗ.',
-      icon: Bell,
-    },
-    {
-      id: '8',
-      question: language === 'en' ? 'How do I change language?' : 'ನಾನು ಭಾಷೆಯನ್ನು ಹೇಗೆ ಬದಲಾಯಿಸುವುದು?',
-      answer: language === 'en' 
-        ? 'Tap the language selector in the top-right corner of most pages. Choose between English and Kannada. Your preference will be saved automatically.'
-        : 'ಹೆಚ್ಚಿನ ಪುಟಗಳ ಮೇಲಿನ-ಬಲ ಮೂಲೆಯಲ್ಲಿ ಭಾಷಾ ಆಯ್ಕೆಕಾರವನ್ನು ಟ್ಯಾಪ್ ಮಾಡಿ. ಇಂಗ್ಲಿಷ್ ಮತ್ತು ಕನ್ನಡದ ನಡುವೆ ಆಯ್ಕೆಮಾಡಿ.',
-      icon: MessageCircle,
-    },
-    {
-      id: '9',
-      question: language === 'en' ? 'How do I contact a seller?' : 'ನಾನು ಮಾರಾಟಗಾರರನ್ನು ಹೇಗೆ ಸಂಪರ್ಕಿಸುವುದು?',
-      answer: language === 'en' 
-        ? 'Each listing and ad shows contact information including phone number, WhatsApp, and email. Tap "Call", "WhatsApp", or "Email" buttons to reach the seller directly.'
-        : 'ಪ್ರತಿಯೊಂದು ಪಟ್ಟಿ ಮತ್ತು ಜಾಹೀರಾತು ಫೋನ್ ಸಂಖ್ಯೆ, ವಾಟ್ಸಾಪ್ ಮತ್ತು ಇಮೇಲ್ ಸೇರಿದಂತೆ ಸಂಪರ್ಕ ಮಾಹಿತಿಯನ್ನು ತೋರಿಸುತ್ತದೆ.',
-      icon: MessageCircle,
-    },
-    {
-      id: '10',
-      question: language === 'en' ? 'How do I report inappropriate content?' : 'ಸೂಕ್ತವಲ್ಲದ ವಿಷಯವನ್ನು ನಾನು ಹೇಗೆ ವರದಿ ಮಾಡುವುದು?',
-      answer: language === 'en' 
-        ? 'If you see inappropriate or fraudulent content, please contact us immediately through the Contact Us page. Include details about the listing/ad so we can investigate and take appropriate action.'
-        : 'ನೀವು ಸೂಕ್ತವಲ್ಲದ ಅಥವಾ ವಂಚನೆಯ ವಿಷಯವನ್ನು ನೋಡಿದರೆ, ದಯವಿಟ್ಟು ಸಂಪರ್ಕಿಸಿ ಪುಟದ ಮೂಲಕ ತಕ್ಷಣ ನಮ್ಮನ್ನು ಸಂಪರ್ಕಿಸಿ.',
-      icon: Shield,
-    },
-  ];
+ const faqData = [
+  {
+    id: '1',
+    question: language === 'en'
+      ? 'Who can add shops and services?'
+      : 'ಅಂಗಡಿಗಳು ಮತ್ತು ಸೇವೆಗಳನ್ನು ಯಾರು ಸೇರಿಸಬಹುದು?',
+    answer: language === 'en'
+      ? 'Only administrators can add shops, services, temples, tourist places, and other listings to ensure accuracy and quality.'
+      : 'ನಿಖರತೆ ಮತ್ತು ಗುಣಮಟ್ಟವನ್ನು ಖಚಿತಪಡಿಸಲು ಅಂಗಡಿಗಳು, ಸೇವೆಗಳು, ದೇವಸ್ಥಾನಗಳು ಮತ್ತು ಇತರ ಪಟ್ಟಿಗಳನ್ನು ಕೇವಲ ನಿರ್ವಾಹಕರು ಮಾತ್ರ ಸೇರಿಸಬಹುದು.',
+    icon: Shield,
+  },
+  {
+    id: '2',
+    question: language === 'en'
+      ? 'Can I post an advertisement?'
+      : 'ನಾನು ಜಾಹೀರಾತು ಪೋಸ್ಟ್ ಮಾಡಬಹುದೇ?',
+    answer: language === 'en'
+      ? 'No. Advertisements are managed only by the admin team. If you want to publish an ad, please contact the admin.'
+      : 'ಇಲ್ಲ. ಜಾಹೀರಾತುಗಳನ್ನು ನಿರ್ವಾಹಕರ ತಂಡ ಮಾತ್ರ ನಿರ್ವಹಿಸುತ್ತದೆ. ಜಾಹೀರಾತು ಪ್ರಕಟಿಸಲು ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ.',
+    icon: Bell,
+  },
+  {
+    id: '3',
+    question: language === 'en'
+      ? 'How do I update shop or listing details?'
+      : 'ಅಂಗಡಿ ಅಥವಾ ಪಟ್ಟಿ ವಿವರಗಳನ್ನು ನಾನು ಹೇಗೆ ಬದಲಾಯಿಸಬಹುದು?',
+    answer: language === 'en'
+      ? 'If any details are incorrect or need updates, please contact the admin with correct information. Admin will review and update it.'
+      : 'ಯಾವುದೇ ವಿವರಗಳು ತಪ್ಪಿದ್ದರೆ ಅಥವಾ ಬದಲಾವಣೆ ಅಗತ್ಯವಿದ್ದರೆ, ಸರಿಯಾದ ಮಾಹಿತಿಯೊಂದಿಗೆ ನಿರ್ವಾಹಕರನ್ನು ಸಂಪರ್ಕಿಸಿ.',
+    icon: Edit,
+  },
+  {
+    id: '4',
+    question: language === 'en'
+      ? 'How long does admin approval or update take?'
+      : 'ನಿರ್ವಾಹಕರ ಪರಿಶೀಲನೆಗೆ ಎಷ್ಟು ಸಮಯ ಬೇಕು?',
+    answer: language === 'en'
+      ? 'Most updates and requests are handled within 24–48 hours depending on verification requirements.'
+      : 'ಬಹುತೆಕ ಬದಲಾವಣೆಗಳು ಮತ್ತು ವಿನಂತಿಗಳನ್ನು 24–48 ಗಂಟೆಗಳೊಳಗೆ ನಿರ್ವಹಿಸಲಾಗುತ್ತದೆ.',
+    icon: Shield,
+  },
+  {
+    id: '5',
+    question: language === 'en'
+      ? 'How do notifications work?'
+      : 'ಅಧಿಸೂಚನೆಗಳು ಹೇಗೆ ಕೆಲಸ ಮಾಡುತ್ತವೆ?',
+    answer: language === 'en'
+      ? 'You receive notifications for important updates, new featured listings, announcements, and admin messages.'
+      : 'ಮುಖ್ಯ ನವೀಕರಣಗಳು, ಹೊಸ ವೈಶಿಷ್ಟ್ಯಗೊಳಿಸಿದ ಪಟ್ಟಿಗಳು ಮತ್ತು ನಿರ್ವಾಹಕರ ಸಂದೇಶಗಳಿಗಾಗಿ ಅಧಿಸೂಚನೆಗಳನ್ನು ಪಡೆಯುತ್ತೀರಿ.',
+    icon: Bell,
+  },
+  {
+    id: '6',
+    question: language === 'en'
+      ? 'How do I contact the admin?'
+      : 'ನಾನು ನಿರ್ವಾಹಕರನ್ನು ಹೇಗೆ ಸಂಪರ್ಕಿಸುವುದು?',
+    answer: language === 'en'
+      ? 'Use the Contact Us page to reach the admin for listing requests, corrections, advertisements, or any support.'
+      : 'ಪಟ್ಟಿ ವಿನಂತಿಗಳು, ತಿದ್ದುಪಡಿ, ಜಾಹೀರಾತುಗಳು ಅಥವಾ ಬೆಂಬಲಕ್ಕಾಗಿ ಸಂಪರ್ಕಿಸಿ ಪುಟವನ್ನು ಬಳಸಿ.',
+    icon: MessageCircle,
+  },
+];
 
   const filteredFaqs = faqData.filter(faq => 
     faq.question.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -118,16 +98,8 @@ export function HelpPage() {
 
       <ScrollArea className="flex-1">
         <div className="p-4 md:p-6 lg:p-8 space-y-4 md:space-y-6 pb-20 md:pb-24">
-          {/* Search */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 md:w-5 md:h-5 text-gray-400" />
-            <Input
-              placeholder={language === 'en' ? 'Search for help...' : 'ಸಹಾಯಕ್ಕಾಗಿ ಹುಡುಕಿ...'}
-              className="pl-10 md:pl-12 dark:bg-gray-900 dark:border-gray-800 md:h-12 md:text-base"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-            />
-          </div>
+        
+        
 
           {/* Quick Links */}
           <Card className="p-4 md:p-6 lg:p-8 dark:bg-gray-900 dark:border-gray-800">

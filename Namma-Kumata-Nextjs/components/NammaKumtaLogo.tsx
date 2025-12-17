@@ -1,6 +1,5 @@
 'use client';
 
-import { Palmtree } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface NammaKumtaLogoProps {
@@ -18,65 +17,87 @@ export function NammaKumtaLogo({
 
   const sizeMap = {
     sm: {
-      icon: 'w-6 h-6',
-      container: 'p-2',
-      text: 'text-lg',
-      tagline: 'text-xs',
-      gap: 'gap-2',
+      main: 'text-xl',
+      sub: 'text-xs',
+      tagline: 'text-[11px]',
+      spacing: 'tracking-tight',
     },
     md: {
-      icon: 'w-8 h-8',
-      container: 'p-2.5',
-      text: 'text-2xl',
-      tagline: 'text-sm',
-      gap: 'gap-3',
+      main: 'text-3xl',
+      sub: 'text-sm',
+      tagline: 'text-xs',
+      spacing: 'tracking-tight',
     },
     lg: {
-      icon: 'w-11 h-11',
-      container: 'p-3',
-      text: 'text-3xl',
-      tagline: 'text-base',
-      gap: 'gap-4',
+      main: 'text-4xl',
+      sub: 'text-base',
+      tagline: 'text-sm',
+      spacing: 'tracking-tight',
     },
   };
 
   const s = sizeMap[size];
 
   return (
-    <div className={`flex items-center ${s.gap} ${className}`}>
-      {/* 🌴 Icon */}
-      <div className="relative">
-        {/* soft glow */}
-        <div className="absolute inset-0 rounded-xl bg-emerald-400/30 blur-md" />
-        
-        <div
-          className={`relative flex items-center justify-center rounded-xl 
-          bg-gradient-to-br from-blue-600 to-emerald-500 
-          shadow-md ${s.container}`}
-        >
-          <Palmtree
-            className={`${s.icon} text-white`}
-            strokeWidth={2.5}
-          />
-        </div>
-      </div>
-
-      {/* 📝 Text */}
-      <div className="flex flex-col leading-tight">
-        <span
-          className={`${s.text} font-bold tracking-tight 
-          bg-gradient-to-r from-blue-700 to-emerald-600 
-          bg-clip-text text-transparent`}
-        >
-          {t('nammaKumta')}
+    <div className={`flex flex-col leading-tight ${className}`}>
+      
+      {/* MAIN LOGO TEXT */}
+      <span
+        className={`
+          relative inline-block
+          ${s.main} ${s.spacing}
+          font-extrabold
+          bg-gradient-to-r from-blue-700 via-sky-600 to-emerald-600
+          bg-clip-text text-transparent
+          select-none
+        `}
+      >
+        {/* Kannada + English stylized */}
+        <span className="block font-black">
+          ನಮ್ಮ ಕುಮಟಾ
         </span>
 
-        {showTagline && (
-          <span className={`${s.tagline} text-gray-500`}>
-            {t('yourLocalCommunityGuide')}
-          </span>
-        )}
-      </div>
+        {/* subtle underline */}
+        <span className="absolute left-0 -bottom-1 w-full h-[3px] overflow-hidden">
+          <span className="underline-move absolute w-full h-full bg-gradient-to-r from-blue-500 to-emerald-500" />
+        </span>
+      </span>
+
+      {/* ENGLISH NAME */}
+      <span
+        className={`
+          ${s.sub}
+          font-semibold
+          tracking-[0.18em]
+          text-gray-600 uppercase
+          mt-1
+        `}
+      >
+        Namma Kumta
+      </span>
+
+      {/* TAGLINE */}
+      {showTagline && (
+        <span className={`${s.tagline} text-gray-400 mt-0.5`}>
+          {t('yourLocalCommunityGuide')}
+        </span>
+      )}
+
+      {/* LOCAL CSS ONLY */}
+      <style jsx>{`
+        .underline-move {
+          animation: underlineMove 2.8s linear infinite;
+        }
+
+        @keyframes underlineMove {
+          0% {
+            transform: translateX(-100%);
+          }
+          100% {
+            transform: translateX(100%);
+          }
+        }
+      `}</style>
     </div>
   );
 }

@@ -72,55 +72,78 @@ export function CategoryListingsPage({
 
   /* ================= CARD ================= */
 
-  const ListingCard = ({ listing }: { listing: Listing }) => (
-    <Card
-      onClick={() => router.push(`/listing/${listing.id}`)}
-      className="p-4 cursor-pointer hover:shadow-lg transition-shadow dark:bg-gray-900 dark:border-gray-800"
-    >
-      <div className="flex gap-4">
-        <Avatar className="w-16 h-16">
-          <AvatarImage src={listing.image} />
-          <AvatarFallback className="bg-blue-600 text-white text-lg">
-            {listing.name
-              .split(" ")
-              .map((n) => n[0])
-              .join("")}
-          </AvatarFallback>
-        </Avatar>
+const ListingCard = ({ listing }: { listing: Listing }) => (
+  <Card
+    onClick={() => router.push(`/listing/${listing.id}`)}
+    className="
+      group cursor-pointer rounded-2xl border bg-white
+      hover:shadow-xl transition-all duration-300
+      hover:-translate-y-1
+    "
+  >
+    <div className="flex gap-4 p-4">
 
-        <div className="flex-1">
-          <h3 className="font-semibold dark:text-white">
+      {/* IMAGE */}
+      <div className="relative">
+        <img
+          src={listing.image}
+          alt={listing.name}
+          className="w-24 h-24 rounded-xl object-cover bg-gray-100"
+        />
+
+        {/* RATING BADGE */}
+        {listing.rating > 0 && (
+          <div className="absolute bottom-1 left-1 bg-[#eff6ff] text-blue-700 text-xs font-semibold px-2 py-0.5 rounded-md shadow">
+            ⭐ {listing.rating.toFixed(1)}
+          </div>
+        )}
+      </div>
+
+      {/* CONTENT */}
+      <div className="flex-1 min-w-0 flex flex-col justify-between">
+
+        {/* TITLE + SUBTITLE */}
+        <div>
+          {/* TITLE */}
+          <h3 className="text-[15px] font-semibold text-gray-900 truncate">
             {listing.name}
           </h3>
 
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            {listing.businessName}
+          {/* SUBTITLE */}
+          <p className="text-sm text-gray-500 line-clamp-2 mt-0.5">
+            {listing.businessName || "No description available"}
           </p>
+        </div>
 
-          <div className="flex items-center gap-4 mt-2 text-xs text-gray-500">
-            <div className="flex items-center gap-1">
-              <Star className="w-3 h-3 fill-yellow-400 text-yellow-400" />
-              {listing.rating} ({listing.reviewCount})
-            </div>
+        {/* META */}
+        <div className="flex items-center justify-between mt-3">
 
-            {listing.distance && (
-              <div className="flex items-center gap-1">
-                <MapPin className="w-3 h-3" />
-                {listing.distance}
-              </div>
-            )}
-          </div>
-
+          {/* ADDRESS */}
           {listing.address && (
-            <div className="flex items-center gap-1 mt-1 text-xs text-gray-500">
-              <MapPin className="w-3 h-3" />
-              {listing.address}
+            <div className="
+              flex items-center gap-1.5
+              bg-gray-100 text-gray-600
+              text-xs px-2 py-1 rounded-md
+              max-w-[70%]
+            ">
+              <MapPin className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+              <span className="truncate">{listing.address}</span>
             </div>
+          )}
+
+          {/* REVIEWS */}
+          {listing.reviewCount > 0 && (
+            <span className="text-xs text-gray-400 whitespace-nowrap">
+              {listing.reviewCount} reviews
+            </span>
           )}
         </div>
       </div>
-    </Card>
-  );
+    </div>
+  </Card>
+);
+
+
 
   /* ================= RENDER ================= */
 
@@ -157,13 +180,6 @@ export function CategoryListingsPage({
           </Tabs>
         </div>
 
-        <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-          <Input
-            placeholder={`${t("search")} ${subcategory}...`}
-            className="pl-10  dark:bg-gray-900"
-          />
-        </div>
       </div>
 
       {/* CONTENT */}

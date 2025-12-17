@@ -63,7 +63,7 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
   const favorited = isFavorite(refId);
   const reviews = getReviews(language);
 
-  /* ================= RELATED SHOPS (IMPORTANT FIX) ================= */
+  /* ================= RELATED SHOPS ================= */
 
   const relatedShops = useMemo(() => {
     const currentSubCatId = listing.subCategoryId?._id;
@@ -74,7 +74,7 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
     );
   }, [moreShops, listing]);
 
-  /* ================= FAVORITE HANDLER ================= */
+  /* ================= FAVORITE ================= */
 
   const handleFavoriteClick = async () => {
     if (!isAuthenticated && !isGuest) {
@@ -125,9 +125,9 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
   /* ================= UI ================= */
 
   return (
-    <div className="min-h-screen bg-white dark:bg-gray-950">
+    <div className="min-h-screen bg-[#F7F9FC] dark:bg-gray-950">
       {/* HEADER */}
-      <div className="flex items-center justify-between p-4 border-b relative">
+      <div className="flex items-center justify-between p-4 border-b bg-white dark:bg-gray-900 sticky top-0 z-40">
         <Button variant="ghost" size="icon" onClick={() => router.back()}>
           <ArrowLeft className="w-5 h-5" />
         </Button>
@@ -135,8 +135,10 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
         <div className="flex gap-2">
           <Button variant="ghost" size="icon" onClick={handleFavoriteClick}>
             <Heart
-              className={`w-5 h-5 ${
-                favorited ? "fill-red-500 text-red-500" : ""
+              className={`w-5 h-5 transition ${
+                favorited
+                  ? "fill-red-500 text-red-500 scale-110"
+                  : "hover:text-red-400"
               }`}
             />
           </Button>
@@ -151,7 +153,7 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
         </div>
 
         {showShareMenu && (
-          <div className="absolute top-14 right-4 bg-white rounded-lg shadow border p-2 z-50">
+          <div className="absolute top-14 right-4 bg-white rounded-xl shadow border p-2 z-50">
             <button
               onClick={() =>
                 window.open(
@@ -185,7 +187,7 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
             {/* LEFT */}
             <div className="lg:col-span-2">
               {/* IMAGES */}
-              <Carousel className="rounded-xl overflow-hidden">
+              <Carousel className="rounded-2xl overflow-hidden shadow-lg">
                 <CarouselContent>
                   {images.map((img: string, i: number) => (
                     <CarouselItem key={i}>
@@ -203,26 +205,29 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
 
               <div className="p-4">
                 {/* TITLE */}
-                <div className="flex justify-between items-start mb-2">
-                  <h1 className="text-xl font-semibold">
-                    {listing.shopName}
-                  </h1>
-                  <Badge className="bg-green-100 text-green-700">
-                    {listing.subCategoryId?.name}
-                  </Badge>
-                </div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                  {listing.shopName}
+                </h1>
+
+                <Badge className="mt-2 bg-green-50 text-green-700 dark:bg-green-900/40 dark:text-green-300">
+                  {listing.subCategoryId?.name}
+                </Badge>
 
                 {/* RATING */}
-                <div className="flex items-center gap-2 mb-4">
+                <div className="flex items-center gap-2 mt-3 text-sm text-gray-600 dark:text-gray-400">
                   <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                  {listing.rating} ({listing.reviewCount})
+                  <span className="font-medium text-gray-900 dark:text-gray-100">
+                    {listing.rating}
+                  </span>
+                  <span>({listing.reviewCount} reviews)</span>
                 </div>
 
                 {/* ABOUT */}
-                <Card className="p-4 mb-4">
-                  <h3 className="font-semibold mb-2">{t("about")}</h3>
-
-                  <p className="text-gray-600">
+                <Card className="p-5 mt-5">
+                  <h3 className="font-semibold text-lg mb-2">
+                    {t("about")}
+                  </h3>
+                  <p className="text-sm text-gray-600 dark:text-gray-400 leading-relaxed">
                     {listing.description?.length > 200 && !showFullDescription
                       ? `${listing.description.slice(0, 200)}...`
                       : listing.description}
@@ -230,10 +235,8 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
 
                   {listing.description?.length > 200 && (
                     <button
-                      onClick={() =>
-                        setShowFullDescription((p) => !p)
-                      }
-                      className="mt-2 text-sm text-blue-600 hover:underline"
+                      onClick={() => setShowFullDescription((p) => !p)}
+                      className="mt-2 text-sm font-medium text-blue-600 hover:underline"
                     >
                       {showFullDescription ? t("showLess") : t("showMore")}
                     </button>
@@ -241,39 +244,57 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
                 </Card>
 
                 {/* CONTACT */}
-                <Card className="p-4 mb-4">
-                  <h3 className="font-semibold mb-2">
+                <Card className="p-5 mt-4">
+                  <h3 className="font-semibold text-lg mb-3">
                     {t("contactInformation")}
                   </h3>
-                  <div className="space-y-2">
-                    <p className="flex gap-2">
-                      <Phone className="w-4" /> {listing.contact?.phone}
-                    </p>
-                    <p className="flex gap-2">
-                      <Mail className="w-4" /> {listing.contact?.email}
-                    </p>
-                    <p className="flex gap-2">
-                      <Clock className="w-4" /> {listing.openingHours?.open}
-                    </p>
-                    <p className="flex gap-2">
-                      <MapPin className="w-4" /> {listing.address}
-                    </p>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
+                    {listing.contact?.phone && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                        <Phone className="w-4 h-4 text-blue-600" />
+                        <span>{listing.contact.phone}</span>
+                      </div>
+                    )}
+
+                    {listing.contact?.email && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                        <Mail className="w-4 h-4 text-purple-600" />
+                        <span>{listing.contact.email}</span>
+                      </div>
+                    )}
+
+                    {listing.openingHours?.open && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                        <Clock className="w-4 h-4 text-emerald-600" />
+                        <span>{listing.openingHours.open}</span>
+                      </div>
+                    )}
+
+                    {listing.address && (
+                      <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 dark:bg-gray-900">
+                        <MapPin className="w-4 h-4 text-red-600" />
+                        <span className="line-clamp-1">{listing.address}</span>
+                      </div>
+                    )}
                   </div>
                 </Card>
 
                 {/* REVIEWS */}
-                <h3 className="font-semibold mb-3">
+                <h3 className="font-semibold text-lg mt-6 mb-3">
                   {t("reviews")} ({listing.reviewCount})
                 </h3>
 
                 {reviews.map((r) => (
                   <Card key={r.id} className="p-4 mb-3">
                     <p className="font-semibold">{r.name}</p>
-                    <p className="text-gray-600 text-sm">{r.comment}</p>
+                    <p className="text-sm text-gray-600 dark:text-gray-400">
+                      {r.comment}
+                    </p>
                   </Card>
                 ))}
-
-                {/* MOBILE : RELATED */}
+              </div>
+               {/* MOBILE : RELATED */}
                 {relatedShops.length > 0 && (
                   <div className="mt-8 lg:hidden">
                     <h3 className="text-lg font-semibold mb-3">
@@ -306,13 +327,12 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
                     </div>
                   </div>
                 )}
-              </div>
             </div>
 
-            {/* DESKTOP : RELATED */}
+            {/* DESKTOP RELATED */}
             {relatedShops.length > 0 && (
               <div className="hidden lg:block">
-                <div className="sticky top-24">
+                <div className="sticky top-28">
                   <h3 className="text-lg font-semibold mb-4">
                     More {listing.subCategoryId?.name}
                   </h3>
@@ -321,10 +341,8 @@ export function DetailPage({ listing, moreShops }: DetailPageProps) {
                     {relatedShops.map((shop) => (
                       <div
                         key={shop._id}
-                        onClick={() =>
-                          router.push(`/listing/${shop._id}`)
-                        }
-                        className="border rounded-xl cursor-pointer hover:shadow-md"
+                        onClick={() => router.push(`/listing/${shop._id}`)}
+                        className="border rounded-xl cursor-pointer hover:shadow-lg transition-all hover:-translate-y-1"
                       >
                         <ImageWithFallback
                           src={shop.images?.[0] || shop.image}

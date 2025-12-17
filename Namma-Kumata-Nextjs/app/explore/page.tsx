@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { categoryServerApi } from "@/lib/api-ssr/categoryServerApi";
 import ExplorePage from "@/components/ExplorePage"; // <-- MUST BE DEFAULT EXPORT
 import { BottomNav } from "@/components/BottomNav";
+import { AppHeader } from "@/components/AppHeader";
 
 export const metadata: Metadata = {
   title: "Explore - Namma Kumta",
@@ -31,6 +32,7 @@ export default async function ExploreSSRPage() {
 
   return (
     <>
+      <AppHeader />
       <ExplorePage initialCategories={categories} />
       <BottomNav />
     </>

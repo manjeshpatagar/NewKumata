@@ -1,11 +1,13 @@
 import type { Metadata } from 'next';
 import { Inter } from 'next/font/google';
+
 import { ThemeProvider } from '@/contexts/ThemeContext';
 import { LanguageProvider } from '@/contexts/LanguageContext';
 import { AuthProvider } from '@/contexts/AuthContext';
 import { NotificationProvider } from '@/contexts/NotificationContext';
 import { FavoritesProvider } from '@/contexts/FavoritesContext';
 import { AdminProvider } from '@/contexts/AdminContext';
+
 import { Toaster } from '@/components/ui/sonner';
 import '@/styles/globals.css';
 
@@ -13,14 +15,8 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Namma Kumta - Your Local Community Guide',
-  description: 'Discover local shops, temples, services, and more in Kumta. Your one-stop guide to everything local.',
-  keywords: ['Kumta', 'local guide', 'shops', 'services', 'community'],
-  authors: [{ name: 'Namma Kumta' }],
-  openGraph: {
-    title: 'Namma Kumta - Your Local Community Guide',
-    description: 'Discover local shops, temples, services, and more in Kumta.',
-    type: 'website',
-  },
+  description:
+    'Discover local shops, temples, services, and more in Kumta.',
 };
 
 export default function RootLayout({
@@ -37,11 +33,10 @@ export default function RootLayout({
               <NotificationProvider>
                 <FavoritesProvider>
                   <AdminProvider>
-                    <div className="min-h-screen bg-gray-50 dark:bg-gray-900 w-full">
-                      <div className="w-full max-w-[1920px] mx-auto bg-white dark:bg-gray-950 min-h-screen relative">
-                        {children}
-                      </div>
-                    </div>
+
+                    {/* ONLY PROVIDERS HERE */}
+                    {children}
+
                     <Toaster />
                   </AdminProvider>
                 </FavoritesProvider>
@@ -53,4 +48,3 @@ export default function RootLayout({
     </html>
   );
 }
-
