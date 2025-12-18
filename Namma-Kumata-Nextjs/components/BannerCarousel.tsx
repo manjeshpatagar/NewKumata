@@ -1,32 +1,27 @@
-'use client';
+"use client";
 
-import { useEffect, useState } from 'react';
-import { useRouter } from 'next/navigation';
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
   CarouselNext,
   CarouselPrevious,
-} from './ui/carousel';
-import { Badge } from './ui/badge';
-import { ImageWithFallback } from './figma/ImageWithFallback';
-import { useLanguage } from '../contexts/LanguageContext';
-import {
-  Sparkles,
-  TrendingUp,
-  Calendar,
-  ArrowRight,
-} from 'lucide-react';
+} from "./ui/carousel";
+import { Badge } from "./ui/badge";
+import { ImageWithFallback } from "./figma/ImageWithFallback";
+import { useLanguage } from "../contexts/LanguageContext";
+import { Sparkles, TrendingUp, Calendar, ArrowRight } from "lucide-react";
 
-import { productApi } from '@/lib/api/productApi';
+import { productApi } from "@/lib/api/productApi";
 
 interface BannerItem {
   _id: string;
   title: string;
   description?: string;
   image?: string;
-  badge: 'Featured' | 'Trending' | 'Upcoming';
+  badge: "Featured" | "Trending" | "Upcoming";
   icon: any;
   color: string;
 }
@@ -45,18 +40,13 @@ export function BannerCarousel() {
         const res = await productApi.getAll();
         const products = res?.data || res || [];
 
-        console.log("🟢 PRODUCT API RAW:", products);
-
         const now = Date.now();
         const fourteenDays = 14 * 24 * 60 * 60 * 1000;
 
         const mapped: BannerItem[] = [];
 
         products.forEach((product: any) => {
-          const image =
-            product.thumbnail ||
-            product.images?.[0] ||
-            null;
+          const image = product.thumbnail || product.images?.[0] || null;
 
           if (!image) return; // no image → no banner
 
@@ -67,9 +57,9 @@ export function BannerCarousel() {
               title: product.name,
               description: product.description,
               image,
-              badge: 'Featured',
+              badge: "Featured",
               icon: Sparkles,
-              color: 'from-emerald-500 to-teal-600',
+              color: "from-emerald-500 to-teal-600",
             });
             return;
           }
@@ -81,9 +71,9 @@ export function BannerCarousel() {
               title: product.name,
               description: product.description,
               image,
-              badge: 'Trending',
+              badge: "Trending",
               icon: TrendingUp,
-              color: 'from-blue-500 to-indigo-600',
+              color: "from-blue-500 to-indigo-600",
             });
             return;
           }
@@ -98,14 +88,13 @@ export function BannerCarousel() {
               title: product.name,
               description: product.description,
               image,
-              badge: 'Upcoming',
+              badge: "Upcoming",
               icon: Calendar,
-              color: 'from-amber-500 to-orange-600',
+              color: "from-amber-500 to-orange-600",
             });
           }
         });
 
-        console.log("🎯 FINAL BANNERS:", mapped);
         setBanners(mapped.slice(0, 10)); // limit banners
       } catch (err) {
         console.error("❌ Banner load failed", err);
@@ -122,7 +111,7 @@ export function BannerCarousel() {
   ===================================================== */
   return (
     <div className="relative px-4 md:px-6 lg:px-8">
-      <Carousel className="w-full" opts={{ loop: true, align: 'start' }}>
+      <Carousel className="w-full" opts={{ loop: true, align: "start" }}>
         <CarouselContent className="-ml-2 md:-ml-3">
           {banners.map((banner) => {
             const Icon = banner.icon;
@@ -134,8 +123,7 @@ export function BannerCarousel() {
               >
                 <div
                   className="group relative overflow-hidden rounded-2xl cursor-pointer transition-all duration-500 hover:scale-[1.02]"
-                 onClick={() => router.push(`/listing/${banner._id}`)}
-
+                  onClick={() => router.push(`/listing/${banner._id}`)}
                 >
                   {/* IMAGE */}
                   <div className="relative h-56 md:h-64 lg:h-72 overflow-hidden">
@@ -169,7 +157,7 @@ export function BannerCarousel() {
 
                       <div className="flex items-center gap-2 text-white mt-2">
                         <span className="text-sm font-semibold">
-                          {t('viewAll')}
+                          {t("viewAll")}
                         </span>
                         <ArrowRight className="w-4 h-4" />
                       </div>

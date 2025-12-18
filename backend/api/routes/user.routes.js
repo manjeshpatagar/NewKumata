@@ -10,7 +10,7 @@ import {
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 import { uploadedImages } from "../middleware/upload.middleware.js";
 
-import validate from "../validators/validators.js";
+import validate from "../utils/validators.js";
 import {
   registerValidator,
   loginValidator,

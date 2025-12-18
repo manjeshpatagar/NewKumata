@@ -20,7 +20,6 @@ async function getSSRData() {
 
     const categoriesRes = await categoryServerApi.getAll(token);
     const advertisementsRes = await advertisementServerApi.getAll(token);
-    console.log("✅ SSR load successful", advertisementsRes.data);
 
     const advertisementCategories = (categoriesRes.data || []).filter(
       (cat: any) => cat.type === "advertisement"

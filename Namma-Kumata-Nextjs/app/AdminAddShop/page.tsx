@@ -5,20 +5,19 @@ import { AdminShopsPage } from "@/components/admin/AdminShopsPage";
 import { productServerApi } from "@/lib/api-ssr/productServerApi";
 
 export default async function AdminDashboardPage() {
-
   // ✔ Read admin token from cookies (SSR)
   const cookieStore = cookies();
   const token =
     cookieStore.get("adminToken")?.value ||
-    cookieStore.get("token")?.value || null;
+    cookieStore.get("token")?.value ||
+    null;
 
-    let shops:any[]=[]
+  let shops: any[] = [];
 
   try {
     const res = await productServerApi.getAll(token);
 
     const items = res.data || [];
-    console.log("🛍️ Loaded products (SSR):", items);
 
     // Normalize for UI
     shops = items.map((item: any) => ({

@@ -49,8 +49,6 @@ export default async function ListingDetailPage({ params }: Props) {
         ? sameSubCategoryShops.slice(0, 8)
         : fallbackShops.slice(0, 8);
 
-        console.log(moreShops)
-
     return (
       <DetailPage
         listing={listing}

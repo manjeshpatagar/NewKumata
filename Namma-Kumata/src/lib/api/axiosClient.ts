@@ -6,9 +6,6 @@ export const axiosClient = axios.create({
 
 // Debug log
 axiosClient.interceptors.request.use((config) => {
-  console.log("📤 Sending Request:", config.url, config.method);
-  console.log("📦 Payload:", config.data);
-
   const token = localStorage.getItem("token");
   if (token) {
     config.headers = config.headers || {};
@@ -16,4 +13,3 @@ axiosClient.interceptors.request.use((config) => {
   }
   return config;
 });
-

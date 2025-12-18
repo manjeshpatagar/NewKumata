@@ -2,13 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import {
-  Bell,
-  User,
-  Star,
-  Crown,
-  MapPin,
-} from "lucide-react";
+import { Bell, User, Star, Crown, MapPin } from "lucide-react";
 
 import { categoryApi } from "@/lib/api/categoryApi";
 import { WeatherWidget } from "@/components/WeatherWidget";
@@ -21,7 +15,7 @@ import { NammaKumtaLogo } from "@/components/NammaKumtaLogo";
 import { SmartSearchBarWithImages } from "@/components/SmartSearchBarWithImages";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Badge } from "@/components/ui/badge";
-import { BottomNav } from '@/components/BottomNav';
+import { BottomNav } from "@/components/BottomNav";
 
 import { useLanguage } from "@/contexts/LanguageContext";
 import { useNotifications } from "@/contexts/NotificationContext";
@@ -44,20 +38,13 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   /* ======================================================
      🔍 DEBUG — RAW PROPS
   ====================================================== */
-  console.log("🟢 HOME PAGE PROPS ADS:", advertisements);
-  console.log("🟢 HOME PAGE PROPS SHOPS:", shops);
 
   /* ======================================================
      ADS — BADGE BASED
   ====================================================== */
   const badgeAds = advertisements.filter((ad: any) => {
-    return (
-      !!ad.badges ||
-      ad.featured === true ||
-      ad.sponsored === true
-    );
+    return !!ad.badges || ad.featured === true || ad.sponsored === true;
   });
-  console.log("⭐ BADGE ADS:", badgeAds);
 
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
@@ -67,7 +54,6 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   const badgeShops = shops.filter((shop: any) => {
     return !!shop.badges;
   });
-  console.log("⭐ BADGE SHOPS:", badgeShops);
 
   /* ======================================================
      CATEGORIES — BUSINESS ONLY
@@ -75,7 +61,6 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   useEffect(() => {
     async function loadCategories() {
       const res = await categoryApi.getAll();
-      console.log("📦 CATEGORY API RAW:", res);
 
       const list = res?.data || res || [];
       const businessOnly = list.filter(
@@ -103,16 +88,19 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
   ====================================================== */
   return (
     <div className="h-screen flex flex-col bg-[#F7F9FC] dark:bg-[#0B0F1A]">
-      <div style={{ padding: "10px" }}> <SmartSearchBarWithImages placeholder={t('searchPlaceholder')} /></div>
+      <div style={{ padding: "10px" }}>
+        {" "}
+        <SmartSearchBarWithImages placeholder={t("searchPlaceholder")} />
+      </div>
 
-
-      <div> <WeatherWidget /></div>
-
+      <div>
+        {" "}
+        <WeatherWidget />
+      </div>
 
       {/* CONTENT */}
       <ScrollArea className="flex-1">
         <div className="pb-28">
-
           {/* BANNER */}
           <section className="py-6 bg-white dark:bg-[#0F172A]">
             <BannerCarousel />
@@ -207,12 +195,12 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                           {title}
                         </h3>
 
-                     {place && (
-  <div className="mt-2 flex items-center gap-1.5 text-sm text-black dark:text-gray-300">
-    <MapPin className="w-4 h-4 text-black dark:text-gray-400" />
-    <span className="truncate">{place}</span>
-  </div>
-)}
+                        {place && (
+                          <div className="mt-2 flex items-center gap-1.5 text-sm text-black dark:text-gray-300">
+                            <MapPin className="w-4 h-4 text-black dark:text-gray-400" />
+                            <span className="truncate">{place}</span>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );
@@ -230,9 +218,6 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 px-4">
                 {badgeAds.map((ad) => {
-                  console.log("🟡 RENDERING AD:", ad);
-                  console.log("🟡 AD IMAGES:", ad.images);
-
                   const img = ad.images?.[0];
 
                   return (
@@ -296,8 +281,12 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                   🚓
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Police</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">100</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Police
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    100
+                  </p>
                 </div>
                 <Badge className="bg-green-600 text-white">Call</Badge>
               </a>
@@ -311,8 +300,12 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                   🚑
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Ambulance</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">108</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Ambulance
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    108
+                  </p>
                 </div>
                 <Badge className="bg-green-600 text-white">Call</Badge>
               </a>
@@ -326,21 +319,22 @@ export function HomePage({ advertisements, shops }: HomePageProps) {
                   🚒
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">Fire Service</p>
-                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">101</p>
+                  <p className="text-sm font-medium text-gray-600 dark:text-gray-400">
+                    Fire Service
+                  </p>
+                  <p className="text-2xl font-bold text-gray-900 dark:text-gray-100">
+                    101
+                  </p>
                 </div>
                 <Badge className="bg-green-600 text-white">Call</Badge>
               </a>
             </div>
           </section>
-
         </div>
       </ScrollArea>
 
       <FloatingAddButton />
       <QuickAddDialog open={showAddDialog} onOpenChange={setShowAddDialog} />
-
-
     </div>
   );
 }

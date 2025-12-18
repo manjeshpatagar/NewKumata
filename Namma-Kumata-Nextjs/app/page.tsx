@@ -13,23 +13,17 @@ export default async function Home() {
     const adsRes = await advertisementApi.getAll();
     const shopsRes = await productApi.getAll();
 
-    console.log("SERVER ADS RESPONSE 👉", adsRes);
-    console.log("SERVER SHOPS RESPONSE 👉", shopsRes);
-
     ads = adsRes?.data || [];
     shops = shopsRes?.data || [];
   } catch (err) {
     console.error("❌ Home fetch failed", err);
   }
 
-  console.log("SERVER FINAL ADS 👉", ads.length);
-  console.log("SERVER FINAL SHOPS 👉", shops.length);
-
   return (
     <>
-  <AppHeader/>
+      <AppHeader />
       <HomePage advertisements={ads} shops={shops} />
-    
+
       <BottomNav />
     </>
   );
