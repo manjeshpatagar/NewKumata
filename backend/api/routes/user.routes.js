@@ -6,20 +6,35 @@ import {
   deactivate,
   updateProfile,
 } from "../controllers/user.controller.js";
+
 import { protect, adminOnly } from "../middleware/auth.middleware.js";
 import { uploadedImages } from "../middleware/upload.middleware.js";
 
+import validate from "../validators/validators.js";
+import {
+  registerValidator,
+  loginValidator,
+  updateProfileValidator,
+} from "../validators/user.validator.js";
+
 const router = express.Router();
 
-// Public
-router.post("/register", register);
-router.post("/login", login);
+/* -------- Public -------- */
+router.post("/register", registerValidator, validate, register);
+router.post("/login", loginValidator, validate, login);
 
-// Protected
-router.patch("/update", protect, uploadedImages, updateProfile);
+/* -------- Protected -------- */
+router.patch(
+  "/update",
+  protect,
+  uploadedImages,
+  updateProfileValidator,
+  validate,
+  updateProfile
+);
 
-// Admin
+/* -------- Admin / User -------- */
 router.get("/me", protect, getUsers);
-router.put("/:id", protect, deactivate);
+router.put("/:id", protect, adminOnly, deactivate);
 
 export default router;
