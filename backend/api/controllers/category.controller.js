@@ -10,13 +10,16 @@ import { deleteFile } from "../middleware/upload.middleware.js";
 import { Category } from "../models/category.model.js";
 
 /* -----------------------------
- 📦 Create new category (with image upload)
+ 📦 Add Category
 ----------------------------- */
 export const addCategory = asyncHandler(async (req, res) => {
-  const { name, description } = req.body;
+  const { name, description, type } = req.body;
+
+  if (!type) throw new ApiError(400, "Category type is required");
+
   const image = req.files?.image?.[0]?.url || null;
 
-  const category = await createCategory({ name, description, image });
+  const category = await createCategory({ name, description, type, image });
 
   res.status(201).json({
     success: true,
@@ -26,7 +29,7 @@ export const addCategory = asyncHandler(async (req, res) => {
 });
 
 /* -----------------------------
- 📋 Get all categories
+ 📋 Get All Categories (with subcategories)
 ----------------------------- */
 export const getCategories = asyncHandler(async (req, res) => {
   const categories = await getAllCategories();
@@ -38,7 +41,7 @@ export const getCategories = asyncHandler(async (req, res) => {
 });
 
 /* -----------------------------
- 🔍 Get single category
+ 🔍 Get Single Category (with subcategories)
 ----------------------------- */
 export const getCategory = asyncHandler(async (req, res) => {
   const category = await getCategoryById(req.params.id);
@@ -46,29 +49,26 @@ export const getCategory = asyncHandler(async (req, res) => {
 });
 
 /* -----------------------------
- ✏️ Update category (replace image if new one uploaded)
+ ✏️ Edit Category (image replace)
 ----------------------------- */
 export const editCategory = asyncHandler(async (req, res) => {
-  const { name, description, isActive } = req.body;
+  const { name, description, type, isActive } = req.body;
 
   const category = await Category.findById(req.params.id);
-  if (!category) {
-    res.status(404).json({ success: false, message: "Category not found" });
-    return;
-  }
+  if (!category) throw new ApiError(404, "Category not found");
 
   let image = category.image;
   const newImage = req.files?.image?.[0]?.url;
 
-  // Replace old image if new uploaded
   if (newImage) {
-    await deleteFile(category.image); // delete old from IMGBB
+    if (category.image) await deleteFile(category.image);
     image = newImage;
   }
 
   const updated = await updateCategory(req.params.id, {
     name,
     description,
+    type,
     image,
     isActive,
   });
@@ -81,17 +81,17 @@ export const editCategory = asyncHandler(async (req, res) => {
 });
 
 /* -----------------------------
- 🗑️ Delete category (delete image too)
+ 🗑️ Delete Category + Subcategories
 ----------------------------- */
 export const removeCategory = asyncHandler(async (req, res) => {
   const category = await getCategoryById(req.params.id);
 
-  if (category.image) await deleteFile(category.image); // remove from IMGBB
+  if (category.image) await deleteFile(category.image);
 
   await deleteCategory(req.params.id);
 
   res.status(200).json({
     success: true,
-    message: "Category deleted successfully",
+    message: "Category & subcategories deleted successfully",
   });
 });

@@ -1,7 +1,5 @@
 import mongoose from "mongoose";
 import bcrypt from "bcryptjs";
-import jwt from "jsonwebtoken";
-import { config } from "../config/index.js";
 
 const userSchema = new mongoose.Schema(
   {
@@ -9,6 +7,8 @@ const userSchema = new mongoose.Schema(
     email: { type: String, required: true, unique: true, lowercase: true },
     password: { type: String, required: true, minlength: 6 },
     phoneNumber: { type: String },
+    bio: { type: String, default: "" },
+    avatarUrl: { type: String, default: "" },
     role: {
       type: String,
       enum: ["admin", "user"],

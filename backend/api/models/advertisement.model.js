@@ -4,31 +4,28 @@ const advertisementSchema = new mongoose.Schema(
   {
     title: { type: String, required: true },
     category: { type: mongoose.Schema.Types.ObjectId, ref: "Category" },
-    adtype: { type: String },
+    images: [String],
+    video: { type: String },
+    price: { type: Number },
     description: { type: String },
     address: { type: String },
     location: { type: String },
-    price: { type: Number },
-    image: [String],
-    video: { type: String },
-    status: {
-      type: String,
-      enum: ["pending", "approved", "rejected", "active"],
-      default: "pending",
+    addetails: {
+      detailTitle: { type: String },
+      detailInfo1: { type: String },
+      detailInfo2: { type: String },
+      detailInfo3: { type: String },
+      detailInfo4: { type: String },
     },
-    type: {
-      type: String,
-      enum: ["featured", "sponsored", "normal"],
-      default: "normal",
+    contactinfo: {
+      phone: { type: String },
+      email: { type: String },
+      whatsapp: { type: String },
     },
-    durationDays: { type: Number, required: true }, // how long ad is visible
-    user: { type: mongoose.Schema.Types.ObjectId, ref: "User" },
-    paymentStatus: {
+    badges: {
       type: String,
-      enum: ["pending", "paid", "failed", "not_required"],
-      default: "pending",
+      enum: ["upcoming", "popular", "featured", "new", "trending", "exclusive"],
     },
-    merchantTransactionId: { type: String },
     activatedAt: { type: Date }, // <— Track activation date
   },
   { timestamps: true }

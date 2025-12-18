@@ -1,29 +1,27 @@
+'use client';
+
 import { useState } from 'react';
-import { Eye, EyeOff, User, Mail, Lock, ArrowLeft, UserPlus } from 'lucide-react';
+import { Eye, EyeOff, User, Mail, Lock, ArrowLeft } from 'lucide-react';
 import { Button } from '../ui/button';
 import { Input } from '../ui/input';
 import { NammaKumtaLogo } from '../NammaKumtaLogo';
-import { useLanguage } from '../../contexts/LanguageContext';
 import { useAuth } from '../../contexts/AuthContext';
-import { motion } from 'motion/react';
 import { toast } from 'sonner';
 
-interface RegisterScreenProps {
-  onNavigate: (page: string) => void;
-}
-
-export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
+export function RegisterScreen({ onNavigate }: { onNavigate: (page: string) => void }) {
   const { register } = useAuth();
+
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [showConfirm, setShowConfirm] = useState(false);
 
   const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    password: '',
-    confirmPassword: '',
-    role: 'user' as 'user' | 'shopowner',
+    name: "",
+    email: "",
+    password: "",
+    confirmPassword: "",
+    role: "user",
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -34,23 +32,14 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
       return;
     }
 
-    if (formData.password.length < 6) {
-      toast.error("Password must be at least 6 characters");
-      return;
-    }
-
     try {
       setLoading(true);
-
-      const payload = {
+      await register({
         name: formData.name,
         email: formData.email,
         password: formData.password,
         role: formData.role,
-      };
-
-      await register(payload);
-
+      });
       toast.success("Account created successfully!");
       onNavigate("login");
     } catch (err: any) {
@@ -61,107 +50,128 @@ export function RegisterScreen({ onNavigate }: RegisterScreenProps) {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-orange-500 to-blue-600 flex items-center justify-center p-4">
+    <div className="min-h-screen bg-gray-100 flex items-center justify-center p-4">
       <div className="w-full max-w-md">
-        
+
         {/* Back Button */}
         <button
           onClick={() => onNavigate("login")}
-          className="flex items-center gap-2 text-white mb-4"
+          className="flex items-center gap-2 text-gray-700 mb-4"
         >
-          <ArrowLeft className="w-5 h-5" />
+          <ArrowLeft size={20} />
           Back to Login
         </button>
 
         {/* Card */}
-        <div className="bg-white dark:bg-gray-900 rounded-2xl shadow-xl p-6">
-          
-          <div className="text-center mb-6">
+        <div className="bg-white rounded-2xl shadow-xl p-8">
+
+          {/* Logo */}
+          <div className="text-center mb-8">
             <NammaKumtaLogo size="lg" />
-            <h1 className="text-2xl font-bold mt-2">Create Account</h1>
+            <h1 className="text-2xl font-bold mt-3">Create Account</h1>
           </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            
+          <form onSubmit={handleSubmit} className="space-y-5">
+
             {/* Full Name */}
             <div>
-              <label className="text-sm mb-1 block">Full Name</label>
-              <Input
-                type="text"
-                placeholder="Enter your name"
-                value={formData.name}
-                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                required
-              />
+              <label className="text-sm font-medium">Full Name</label>
+              <div className="relative mt-1">
+                <User className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  className="pl-10"
+                  type="text"
+                  placeholder="Enter your name"
+                  value={formData.name}
+                  onChange={(e) =>
+                    setFormData({ ...formData, name: e.target.value })
+                  }
+                  required
+                />
+              </div>
             </div>
 
             {/* Email */}
             <div>
-              <label className="text-sm mb-1 block">Email</label>
-              <Input
-                type="email"
-                placeholder="Enter your email"
-                value={formData.email}
-                onChange={(e) =>
-                  setFormData({ ...formData, email: e.target.value })
-                }
-                required
-              />
+              <label className="text-sm font-medium">Email</label>
+              <div className="relative mt-1">
+                <Mail className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+                <Input
+                  className="pl-10"
+                  type="email"
+                  placeholder="Enter your email"
+                  value={formData.email}
+                  onChange={(e) =>
+                    setFormData({ ...formData, email: e.target.value })
+                  }
+                  required
+                />
+              </div>
             </div>
 
             {/* Password */}
             <div>
-              <label className="text-sm mb-1 block">Password</label>
-              <div className="relative">
+              <label className="text-sm font-medium">Password</label>
+              <div className="relative mt-1">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+
                 <Input
+                  className="pl-10 pr-10"
                   type={showPassword ? "text" : "password"}
                   placeholder="Create password"
                   value={formData.password}
                   onChange={(e) =>
                     setFormData({ ...formData, password: e.target.value })
                   }
+                  required
                 />
+
+                {/* Eye Icon */}
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-2 text-gray-500"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
                 >
-                  {showPassword ? <EyeOff /> : <Eye />}
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
             {/* Confirm Password */}
             <div>
-              <label className="text-sm mb-1 block">Confirm Password</label>
-              <div className="relative">
+              <label className="text-sm font-medium">Confirm Password</label>
+              <div className="relative mt-1">
+                <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" size={18} />
+
                 <Input
-                  type={showConfirmPassword ? "text" : "password"}
+                  className="pl-10 pr-10"
+                  type={showConfirm ? "text" : "password"}
                   placeholder="Confirm password"
                   value={formData.confirmPassword}
                   onChange={(e) =>
                     setFormData({ ...formData, confirmPassword: e.target.value })
                   }
+                  required
                 />
+
+                {/* Eye Icon */}
                 <button
                   type="button"
-                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                  className="absolute right-3 top-2 text-gray-500"
+                  onClick={() => setShowConfirm(!showConfirm)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-600"
                 >
-                  {showConfirmPassword ? <EyeOff /> : <Eye />}
+                  {showConfirm ? <EyeOff size={18} /> : <Eye size={18} />}
                 </button>
               </div>
             </div>
 
-            {/* Submit */}
-            <Button disabled={loading} type="submit" className="w-full">
+            {/* Submit Button */}
+            <Button disabled={loading} type="submit" className="w-full h-12">
               {loading ? "Creating..." : "Create Account"}
             </Button>
-
           </form>
 
         </div>
-
       </div>
     </div>
   );

@@ -1,12 +1,14 @@
 import { asyncHandler } from "../utils/asyncHandler.js";
 import { ApiError } from "../utils/ApiError.js";
-import { User } from "../models/user.model.js";
+import { deleteFile } from "../middleware/upload.middleware.js";
 import { generateToken } from "../utils/generateToken.js";
 import {
   findUserByEmail,
   registerUser,
   getAllUsers,
   deactivateUser,
+  getUserById,
+  updateUserById,
 } from "../services/user.service.js";
 
 /* -----------------------------
@@ -65,8 +67,23 @@ export const login = asyncHandler(async (req, res) => {
  👥 Get All Users (Admin)
 ----------------------------- */
 export const getUsers = asyncHandler(async (req, res) => {
-  const users = await getAllUsers();
-  res.status(200).json({ success: true, data: users });
+  if (req.user.role === "admin") {
+    const users = await getAllUsers();
+    return res.status(200).json({
+      success: true,
+      isAdmin: true,
+      count: users.length,
+      data: users,
+    });
+  }
+  // Normal user → only their own data
+  const user = await getUserById(req.user._id);
+
+  return res.status(200).json({
+    success: true,
+    isAdmin: false,
+    data: user,
+  });
 });
 
 /* -----------------------------
@@ -82,9 +99,37 @@ export const deactivate = asyncHandler(async (req, res) => {
 });
 
 /* -----------------------------
- 👤 Profile (Self)
+ 👤 Update Profile (with image replace)
 ----------------------------- */
-export const getProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id).select("-password");
-  res.status(200).json({ success: true, data: user });
+export const updateProfile = asyncHandler(async (req, res) => {
+  const userId = req.user._id;
+
+  // Fetch existing user details
+  const user = await getUserById(userId);
+
+  let image = user.avatarUrl;
+  const newImage = req.files?.image?.[0]?.url; // from IMGBB uploader
+
+  // Replace old image if new image uploaded
+  if (newImage) {
+    if (user.avatarUrl) {
+      await deleteFile(user.avatarUrl); // delete from IMGBB
+    }
+    image = newImage;
+  }
+
+  // Prepare fields to update
+  const updates = {
+    ...req.body,
+    avatarUrl: image,
+  };
+
+  // Update user with service (handles password hashing)
+  const updatedUser = await updateUserById(userId, updates);
+
+  res.status(200).json({
+    success: true,
+    message: "Profile updated successfully",
+    data: updatedUser,
+  });
 });
