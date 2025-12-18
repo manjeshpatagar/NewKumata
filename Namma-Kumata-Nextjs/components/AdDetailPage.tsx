@@ -14,6 +14,7 @@ import {
   Star,
   ChevronLeft,
   ChevronRight,
+  Mail,
 } from "lucide-react";
 import { Badge } from "./ui/badge";
 import { ScrollArea } from "./ui/scroll-area";
@@ -29,7 +30,7 @@ interface AdDetailPageProps {
   moreAds: any[];
 }
 
-export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
+export function AdDetailPage({ ad, moreAds }: AdDetailPageProps) {
   const router = useRouter();
   const { isFavorite, toggleFavorite, getFavouriteId, removeFavorite } =
     useFavorites();
@@ -40,6 +41,12 @@ export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
 
   const images = ad.images || [];
   const video = ad.video || null;
+
+  // ✅ ADDED (visibility fix)
+  const phone = ad?.contactinfo?.phone;
+  const whatsapp = ad?.contactinfo?.whatsapp;
+  const email = ad?.contactinfo?.email;
+
 
   /* -------------------------
        FAVORITE HANDLER
@@ -55,9 +62,7 @@ export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
 
     try {
       if (!isFavorite(refId)) {
-        // ⭐ ADD Favourite (Advertisement)
         const res = await favouriteApi.addAdvertisement(refId);
-
         const favouriteId = res.data?.data?._id || res.data?._id;
         if (!favouriteId) return toast.error("Failed to add favourite");
 
@@ -70,12 +75,10 @@ export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
 
         toast.success("Added to favourites");
       } else {
-        // ⭐ REMOVE Favourite
         const favouriteId = getFavouriteId(refId);
         if (!favouriteId) return toast.error("Favourite not found");
 
         await favouriteApi.remove(favouriteId);
-
         removeFavorite(favouriteId);
 
         toast.success("Removed from favourites");
@@ -86,39 +89,26 @@ export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
   };
 
   /* -------------------------
-       SHARE HANDLERS
-  ---------------------------- */
-  const shareUrl = typeof window !== "undefined" ? window.location.href : "";
-  const shareText = `${ad.title} - Found on Namma Kumta`;
-
-  const handleCopyLink = () => {
-    navigator.clipboard.writeText(shareUrl);
-    toast.success("Link copied!");
-    setShowShareMenu(false);
-  };
-
-  /* -------------------------
        CONTACT
   ---------------------------- */
   const handleCall = () => {
-    if (ad.phone) window.open(`tel:${ad.phone}`);
+    if (!phone) return toast.error("Phone number not available");
+    window.open(`tel:${phone}`);
   };
-
+  const handleEmail = () => {
+    if (!email) return toast.error("Email not available");
+    window.open(`mailto:${email}?subject=Regarding ${ad.title}`);
+  };
   const handleWhatsApp = () => {
-    const phone = ad.whatsapp || ad.phone;
-    if (!phone) return toast.error("No WhatsApp number available");
+    const number = whatsapp || phone;
+    if (!number) return toast.error("WhatsApp number not available");
 
     const msg = encodeURIComponent(
       `Hi! I'm interested in your ad: ${ad.title}`
     );
-    window.open(`https://wa.me/${phone.replace(/\D/g, "")}?text=${msg}`);
+    window.open(`https://wa.me/${number.replace(/\D/g, "")}?text=${msg}`);
   };
 
-  const relatedAds = ad.similarAds || ad.relatedAds || [];
-
-  /* -------------------------
-       UI
-  ---------------------------- */
   return (
     <div className="h-screen flex flex-col bg-white dark:bg-gray-950">
       {/* HEADER */}
@@ -134,11 +124,10 @@ export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
         <div className="flex gap-5">
           <button onClick={handleFavoriteClick}>
             <Heart
-              className={`w-6 h-6 ${
-                isFavorite(ad._id)
-                  ? "fill-red-500 text-red-500"
-                  : "text-gray-600"
-              }`}
+              className={`w-6 h-6 ${isFavorite(ad._id)
+                ? "fill-red-500 text-red-500"
+                : "text-gray-600"
+                }`}
             />
           </button>
 
@@ -146,242 +135,218 @@ export function AdDetailPage({ ad ,moreAds }: AdDetailPageProps) {
             <Share2 className="w-6 h-6" />
           </button>
         </div>
-
-        {showShareMenu && (
-          <div className="absolute right-4 top-16 bg-white dark:bg-gray-900 p-3 rounded-xl shadow-lg border dark:border-gray-700 w-44 space-y-3 z-50">
-            <button
-              className="flex items-center gap-2"
-              onClick={() =>
-                window.open(
-                  `https://wa.me/?text=${encodeURIComponent(
-                    `${shareText} ${shareUrl}`
-                  )}`
-                )
-              }
-            >
-              <MessageCircle className="w-4 h-4 text-green-600" />
-              WhatsApp
-            </button>
-
-            <button
-              className="flex items-center gap-2"
-              onClick={() =>
-                window.open(
-                  `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(
-                    shareUrl
-                  )}`
-                )
-              }
-            >
-              <Facebook className="w-4 h-4 text-blue-600" />
-              Facebook
-            </button>
-
-            <button
-              className="flex items-center gap-2"
-              onClick={() =>
-                window.open(
-                  `https://twitter.com/intent/tweet?text=${encodeURIComponent(
-                    shareText
-                  )}&url=${encodeURIComponent(shareUrl)}`
-                )
-              }
-            >
-              <Twitter className="w-4 h-4 text-sky-600" />
-              Twitter
-            </button>
-
-            <button
-              className="flex items-center gap-2"
-              onClick={handleCopyLink}
-            >
-              <Copy className="w-4 h-4" />
-              Copy Link
-            </button>
-          </div>
-        )}
       </div>
 
       {/* BODY */}
-<ScrollArea className="flex-1">
-  <div className="max-w-7xl mx-auto px-4 pb-24">
-    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <ScrollArea className="flex-1">
+        <div className="max-w-7xl mx-auto px-4 pb-24">
+          <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 
-      {/* ================= LEFT : MAIN AD ================= */}
-      <div className="lg:col-span-2">
-        {/* MEDIA */}
-        <div className="relative h-64 sm:h-80 md:h-96 bg-gray-200 dark:bg-gray-900 rounded-xl overflow-hidden">
-          {video ? (
-            <video src={video} controls className="w-full h-full object-cover" />
-          ) : images.length > 0 ? (
-            <>
-              <ImageWithFallback
-                src={images[currentImageIndex]}
-                alt={ad.title}
-                className="w-full h-full object-cover"
-              />
+            {/* ================= LEFT : MAIN AD ================= */}
+            <div className="lg:col-span-2">
+              {/* MEDIA */}
+              <div className="relative h-64 sm:h-80 md:h-96 bg-gray-200 dark:bg-gray-900 rounded-xl overflow-hidden">
+                {video ? (
+                  <video src={video} controls className="w-full h-full object-cover" />
+                ) : images.length > 0 ? (
+                  <>
+                    <ImageWithFallback
+                      src={images[currentImageIndex]}
+                      alt={ad.title}
+                      className="w-full h-full object-cover"
+                    />
 
-              {images.length > 1 && (
-                <>
+                    {images.length > 1 && (
+                      <>
+                        <button
+                          onClick={() =>
+                            setCurrentImageIndex(
+                              currentImageIndex === 0
+                                ? images.length - 1
+                                : currentImageIndex - 1
+                            )
+                          }
+                          className="absolute left-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                        >
+                          <ChevronLeft />
+                        </button>
+
+                        <button
+                          onClick={() =>
+                            setCurrentImageIndex(
+                              currentImageIndex === images.length - 1
+                                ? 0
+                                : currentImageIndex + 1
+                            )
+                          }
+                          className="absolute right-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                        >
+                          <ChevronRight />
+                        </button>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-gray-500">
+                    No Media
+                  </div>
+                )}
+              </div>
+
+              {/* DETAILS */}
+              <div
+                className={`
+    mt-4 space-y-4 rounded-2xl p-4 sm:p-6 bg-white dark:bg-gray-900
+    border transition-all duration-300 hover:shadow-lg hover:-translate-y-[2px]
+    ${ad.badges === "featured"
+                    ? "border-transparent bg-gradient-to-r from-yellow-400/20 via-orange-400/20 to-pink-400/20"
+                    : "border-gray-200 dark:border-gray-800"
+                  }
+  `}
+              >
+                {/* TITLE + PRICE */}
+                <div className="flex items-start justify-between gap-3">
+                  <h2 className="text-2xl font-semibold text-gray-900 dark:text-white">
+                    {ad.title}
+                  </h2>
+
+                  {ad.price && (
+                    <span className="shrink-0 bg-blue-600 text-white text-sm font-semibold px-3 py-1.5 rounded-full">
+                      {ad.price}
+                    </span>
+                  )}
+                </div>
+
+                {/* BADGES */}
+                <div className="flex gap-2 flex-wrap">
+                  <Badge className="bg-blue-600 text-white">
+                    {ad.category?.name}
+                  </Badge>
+
+                  {ad.badges === "featured" && (
+                    <Badge className="bg-yellow-500 text-white flex items-center gap-1">
+                      <Star className="w-3 h-3" /> Featured
+                    </Badge>
+                  )}
+                </div>
+
+                {/* DIVIDER */}
+                <div className="border-t border-gray-200 dark:border-gray-800" />
+
+                {/* DESCRIPTION */}
+                <p className="text-gray-700 dark:text-gray-300 break-words whitespace-pre-line overflow-hidden leading-relaxed">
+                  {ad.description}
+                </p>
+
+                {/* DIVIDER */}
+                <div className="border-t border-gray-200 dark:border-gray-800" />
+
+                {/* LOCATION */}
+                <p className="flex items-center gap-2 text-gray-500 text-sm">
+                  <MapPin className="w-4 h-4" />
+                  {ad.location}
+                </p>
+              </div>
+
+
+              {/* CONTACT */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
+                {phone && (
                   <button
-                    onClick={() =>
-                      setCurrentImageIndex(
-                        currentImageIndex === 0
-                          ? images.length - 1
-                          : currentImageIndex - 1
-                      )
-                    }
-                    className="absolute left-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                    onClick={handleCall}
+                    className="bg-blue-600 text-white py-3 rounded-lg flex items-center justify-center gap-2"
                   >
-                    <ChevronLeft />
+                    <Phone className="w-4 h-4" />
+                    Call: {phone}
                   </button>
+                )}
 
+                {(whatsapp || phone) && (
                   <button
-                    onClick={() =>
-                      setCurrentImageIndex(
-                        currentImageIndex === images.length - 1
-                          ? 0
-                          : currentImageIndex + 1
-                      )
-                    }
-                    className="absolute right-3 top-1/2 -translate-y-1/2 bg-white p-2 rounded-full shadow"
+                    onClick={handleWhatsApp}
+                    className="bg-green-600 text-white py-3 rounded-lg flex items-center justify-center gap-2"
                   >
-                    <ChevronRight />
+                    <MessageCircle className="w-4 h-4" />
+                    WhatsApp
                   </button>
-                </>
+                )}
+                {email && (
+                  <button
+                    onClick={handleEmail}
+                    className="bg-gray-800 text-white py-3 rounded-lg flex items-center justify-center gap-2"
+                  >
+                    <Mail className="w-4 h-4" />
+                    Email
+                  </button>
+                )}
+              </div>
+
+              {/* ================= MOBILE : MORE ADS ================= */}
+              {moreAds.length > 0 && (
+                <div className="mt-8 lg:hidden">
+                  <h3 className="text-lg font-semibold mb-3">More Ads</h3>
+                  <div className="flex gap-4 overflow-x-auto scrollbar-hide">
+                    {moreAds.map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => router.push(`/ads/${item._id}`)}
+                        className="min-w-[220px] border rounded-xl overflow-hidden cursor-pointer"
+                      >
+                        <ImageWithFallback
+                          src={item.images?.[0]}
+                          alt={item.title}
+                          className="h-32 w-full object-cover"
+                        />
+                        <div className="p-2">
+                          <p className="font-medium text-sm line-clamp-1">
+                            {item.title}
+                          </p>
+                          <p className="text-blue-600 text-sm">
+                            {item.price || "Contact"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
               )}
-            </>
-          ) : (
-            <div className="flex items-center justify-center h-full text-gray-500">
-              No Media
             </div>
-          )}
-        </div>
 
-        {/* DETAILS */}
-        <div className="mt-4 space-y-3">
-          <h2 className="text-2xl font-semibold">{ad.title}</h2>
-
-          <div className="flex gap-2 flex-wrap">
-            <Badge className="bg-blue-600 text-white">
-              {ad.category?.name}
-            </Badge>
-
-            {ad.badges === "featured" && (
-              <Badge className="bg-yellow-500 text-white flex items-center gap-1">
-                <Star className="w-3 h-3" /> Featured
-              </Badge>
+            {/* ================= DESKTOP : MORE ADS ================= */}
+            {moreAds.length > 0 && (
+              <div className="hidden lg:block">
+                <div className="sticky top-24">
+                  <h3 className="text-lg font-semibold mb-4">More Ads</h3>
+                  <div className="space-y-4">
+                    {moreAds.map((item) => (
+                      <div
+                        key={item._id}
+                        onClick={() => router.push(`/ads/${item._id}`)}
+                        className="border rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition"
+                      >
+                        <ImageWithFallback
+                          src={item.images?.[0]}
+                          alt={item.title}
+                          className="h-36 w-full object-cover"
+                        />
+                        <div className="p-3">
+                          <p className="font-medium line-clamp-1">
+                            {item.title}
+                          </p>
+                          <p className="text-blue-600 text-sm">
+                            {item.price || "Contact"}
+                          </p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
             )}
-          </div>
 
-          {ad.price && (
-            <p className="text-3xl font-bold text-blue-600">{ad.price}</p>
-          )}
-
-          <p className="text-gray-700 dark:text-gray-300">
-            {ad.description}
-          </p>
-
-          <p className="flex items-center gap-2 text-gray-500">
-            <MapPin className="w-4 h-4" /> {ad.location}
-          </p>
-
-          <p className="text-sm text-gray-400">
-            Posted on {new Date(ad.createdAt).toLocaleDateString()}
-          </p>
-        </div>
-
-        {/* CONTACT */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-6">
-          <button
-            onClick={handleCall}
-            className="bg-blue-600 text-white py-3 rounded-lg"
-          >
-            Call Now
-          </button>
-
-          <button
-            onClick={handleWhatsApp}
-            className="bg-green-600 text-white py-3 rounded-lg"
-          >
-            WhatsApp
-          </button>
-        </div>
-
-        {/* ================= MOBILE : MORE ADS ================= */}
-        {moreAds.length > 0 && (
-          <div className="mt-8 lg:hidden">
-            <h3 className="text-lg font-semibold mb-3">More Ads</h3>
-
-            <div className="flex gap-4 overflow-x-auto scrollbar-hide">
-              {moreAds.map((item) => (
-                <div
-                  key={item._id}
-                  onClick={() => router.push(`/ads/${item._id}`)}
-                  className="min-w-[220px] border rounded-xl overflow-hidden cursor-pointer"
-                >
-                  <ImageWithFallback
-                    src={item.images?.[0]}
-                    alt={item.title}
-                    className="h-32 w-full object-cover"
-                  />
-                  <div className="p-2">
-                    <p className="font-medium text-sm line-clamp-1">
-                      {item.title}
-                    </p>
-                    <p className="text-blue-600 text-sm">
-                      {item.price || "Contact"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Read more →
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-      </div>
-
-      {/* ================= DESKTOP : MORE ADS ================= */}
-      {moreAds.length > 0 && (
-        <div className="hidden lg:block">
-          <div className="sticky top-24">
-            <h3 className="text-lg font-semibold mb-4">More Ads</h3>
-
-            <div className="space-y-4">
-              {moreAds.map((item) => (
-                <div
-                  key={item._id}
-                  onClick={() => router.push(`/ads/${item._id}`)}
-                  className="border rounded-xl overflow-hidden cursor-pointer hover:shadow-md transition"
-                >
-                  <ImageWithFallback
-                    src={item.images?.[0]}
-                    alt={item.title}
-                    className="h-36 w-full object-cover"
-                  />
-                  <div className="p-3">
-                    <p className="font-medium line-clamp-1">
-                      {item.title}
-                    </p>
-                    <p className="text-blue-600 text-sm">
-                      {item.price || "Contact"}
-                    </p>
-                    <p className="text-xs text-gray-500 mt-1">
-                      Read more →
-                    </p>
-                  </div>
-                </div>
-              ))}
-            </div>
           </div>
         </div>
-      )}
-    </div>
-  </div>
-</ScrollArea>
-
+      </ScrollArea>
     </div>
   );
 }
