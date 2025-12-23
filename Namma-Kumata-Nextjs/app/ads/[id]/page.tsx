@@ -49,6 +49,7 @@ const moreAds =
     ? sameCategoryAds.slice(0, 8)
     : otherAds.slice(0, 8);
 
+    console.log("➡️ moreAds:", ad);
 return (
   <>
 <AdDetailPage ad={ad} moreAds={moreAds} />

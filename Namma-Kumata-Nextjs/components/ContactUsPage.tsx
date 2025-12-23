@@ -63,7 +63,7 @@ export function ContactUsPage() {
                     {language === 'en' ? 'Phone' : 'ಫೋನ್'}
                   </h3>
                   <a href="tel:+918386255555" className="text-sm md:text-base text-blue-600 dark:text-blue-400 hover:underline block truncate">
-                    +91 83862 55555
+                    +91 97406 31908
                   </a>
                 </div>
                 <Button

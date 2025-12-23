@@ -19,7 +19,7 @@ export function AddAdvertisementPage() {
   const { t } = useLanguage();
 
   const handleWhatsAppClick = () => {
-    const phoneNumber = '919876543210'; // Replace with actual admin WhatsApp number
+    const phoneNumber = '919740631908'; // Replace with actual admin WhatsApp number
     const message = encodeURIComponent(
       `Hello Namma Kumta Admin Team! 👋\n\nI would like to post an advertisement.\n\nHere are the details:\n\n📌 *Category*: (e.g., Jobs, Home Rentals, Vehicles, etc.)\n📝 *Title*: \n💬 *Description*: \n💰 *Price/Budget*: \n📍 *Location*: \n📞 *Contact Number*: \n⏰ *Duration*: (e.g., 1 week, 1 month)\n\nPlease let me know the next steps!\n\nThank you! 🙏`
     );
@@ -83,7 +83,7 @@ export function AddAdvertisementPage() {
                 <div className="flex flex-col sm:flex-row items-center justify-center gap-3 sm:gap-8 text-xs sm:text-sm">
                   <div className="flex items-center gap-2">
                     <Phone className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
-                    <span>+91 98765 43210</span>
+                    <span>+91 97406 31908</span>
                   </div>
                   <div className="hidden sm:block w-px h-4 bg-white/30" />
                   <div className="text-white/80">
